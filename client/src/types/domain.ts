@@ -1,0 +1,148 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  interests?: string[];
+  skills?: string[];
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  learningPreferences?: string[];
+  goals?: string[];
+}
+
+export interface Career {
+  id: string;
+  name: string;
+  description: string;
+  skills: string[];
+  responsibilities?: string[];
+  requiredSkills?: string[];
+  learningResources?: LearningResource[];
+  environmentKey?: string;
+  vrAvailable?: boolean;
+}
+
+export interface LearningResource {
+  id?: string;
+  title: string;
+  description?: string;
+  url?: string;
+  provider?: string;
+}
+
+export type AssessmentQuestionType = 'single-choice' | 'multiple-choice' | 'scale' | 'text';
+
+export interface AssessmentOption {
+  id: string;
+  label: string;
+}
+
+export interface AssessmentQuestion {
+  id: string;
+  text: string;
+  type: AssessmentQuestionType;
+  options?: AssessmentOption[];
+  required?: boolean;
+}
+
+export interface AssessmentQuestionSet {
+  assessmentId: string;
+  questions: AssessmentQuestion[];
+}
+
+export interface AssessmentAnswer {
+  questionId: string;
+  optionId?: string;
+  optionIds?: string[];
+  value?: string | number;
+}
+
+export interface AssessmentSubmission {
+  assessmentId: string;
+  answers: AssessmentAnswer[];
+}
+
+export interface AssessmentResultSummary {
+  resultId: string;
+  completedAt: string;
+  topCareerIds: string[];
+}
+
+export interface Recommendation {
+  careerId: string;
+  career: string;
+  score: number;
+  reason: string;
+  matchedSkills: string[];
+  missingSkills: string[];
+}
+
+export interface RecommendationResponse {
+  recommendations: Recommendation[];
+}
+
+export type SkillGapStatus = 'matched' | 'partial' | 'missing';
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export interface SkillGapItem {
+  name: string;
+  status: SkillGapStatus;
+  level: SkillLevel;
+}
+
+export interface SkillGapResponse {
+  careerId: string;
+  skills: SkillGapItem[];
+}
+
+export interface RoadmapStep {
+  id: string;
+  title: string;
+  description: string;
+  skill: string;
+  order: number;
+  completed: boolean;
+}
+
+export interface RoadmapResponse {
+  careerId: string;
+  steps: RoadmapStep[];
+}
+
+export interface RoadmapStepUpdate {
+  completed: boolean;
+}
+
+export type ChatMessageRole = 'user' | 'advisor';
+
+export interface ChatMessage {
+  id?: string;
+  role: ChatMessageRole;
+  content: string;
+  createdAt: string;
+  sources?: string[];
+}
+
+export interface AdvisorChatRequest {
+  message: string;
+  careerId?: string;
+  conversationId?: string;
+}
+
+export interface AdvisorChatResponse {
+  conversationId: string;
+  answer: string;
+  sources: string[];
+  createdAt: string;
+}
+
+export interface VREnvironment {
+  key: string;
+  careerId: string;
+  title: string;
+  description: string;
+  available: boolean;
+}
+
+export interface VREnvironmentResponse {
+  environments: VREnvironment[];
+}
