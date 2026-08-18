@@ -59,14 +59,9 @@ The project uses optional local Ollama and a deterministic fallback, so no paid 
 - [ ] Choose the approved backend hosting and PostgreSQL hosting approach.
 - [ ] Create separate development and production configuration values.
 - [ ] Configure production environment variables without committing them.
-- [ ] Configure database migrations for deployment.
-- [ ] Configure seed data only for approved environments.
-- [ ] Configure build, start, health-check, and rollback procedures.
 - [ ] Deploy the API to a development or staging environment first.
 - [ ] Verify CORS and frontend-to-backend connectivity in staging.
 - [ ] Test authentication, assessment, recommendation, skill gap, roadmap, AI, and VR metadata in staging.
-- [ ] Add monitoring or at least a documented log-checking procedure.
-- [ ] Document how to restart, migrate, inspect logs, and recover the service.
 - [ ] Deploy the production API only after both members approve the staging test.
 
 ## Phase 12 — Final integration and delivery
