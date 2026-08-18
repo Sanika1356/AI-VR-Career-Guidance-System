@@ -2,6 +2,7 @@ import type { UserSummary } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
 const SESSION_STORAGE_KEY = 'pathfinder.auth.session';
+const SESSION_EXPIRED_EVENT = 'pathfinder:session-expired';
 
 export interface AuthSession {
   user: UserSummary;
@@ -34,7 +35,11 @@ export class AuthApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init: RequestInit,
+  options: { expireSessionOnUnauthorized?: boolean } = {},
+): Promise<T> {
   let response: Response;
 
   try {
@@ -54,6 +59,10 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && options.expireSessionOnUnauthorized) {
+      expireAuthSession();
+    }
+
     const payload = (await response.json().catch(() => ({}))) as ApiErrorPayload;
     throw new AuthApiError(
       payload.error ?? 'request_failed',
@@ -98,6 +107,11 @@ export function clearAuthSession(): void {
   window.dispatchEvent(new CustomEvent('pathfinder:auth-changed'));
 }
 
+export function expireAuthSession(): void {
+  clearAuthSession();
+  window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
+}
+
 export function register(input: RegisterInput): Promise<AuthSession> {
   return request<AuthSession>('/auth/register', {
     method: 'POST',
@@ -110,6 +124,27 @@ export function login(input: AuthCredentials): Promise<AuthSession> {
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+export function authenticatedRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const session = readAuthSession();
+  if (!session) {
+    return Promise.reject(
+      new AuthApiError('unauthorized', 'Your session has ended. Please sign in again.', 401),
+    );
+  }
+
+  return request<T>(
+    path,
+    {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${session.token}`,
+        ...init.headers,
+      },
+    },
+    { expireSessionOnUnauthorized: true },
+  );
 }
 
 export function isUnauthorizedError(error: unknown): boolean {

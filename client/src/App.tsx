@@ -86,7 +86,8 @@ const protectedRouteKeys = new Set<RouteKey>([
 ]);
 
 function getRoute(pathname: string): RouteState {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+  const pathOnly = pathname.split('?')[0].split('#')[0];
+  const normalizedPath = pathOnly.replace(/\/+$/, '') || '/';
 
   if (normalizedPath === '/') return { key: 'home' };
   if (normalizedPath === '/careers' || normalizedPath.startsWith('/careers/')) {
@@ -251,18 +252,34 @@ export default function App() {
 
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());
+    const handleSessionExpired = () => {
+      const currentRoute = getRoute(window.location.pathname);
+      if (!protectedRouteKeys.has(currentRoute.key)) return;
+
+      const returnTo = `${window.location.pathname}${window.location.search}`;
+      setSession(null);
+      setSessionExpired(true);
+      navigate(`/login?reason=session-expired&returnTo=${encodeURIComponent(returnTo)}`);
+    };
+
     window.addEventListener('pathfinder:auth-changed', syncSession);
+    window.addEventListener('pathfinder:session-expired', handleSessionExpired);
     window.addEventListener('storage', syncSession);
     return () => {
       window.removeEventListener('pathfinder:auth-changed', syncSession);
+      window.removeEventListener('pathfinder:session-expired', handleSessionExpired);
       window.removeEventListener('storage', syncSession);
     };
-  }, []);
+  }, [navigate]);
 
   const handleAuthSuccess = () => {
     setSession(readAuthSession());
     setSessionExpired(false);
-    navigate('/profile');
+
+    const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+    const safeReturnPath =
+      returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/profile';
+    navigate(safeReturnPath);
   };
 
   const handleSignOut = () => {
