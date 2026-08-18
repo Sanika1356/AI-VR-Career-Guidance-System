@@ -9,6 +9,7 @@ import { CareerDetailPage } from './pages/CareerDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
+import { SkillGapPage } from './pages/SkillGapPage';
 import { clearAuthSession, readAuthSession } from './services/auth';
 import { getHealth } from './services/api';
 
@@ -100,10 +101,15 @@ function getRoute(pathname: string): RouteState {
   const normalizedPath = pathOnly.replace(/\/+$/, '') || '/';
 
   if (normalizedPath === '/') return { key: 'home' };
-  if (normalizedPath === '/careers' || normalizedPath.startsWith('/careers/')) {
-    return normalizedPath === '/careers'
-      ? { key: 'careers' }
-      : { key: 'career-details', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
+  if (normalizedPath === '/careers') return { key: 'careers' };
+  if (/^\/careers\/[^/]+\/skill-gap$/.test(normalizedPath)) {
+    return { key: 'skill-gap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
+  }
+  if (normalizedPath.startsWith('/careers/')) {
+    return {
+      key: 'career-details',
+      careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? ''),
+    };
   }
 
   const key = normalizedPath.slice(1) as Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>;
@@ -260,7 +266,8 @@ export default function App() {
     route.key !== 'login' &&
     route.key !== 'profile' &&
     route.key !== 'assessment' &&
-    route.key !== 'recommendations'
+    route.key !== 'recommendations' &&
+    route.key !== 'skill-gap'
       ? routes[route.key]
       : undefined;
 
@@ -323,6 +330,9 @@ export default function App() {
       {route.key === 'profile' && session && <ProfilePage />}
       {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
       {route.key === 'recommendations' && session && <RecommendationsPage onNavigate={navigate} />}
+      {route.key === 'skill-gap' && session && (
+        <SkillGapPage careerId={route.careerId} onNavigate={navigate} />
+      )}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
       {placeholder && session && (
         <PlaceholderPage
