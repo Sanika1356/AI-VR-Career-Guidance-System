@@ -28,6 +28,12 @@ PostgreSQL and the `pg` driver are used locally. The optional AI advisor is conf
 
 `GET /api/careers` returns the seeded career summaries with stable IDs, descriptions, required skills, and optional `environmentKey` values. `GET /api/careers/:careerId` returns one career with its required skills, free learning resources, roadmap starter steps, and VR environment metadata. The catalog is seeded by `server/src/db/migrations/002_career_catalog.sql`, which is safe to apply repeatedly through the migration runner. Learning resources are public documentation or free-access learning pages and are represented with `free: true`; the server does not call a paid provider to serve the catalog.
 
+## Assessment API
+
+`GET /api/assessment/questions` requires a bearer token, creates an authenticated in-progress assessment, and returns its `assessmentId` together with ordered question and option data. The response intentionally excludes internal scoring weights. `POST /api/assessment/submit` accepts the `assessmentId` and one answer for every published question, validates question-option ownership, stores the answers, calculates deterministic career category scores, and returns `resultId`, `completedAt`, `categoryScores`, and the top career IDs. A submitted assessment cannot be submitted twice. `GET /api/assessment/results/:resultId` returns the result only when it belongs to the authenticated user.
+
+The starter questions and internal scoring weights are seeded by `server/src/db/migrations/003_assessment_seed.sql`. This migration uses local database data only and is safe to apply repeatedly through the migration runner. Scoring weights remain server-side and are never included in the public question response.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.
