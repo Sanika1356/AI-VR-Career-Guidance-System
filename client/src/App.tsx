@@ -8,6 +8,7 @@ import { CareerCatalogPage } from './pages/CareerCatalogPage';
 import { CareerDetailPage } from './pages/CareerDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { RecommendationsPage } from './pages/RecommendationsPage';
 import { clearAuthSession, readAuthSession } from './services/auth';
 import { getHealth } from './services/api';
 
@@ -258,7 +259,8 @@ export default function App() {
     route.key !== 'register' &&
     route.key !== 'login' &&
     route.key !== 'profile' &&
-    route.key !== 'assessment'
+    route.key !== 'assessment' &&
+    route.key !== 'recommendations'
       ? routes[route.key]
       : undefined;
 
@@ -320,6 +322,7 @@ export default function App() {
       )}
       {route.key === 'profile' && session && <ProfilePage />}
       {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
+      {route.key === 'recommendations' && session && <RecommendationsPage onNavigate={navigate} />}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
       {placeholder && session && (
         <PlaceholderPage
