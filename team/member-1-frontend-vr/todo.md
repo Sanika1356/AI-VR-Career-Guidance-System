@@ -19,24 +19,8 @@ This checklist covers the complete project from repository setup to final delive
 ## Phase 1 — Local setup and frontend foundation
 
 - [ ] Clone the repository and configure Git identity.
-- [ ] Create a branch named `feature/member1-frontend-foundation`.
-- [x] Initialize the React/TypeScript client inside `client/`.
 - [x] Add the agreed frontend dependencies and record them in the client package file.
 - [ ] Create the frontend environment file from `.env.example` without committing secrets.
-- [x] Add a clear start command and verify that the development server runs locally.
-- [x] Configure TypeScript and linting with strict, readable settings.
-- [ ] Configure formatting and apply it to the initial client files.
-- [x] Create the initial client folders: components, pages, features, layouts, services, types, assets, and libraries.
-- [x] Create the application entry point and root layout.
-- [x] Add a reusable page container and responsive layout system.
-- [ ] Add navigation and route placeholders for every planned screen.
-- [ ] Add a not-found page and a basic error boundary.
-- [ ] Add loading, empty, and generic error UI components.
-- [ ] Add a reusable button, input, card, modal, badge, progress bar, and notification component.
-- [ ] Create initial shared types for User, Career, AssessmentQuestion, Recommendation, SkillGapItem, RoadmapStep, ChatMessage, and VREnvironment.
-- [x] Add a frontend README with local setup and test commands.
-- [ ] Run the client build and fix all TypeScript and lint errors.
-- [ ] Commit the foundation with a focused message and open a pull request.
 
 ## Phase 2 — Design system and landing experience
 
@@ -53,10 +37,6 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 3 — Authentication and profile UI
 
-- [ ] Build the registration page with name, email, password, and validation states.
-- [ ] Build the login page with email, password, validation, and server-error states.
-- [ ] Build logout behavior.
-- [ ] Implement the client authentication state and protected-route behavior.
 - [ ] Add a session-expired state that returns the user to login safely.
 - [ ] Build the profile page.
 - [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
