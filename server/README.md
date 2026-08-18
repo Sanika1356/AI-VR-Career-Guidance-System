@@ -56,6 +56,14 @@ The advisor assembles only the authenticated user’s approved profile, latest a
 
 The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. Ollama is optional: if it is unavailable or returns an error, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
 
+## Security and quality hardening
+
+The server applies a `1mb` JSON request-size limit, disables Express fingerprinting, validates the configured CORS origin, and adds `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers without changing JSON response bodies. Authentication and advisor routes use configurable in-memory rate limits from `AUTH_RATE_LIMIT_*` and `AI_RATE_LIMIT_*`; rate-limited responses return `429` with a `Retry-After` header. These limits are appropriate for the zero-cost local MVP; a horizontally scaled deployment should use an approved shared limiter before production.
+
+Requests and unexpected server errors are logged as structured JSON containing request ID, method, path, status, duration, and safe error metadata. Request bodies, passwords, bearer tokens, provider keys, and database connection strings are not logged. Unknown errors return the same generic `500` response shape to clients.
+
+`GET /api/health` remains the lightweight API liveness endpoint with its existing response shape. `GET /api/health/dependencies` checks the PostgreSQL dependency and returns `200` with `{ "status": "ok", "service": "career-guidance-api", "database": "ok" }` when available, or `503` with the same safe shape and `database: "unavailable"` when the database is not configured or cannot be reached.
+
 ## VR environment API
 
 `GET /api/vr/environments` returns `{ "environments": [...] }` with safe metadata for the client career hub. Each item contains only `key`, `careerId`, `title`, `description`, and `available`; the server does not expose scene files, provider credentials, internal database fields, or implementation details. The endpoint is public because it serves non-sensitive catalog metadata.
