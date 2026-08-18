@@ -11,7 +11,8 @@ interface AppShellProps {
 
 const primaryLinks = [
   { href: '/assessment', label: 'Assessment' },
-  { href: '/recommendations', label: 'Career paths' },
+  { href: '/careers', label: 'Career catalog' },
+  { href: '/recommendations', label: 'Recommendations' },
   { href: '/vr', label: 'VR experience' },
 ];
 
