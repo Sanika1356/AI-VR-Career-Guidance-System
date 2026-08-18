@@ -40,6 +40,10 @@ The starter questions and internal scoring weights are seeded by `server/src/db/
 
 Recommendation rows are persisted in the `recommendations` table so later roadmap and skill-gap features can reuse the same result. No external AI provider or paid API is used for this phase. A user cannot read recommendations generated from another user’s assessment result.
 
+## Skill-gap API
+
+`GET /api/careers/:careerId/skill-gap` requires a bearer token and compares the authenticated user’s `currentSkills` profile field with the selected career’s required skills. It returns `{ careerId, skills }`, where every skill includes its display name, required level, and either `matched` or `missing` status. Unknown careers return `404`; the endpoint does not expose another user’s profile data and does not require an external API.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.

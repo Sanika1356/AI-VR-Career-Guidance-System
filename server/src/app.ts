@@ -10,6 +10,7 @@ import { profileRouter } from './routes/profile.routes.js';
 import { careerRouter } from './routes/career.routes.js';
 import { assessmentRouter } from './routes/assessment.routes.js';
 import { recommendationRouter } from './routes/recommendation.routes.js';
+import { skillGapRouter } from './routes/skill-gap.routes.js';
 
 export const app = express();
 
@@ -25,6 +26,7 @@ app.use((request, _response, next) => {
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/careers', skillGapRouter);
 app.use('/api/careers', careerRouter);
 app.use('/api/assessment', assessmentRouter);
 app.use('/api/recommendations', recommendationRouter);
