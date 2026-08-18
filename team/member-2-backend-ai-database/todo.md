@@ -65,18 +65,8 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 8 — AI career advisor
 
-- [ ] Read the selected AI provider documentation and confirm the approved server-side integration method.
 - [ ] Add the provider key and model name only through environment variables.
-- [ ] Create a server-side AI service with a narrow interface that can be tested independently.
-- [ ] Build the context assembly step using only the user's approved profile, assessment, selected career, skill gap, and roadmap data.
-- [ ] Create the system prompt and response rules for the career advisor.
-- [ ] Prevent the advisor from claiming guaranteed employment, making high-stakes decisions, or inventing unavailable user data.
 - [ ] Add input length limits, output length limits, timeout handling, retry rules, and provider-error handling.
-- [ ] Implement conversation and message persistence only if required by the agreed scope.
-- [ ] Implement `POST /api/advisor/chat` according to `docs/api.md`.
-- [ ] Return a stable response even when the provider is temporarily unavailable.
-- [ ] Add logging that excludes passwords, tokens, provider keys, and unnecessary personal data.
-- [ ] Add tests with a mocked AI provider so tests do not require live provider calls.
 - [ ] Perform a manual review of representative responses for relevance, clarity, privacy, and unsupported claims.
 - [ ] Integrate the advisor endpoint with Member 1's chatbot UI.
 

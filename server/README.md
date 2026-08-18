@@ -48,6 +48,14 @@ Recommendation rows are persisted in the `recommendations` table so later roadma
 
 `GET /api/careers/:careerId/roadmap` requires a bearer token and returns the career’s ordered roadmap steps with `id`, `title`, `description`, `skill`, `order`, and the authenticated user’s `completed` state. `PATCH /api/roadmap/:stepId` accepts only `{ "completed": boolean }` and upserts progress for the authenticated user. A user cannot update or read another user’s progress, and missing careers or roadmap steps return safe `404` responses.
 
+## AI advisor API
+
+`POST /api/advisor/chat` requires a bearer token and accepts `{ "message": string, "careerId"?: string, "conversationId"?: string }`. The message must be between 3 and 2,000 characters; unknown fields are rejected. A new conversation is created when `conversationId` is omitted. Existing conversations are checked for ownership before any message is read or written.
+
+The advisor assembles only the authenticated user’s approved profile, latest assessment summary, selected career, skill-gap information, and roadmap progress. The server-side prompt instructs the advisor to provide practical educational guidance, avoid guaranteed employment claims or high-stakes decisions, and never invent unavailable user information. Conversations and user/assistant messages are persisted in PostgreSQL for the authenticated user.
+
+The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. Ollama is optional: if it is unavailable or returns an error, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.
