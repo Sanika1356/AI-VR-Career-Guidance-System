@@ -892,6 +892,20 @@ em {
   box-shadow: 0 18px 50px rgba(32, 34, 34, 0.08);
   padding: 34px;
 }
+.auth-page__notice {
+  background: #f7eee4;
+  border: 1px solid #d0a37c;
+  color: #7f5531;
+  display: grid;
+  font-size: 13px;
+  gap: 5px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+}
+.auth-page__notice strong {
+  color: #6e4325;
+}
 .auth-form {
   display: grid;
   gap: 20px;

@@ -46,6 +46,8 @@ export function AuthPage({ mode, onNavigate, onSuccess }: AuthPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isRegister = mode === 'register';
+  const sessionExpired =
+    !isRegister && new URLSearchParams(window.location.search).get('reason') === 'session-expired';
   const title = isRegister ? 'Create your Pathfinder account' : 'Welcome back';
   const description = isRegister
     ? 'Start with a few details. Your account will become the home for your career discovery journey.'
@@ -94,6 +96,12 @@ export function AuthPage({ mode, onNavigate, onSuccess }: AuthPageProps) {
         <p>{description}</p>
       </div>
       <div className="auth-page__panel">
+        {sessionExpired && (
+          <div className="auth-page__notice" role="status">
+            <strong>Your session has ended.</strong>
+            <span>For your security, please sign in again to continue.</span>
+          </div>
+        )}
         {serverError && (
           <ErrorState
             title={isRegister ? 'We could not create your account' : 'We could not sign you in'}
