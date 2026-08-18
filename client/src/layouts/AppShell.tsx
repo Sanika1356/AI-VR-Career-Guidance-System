@@ -3,7 +3,10 @@ import type { ReactNode } from 'react';
 interface AppShellProps {
   children: ReactNode;
   currentPath: string;
+  isAuthenticated: boolean;
   onNavigate: (href: string) => void;
+  onSignOut: () => void;
+  userName?: string;
 }
 
 const primaryLinks = [
@@ -22,7 +25,14 @@ function handleNavigation(
   onNavigate(href);
 }
 
-export function AppShell({ children, currentPath, onNavigate }: AppShellProps) {
+export function AppShell({
+  children,
+  currentPath,
+  isAuthenticated,
+  onNavigate,
+  onSignOut,
+  userName,
+}: AppShellProps) {
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -52,9 +62,20 @@ export function AppShell({ children, currentPath, onNavigate }: AppShellProps) {
             </a>
           ))}
         </nav>
-        <button className="outline-button" type="button" onClick={() => onNavigate('/login')}>
-          Sign in
-        </button>
+        {isAuthenticated ? (
+          <div className="account-actions">
+            <button className="account-link" type="button" onClick={() => onNavigate('/profile')}>
+              {userName ? `Hi, ${userName.split(' ')[0]}` : 'Your profile'}
+            </button>
+            <button className="outline-button" type="button" onClick={onSignOut}>
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <button className="outline-button" type="button" onClick={() => onNavigate('/login')}>
+            Sign in
+          </button>
+        )}
       </header>
       <main>{children}</main>
       <footer className="footer">
