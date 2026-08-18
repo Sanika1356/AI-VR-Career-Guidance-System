@@ -24,6 +24,10 @@ PostgreSQL and the `pg` driver are used locally. The optional AI advisor is conf
 
 `GET /api/profile` requires `Authorization: Bearer <token>` and returns the authenticated user together with `interests`, `currentSkills`, `experience`, and `learningPreferences`. `PUT /api/profile` updates only those editable fields and performs the write inside a transaction. The server rejects unknown fields, malformed arrays, invalid emails, short passwords, missing bearer tokens, expired tokens, and tokens with invalid signatures.
 
+## Career catalog API
+
+`GET /api/careers` returns the seeded career summaries with stable IDs, descriptions, required skills, and optional `environmentKey` values. `GET /api/careers/:careerId` returns one career with its required skills, free learning resources, roadmap starter steps, and VR environment metadata. The catalog is seeded by `server/src/db/migrations/002_career_catalog.sql`, which is safe to apply repeatedly through the migration runner. Learning resources are public documentation or free-access learning pages and are represented with `free: true`; the server does not call a paid provider to serve the catalog.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.

@@ -7,6 +7,7 @@ import { requestId } from './middleware/request-id.js';
 import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { profileRouter } from './routes/profile.routes.js';
+import { careerRouter } from './routes/career.routes.js';
 
 export const app = express();
 
@@ -22,5 +23,6 @@ app.use((request, _response, next) => {
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/careers', careerRouter);
 app.use(notFound);
 app.use(errorHandler);
