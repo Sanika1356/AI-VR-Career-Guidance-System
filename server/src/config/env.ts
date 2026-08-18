@@ -5,8 +5,23 @@ function numberFromEnv(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+const nodeEnv = process.env.NODE_ENV ?? 'development';
+const authSecret = process.env.AUTH_SECRET ?? 'development-only-change-me-please-32-chars';
+
+if (nodeEnv === 'production' && !process.env.AUTH_SECRET) {
+  throw new Error('AUTH_SECRET must be configured in production');
+}
+
 export const env = {
-  nodeEnv: process.env.NODE_ENV ?? 'development',
+  nodeEnv,
   port: numberFromEnv(process.env.SERVER_PORT, 4000),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  databaseUrl: process.env.DATABASE_URL,
+  dbPoolMin: numberFromEnv(process.env.DB_POOL_MIN, 1),
+  dbPoolMax: numberFromEnv(process.env.DB_POOL_MAX, 10),
+  authSecret,
+  tokenExpirySeconds: numberFromEnv(process.env.TOKEN_EXPIRY_SECONDS, 86_400),
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.2:3b',
+  aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 30_000),
 };
