@@ -9,6 +9,7 @@ import { CareerDetailPage } from './pages/CareerDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
+import { RoadmapPage } from './pages/RoadmapPage';
 import { SkillGapPage } from './pages/SkillGapPage';
 import { clearAuthSession, readAuthSession } from './services/auth';
 import { getHealth } from './services/api';
@@ -104,6 +105,9 @@ function getRoute(pathname: string): RouteState {
   if (normalizedPath === '/careers') return { key: 'careers' };
   if (/^\/careers\/[^/]+\/skill-gap$/.test(normalizedPath)) {
     return { key: 'skill-gap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
+  }
+  if (/^\/careers\/[^/]+\/roadmap$/.test(normalizedPath)) {
+    return { key: 'roadmap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
   }
   if (normalizedPath.startsWith('/careers/')) {
     return {
@@ -267,7 +271,8 @@ export default function App() {
     route.key !== 'profile' &&
     route.key !== 'assessment' &&
     route.key !== 'recommendations' &&
-    route.key !== 'skill-gap'
+    route.key !== 'skill-gap' &&
+    route.key !== 'roadmap'
       ? routes[route.key]
       : undefined;
 
@@ -332,6 +337,9 @@ export default function App() {
       {route.key === 'recommendations' && session && <RecommendationsPage onNavigate={navigate} />}
       {route.key === 'skill-gap' && session && (
         <SkillGapPage careerId={route.careerId} onNavigate={navigate} />
+      )}
+      {route.key === 'roadmap' && session && (
+        <RoadmapPage careerId={route.careerId} onNavigate={navigate} />
       )}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
       {placeholder && session && (
