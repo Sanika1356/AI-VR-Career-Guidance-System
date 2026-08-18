@@ -72,6 +72,18 @@ The MVP seeds two high-quality environments: `ai-engineer-lab` for `career_ai_en
 
 The MVP does not record VR visits or VR progress. The client owns the 3D/VR scene and uses the environment metadata to select an experience; future progress requirements must be agreed through a backward-compatible contract change.
 
+## Deployment and operations
+
+The repository does not select a hosting provider or PostgreSQL vendor. That decision requires approval from both members and must preserve the zero-cost constraint. Until a provider is approved, the supported deployment process is provider-neutral and works with any Node.js runtime and PostgreSQL instance that can supply the documented environment variables.
+
+Build and start the server with `pnpm --dir server build` followed by `pnpm --dir server start`. Run `pnpm --dir server typecheck` and `pnpm --dir server test` before a release. Configure `NODE_ENV=production`, a strong `AUTH_SECRET`, `DATABASE_URL`, `CORS_ORIGIN` set to the deployed frontend origin, and the approved rate-limit and AI settings. Keep `RUN_SEED_DATA=false` in production unless demo seed data has been explicitly approved; local development defaults to `true`.
+
+Apply database migrations before starting the new server version with `pnpm --dir server db:migrate`. The migration runner applies each SQL file transactionally, records applied versions in `schema_migrations`, skips already-applied versions, and skips seed/catalog migrations when `RUN_SEED_DATA=false`. A failed migration exits nonzero; deployment should stop and preserve the previous healthy release rather than starting against an unknown schema.
+
+Use `GET /api/health` for a lightweight process check and `GET /api/health/dependencies` for a PostgreSQL dependency check. A restart procedure is: stop the current process gracefully with `SIGTERM`, apply approved migrations, start `node dist/server.js`, then verify both health endpoints and the frontend CORS origin. A rollback should stop the new process, restore the previous application artifact and compatible environment, and only reverse database changes through a separately reviewed migration; never edit `schema_migrations` manually.
+
+The server emits structured JSON request and error logs. Operators should retain request IDs when investigating failures, inspect status and duration fields, and avoid recording request bodies, passwords, tokens, provider keys, or database URLs. The current in-memory rate limiter is suitable for the local MVP; a multi-instance deployment requires an approved shared limiter before production scaling.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.

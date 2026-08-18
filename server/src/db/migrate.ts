@@ -1,6 +1,8 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { env } from '../config/env.js';
+import { shouldRunMigration } from './migration-policy.js';
 import { requirePool } from './pool.js';
 
 const migrationsDirectory = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
@@ -18,6 +20,10 @@ async function migrate(): Promise<void> {
 
   for (const file of migrationFiles) {
     const version = basename(file, '.sql');
+    if (!shouldRunMigration(version, env.runSeedData)) {
+      console.info(`Skipping seed migration ${version} because RUN_SEED_DATA is disabled`);
+      continue;
+    }
     const alreadyApplied = await database.query('SELECT 1 FROM schema_migrations WHERE version = $1', [version]).catch(() => null);
     if (alreadyApplied?.rowCount) {
       console.info(`Skipping applied migration ${version}`);
