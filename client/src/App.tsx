@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { StatusPill } from './components/StatusPill';
 import { AppShell } from './layouts/AppShell';
+import { AuthRequiredPage } from './pages/AuthRequiredPage';
+import { AuthPage } from './pages/AuthPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { clearAuthSession, readAuthSession } from './services/auth';
 import { getHealth } from './services/api';
 
 type RouteKey =
@@ -70,6 +73,17 @@ const routes: Record<
     description: 'Enter a desktop-friendly 3D career hub and discover immersive environments.',
   },
 };
+
+const protectedRouteKeys = new Set<RouteKey>([
+  'profile',
+  'assessment',
+  'recommendations',
+  'career-details',
+  'skill-gap',
+  'roadmap',
+  'advisor',
+  'vr',
+]);
 
 function getRoute(pathname: string): RouteState {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/';
@@ -222,23 +236,67 @@ function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
 
 export default function App() {
   const { route, navigate } = useRoute();
+  const [session, setSession] = useState(() => readAuthSession());
+  const [sessionExpired, setSessionExpired] = useState(false);
   const isHome = route.key === 'home';
+  const isProtectedRoute = protectedRouteKeys.has(route.key);
   const placeholder =
-    route.key !== 'home' && route.key !== 'not-found' && route.key !== 'career-details'
+    route.key !== 'home' &&
+    route.key !== 'not-found' &&
+    route.key !== 'career-details' &&
+    route.key !== 'register' &&
+    route.key !== 'login'
       ? routes[route.key]
       : undefined;
 
+  useEffect(() => {
+    const syncSession = () => setSession(readAuthSession());
+    window.addEventListener('pathfinder:auth-changed', syncSession);
+    window.addEventListener('storage', syncSession);
+    return () => {
+      window.removeEventListener('pathfinder:auth-changed', syncSession);
+      window.removeEventListener('storage', syncSession);
+    };
+  }, []);
+
+  const handleAuthSuccess = () => {
+    setSession(readAuthSession());
+    setSessionExpired(false);
+    navigate('/profile');
+  };
+
+  const handleSignOut = () => {
+    clearAuthSession();
+    setSessionExpired(false);
+    navigate('/');
+  };
+
   return (
-    <AppShell currentPath={window.location.pathname} onNavigate={navigate}>
+    <AppShell
+      currentPath={window.location.pathname}
+      isAuthenticated={Boolean(session)}
+      onNavigate={navigate}
+      onSignOut={handleSignOut}
+      userName={session?.user.name}
+    >
       {isHome && <HomePage onNavigate={navigate} />}
-      {placeholder && (
+      {route.key === 'register' && (
+        <AuthPage mode="register" onNavigate={navigate} onSuccess={handleAuthSuccess} />
+      )}
+      {route.key === 'login' && (
+        <AuthPage mode="login" onNavigate={navigate} onSuccess={handleAuthSuccess} />
+      )}
+      {isProtectedRoute && !session && (
+        <AuthRequiredPage onNavigate={navigate} sessionExpired={sessionExpired} />
+      )}
+      {placeholder && session && (
         <PlaceholderPage
           title={placeholder.title}
           description={placeholder.description}
           onNavigate={navigate}
         />
       )}
-      {route.key === 'career-details' && (
+      {route.key === 'career-details' && session && (
         <PlaceholderPage
           title="Career details"
           description={`A closer look at ${route.careerId?.replace(/-/g, ' ') || 'this career path'}, including skills, resources, and VR availability.`}
