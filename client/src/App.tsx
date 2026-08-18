@@ -3,9 +3,11 @@ import { StatusPill } from './components/StatusPill';
 import { AppShell } from './layouts/AppShell';
 import { AuthRequiredPage } from './pages/AuthRequiredPage';
 import { AuthPage } from './pages/AuthPage';
+import { AdvisorPage } from './pages/AdvisorPage';
 import { AssessmentPage } from './pages/AssessmentPage';
 import { CareerCatalogPage } from './pages/CareerCatalogPage';
 import { CareerDetailPage } from './pages/CareerDetailPage';
+import { VRPage } from './pages/VRPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
@@ -70,7 +72,7 @@ const routes: Record<
   },
   'skill-gap': {
     title: 'Understand your skill gap',
-    description: 'See which skills are matched, developing, or ready for focused learning.',
+    description: 'See which skills are matched and which are ready for focused learning.',
   },
   roadmap: {
     title: 'Build your learning roadmap',
@@ -261,21 +263,6 @@ export default function App() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const isHome = route.key === 'home';
   const isProtectedRoute = protectedRouteKeys.has(route.key);
-  const placeholder =
-    route.key !== 'home' &&
-    route.key !== 'not-found' &&
-    route.key !== 'career-details' &&
-    route.key !== 'careers' &&
-    route.key !== 'register' &&
-    route.key !== 'login' &&
-    route.key !== 'profile' &&
-    route.key !== 'assessment' &&
-    route.key !== 'recommendations' &&
-    route.key !== 'skill-gap' &&
-    route.key !== 'roadmap'
-      ? routes[route.key]
-      : undefined;
-
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());
     const handleSessionExpired = () => {
@@ -341,14 +328,9 @@ export default function App() {
       {route.key === 'roadmap' && session && (
         <RoadmapPage careerId={route.careerId} onNavigate={navigate} />
       )}
+      {route.key === 'advisor' && session && <AdvisorPage />}
+      {route.key === 'vr' && session && <VRPage onNavigate={navigate} />}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
-      {placeholder && session && (
-        <PlaceholderPage
-          title={placeholder.title}
-          description={placeholder.description}
-          onNavigate={navigate}
-        />
-      )}
       {route.key === 'career-details' && (
         <CareerDetailPage careerId={route.careerId} onNavigate={navigate} />
       )}

@@ -36,15 +36,12 @@ This checklist contains only work that remains unresolved after auditing the imp
 
 ## Phase 7 — Skill-gap and roadmap APIs
 
-- [ ] Define matched, partial, and missing status rules.
-- [ ] Add tests for partial skills and empty skill sets in addition to the existing matched, missing, and progress tests.
-- [ ] Integrate the real skill-gap and roadmap responses with Member 1's pages.
+- [ ] Add per-skill proficiency data and a partial status only if both members approve expanding the profile and API contract.
 
 ## Phase 8 — AI career advisor
 
 - [ ] Add output length limits and retry rules while preserving the existing input limits, timeout handling, and provider-error fallback.
 - [ ] Perform a manual review of representative responses for relevance, clarity, privacy, and unsupported claims.
-- [ ] Integrate the advisor endpoint with Member 1's chatbot UI.
 
 The project uses optional local Ollama and a deterministic fallback, so no paid provider key is required. Any future approved provider credentials must remain server-side in environment variables.
 
