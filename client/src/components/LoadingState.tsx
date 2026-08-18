@@ -3,7 +3,10 @@ interface LoadingStateProps {
   description?: string;
 }
 
-export function LoadingState({ label = 'Loading', description = 'Please wait while this page is prepared.' }: LoadingStateProps) {
+export function LoadingState({
+  label = 'Loading',
+  description = 'Please wait while this page is prepared.',
+}: LoadingStateProps) {
   return (
     <div className="ui-state ui-state--loading" role="status" aria-live="polite">
       <span className="ui-state__spinner" aria-hidden="true" />

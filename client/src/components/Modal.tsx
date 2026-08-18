@@ -26,14 +26,38 @@ export function Modal({ open, title, children, onClose, description }: ModalProp
   if (!open) return null;
 
   return createPortal(
-    <div className="ui-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="ui-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby={description ? 'modal-description' : undefined}>
+    <div
+      className="ui-modal-backdrop"
+      role="presentation"
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <section
+        className="ui-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby={description ? 'modal-description' : undefined}
+      >
         <header className="ui-modal__header">
           <div>
-            <h2 className="ui-modal__title" id="modal-title">{title}</h2>
-            {description && <p className="ui-modal__description" id="modal-description">{description}</p>}
+            <h2 className="ui-modal__title" id="modal-title">
+              {title}
+            </h2>
+            {description && (
+              <p className="ui-modal__description" id="modal-description">
+                {description}
+              </p>
+            )}
           </div>
-          <button ref={closeButtonRef} className="ui-modal__close" type="button" aria-label="Close dialog" onClick={onClose}>×</button>
+          <button
+            ref={closeButtonRef}
+            className="ui-modal__close"
+            type="button"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
+            ×
+          </button>
         </header>
         <div className="ui-modal__body">{children}</div>
       </section>
