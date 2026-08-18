@@ -8,17 +8,10 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 0 — Understand the project and agree with Member 2
 
-- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
-- [ ] Confirm the frontend stack with Member 2: React, TypeScript, Vite, Tailwind, routing, charts, Three.js, and React Three Fiber.
-- [ ] Confirm the authentication approach and how the client stores or receives the session.
-- [ ] Confirm the API base URL, local development ports, request headers, error format, and date format.
-- [ ] Confirm the visual direction, color palette, typography, responsive breakpoints, and accessibility expectations.
-- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR.
 - [ ] Add any agreed frontend assumptions to `docs/architecture.md` or `docs/api.md`.
 
 ## Phase 1 — Local setup and frontend foundation
 
-- [ ] Clone the repository and configure Git identity.
 - [ ] Create the frontend environment file from `.env.example` without committing secrets.
 
 ## Phase 2 — Design system and landing experience
@@ -92,7 +85,6 @@ This checklist covers the complete project from repository setup to final delive
 - [ ] Create the AI Engineer environment with a simple, performant scene.
 - [ ] Create the Data Analyst environment with a simple, performant scene.
 - [ ] Add career metadata and navigation from the hub to each environment.
-- [ ] Keep the career catalog broader than the MVP VR catalog: VR environments are optional and selected through stable, extensible environment metadata. The MVP VR catalog includes only AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`).
 - [ ] Add a visible exit or return-to-career-details control.
 - [ ] Add loading and fallback UI if a 3D asset fails.
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
@@ -107,13 +99,11 @@ This checklist covers the complete project from repository setup to final delive
 
 - [ ] Replace all mock data used in the final user journey with real API calls.
 - [ ] Verify that every request has loading, success, empty, and error behavior.
-- [ ] Verify protected routes and unauthorized responses.
 - [ ] Verify responsive behavior across supported viewport sizes.
 - [ ] Run accessibility checks and fix keyboard, focus, labels, contrast, and semantic issues.
 - [ ] Run browser compatibility checks.
 - [ ] Test slow network behavior and refresh during API requests.
 - [ ] Test the complete flow: register, login, profile, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR.
-- [ ] Verify that the frontend does not contain secrets or server-only configuration.
 - [ ] Update `README.md` and relevant docs when the UI behavior changes.
 - [ ] Review Member 2's API changes for frontend compatibility.
 - [ ] Open a final frontend integration pull request.
