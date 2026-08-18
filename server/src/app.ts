@@ -12,6 +12,7 @@ import { assessmentRouter } from './routes/assessment.routes.js';
 import { recommendationRouter } from './routes/recommendation.routes.js';
 import { skillGapRouter } from './routes/skill-gap.routes.js';
 import { roadmapRouter } from './routes/roadmap.routes.js';
+import { advisorRouter } from './routes/advisor.routes.js';
 
 export const app = express();
 
@@ -32,5 +33,6 @@ app.use('/api/careers', skillGapRouter);
 app.use('/api/careers', careerRouter);
 app.use('/api/assessment', assessmentRouter);
 app.use('/api/recommendations', recommendationRouter);
+app.use('/api/advisor', advisorRouter);
 app.use(notFound);
 app.use(errorHandler);
