@@ -37,14 +37,9 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 3 — Authentication and profile UI
 
-- [ ] Add a session-expired state that returns the user to login safely.
-- [ ] Build the profile page.
 - [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
-- [ ] Add profile loading, save-success, validation-error, and server-error states.
 - [ ] Build the dashboard shell with summary cards and navigation.
 - [ ] Use mock profile data until the authentication and profile APIs are available.
-- [ ] Connect the UI to `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/profile`, and `PUT /api/profile`.
-- [ ] Verify that authentication failures are shown clearly without exposing sensitive details.
 - [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
 - [ ] Coordinate an authentication integration session with Member 2.
 
