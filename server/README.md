@@ -34,6 +34,12 @@ PostgreSQL and the `pg` driver are used locally. The optional AI advisor is conf
 
 The starter questions and internal scoring weights are seeded by `server/src/db/migrations/003_assessment_seed.sql`. This migration uses local database data only and is safe to apply repeatedly through the migration runner. Scoring weights remain server-side and are never included in the public question response.
 
+## Recommendation API
+
+`GET /api/recommendations` requires a bearer token and uses the user’s latest completed assessment result. The optional `resultId` query parameter requests a specific result owned by the authenticated user. The response returns ranked career recommendations with `careerId`, display name, normalized score, explanation, `matchedSkills`, and `missingSkills`. The ranking is deterministic: assessment category scores provide the career-match signal, current profile skills provide the skill-gap signal, and ties are resolved consistently by matched-skill count and career name.
+
+Recommendation rows are persisted in the `recommendations` table so later roadmap and skill-gap features can reuse the same result. No external AI provider or paid API is used for this phase. A user cannot read recommendations generated from another user’s assessment result.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.
