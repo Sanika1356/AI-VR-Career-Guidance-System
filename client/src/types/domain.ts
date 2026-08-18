@@ -56,15 +56,24 @@ export interface AssessmentAnswer {
   value?: string | number;
 }
 
+export interface AssessmentSubmissionAnswer {
+  questionId: string;
+  optionId: string;
+}
+
 export interface AssessmentSubmission {
   assessmentId: string;
-  answers: AssessmentAnswer[];
+  answers: AssessmentSubmissionAnswer[];
 }
 
 export interface AssessmentResultSummary {
   resultId: string;
   completedAt: string;
   topCareerIds: string[];
+}
+
+export interface AssessmentResultResponse extends AssessmentResultSummary {
+  categoryScores: Record<string, number>;
 }
 
 export interface Recommendation {

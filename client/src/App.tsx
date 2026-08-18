@@ -3,6 +3,7 @@ import { StatusPill } from './components/StatusPill';
 import { AppShell } from './layouts/AppShell';
 import { AuthRequiredPage } from './pages/AuthRequiredPage';
 import { AuthPage } from './pages/AuthPage';
+import { AssessmentPage } from './pages/AssessmentPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { clearAuthSession, readAuthSession } from './services/auth';
@@ -248,7 +249,8 @@ export default function App() {
     route.key !== 'career-details' &&
     route.key !== 'register' &&
     route.key !== 'login' &&
-    route.key !== 'profile'
+    route.key !== 'profile' &&
+    route.key !== 'assessment'
       ? routes[route.key]
       : undefined;
 
@@ -309,6 +311,7 @@ export default function App() {
         <AuthRequiredPage onNavigate={navigate} sessionExpired={sessionExpired} />
       )}
       {route.key === 'profile' && session && <ProfilePage />}
+      {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
       {placeholder && session && (
         <PlaceholderPage
           title={placeholder.title}
