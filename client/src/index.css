@@ -55,3 +55,17 @@ em { font-family: 'Playfair Display', serif; font-weight: 500; }
 .text-link--button { background: transparent; border: 0; border-bottom: 1px solid #9b9d98; cursor: pointer; }
 .placeholder-page__marker { align-self: end; color: #829d31; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .16em; writing-mode: vertical-rl; }
 @media (max-width: 760px) { .placeholder-page { display: block; min-height: 560px; padding: 65px 22px; }.placeholder-page::before { height: 230px; right: -16%; top: 30%; width: 180px; }.placeholder-page__marker { margin-top: 70px; writing-mode: initial; }.placeholder-page__description { font-size: 16px; } }
+
+.ui-state { align-items: center; display: flex; gap: 18px; margin: 0 auto; max-width: 760px; padding: 34px; }
+.ui-state--loading { background: #e4e6df; }
+.ui-state--empty { background: #f0eee8; border: 1px solid #d9d6cc; }
+.ui-state--error { background: #f4e7dd; border: 1px solid #dcb99d; }
+.ui-state__spinner { animation: state-spin .9s linear infinite; border: 2px solid rgba(32,34,34,.2); border-radius: 50%; border-top-color: #829d31; flex: 0 0 auto; height: 24px; width: 24px; }
+.ui-state__marker { align-items: center; background: #202222; border-radius: 50%; color: #c8ef65; display: inline-flex; flex: 0 0 auto; font-family: 'DM Mono', monospace; font-size: 16px; height: 32px; justify-content: center; width: 32px; }
+.ui-state--error .ui-state__marker { background: #9c6534; color: #fff8f0; }
+.ui-state__title { color: #202222; font-size: 22px; font-weight: 500; letter-spacing: -.04em; margin: 0; }
+.ui-state__description { color: #656a66; font-size: 14px; line-height: 1.6; margin: 7px 0 0; }
+.ui-state__action { margin-top: 17px; }
+@keyframes state-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ui-state__spinner { animation: none; } }
+@media (max-width: 560px) { .ui-state { align-items: flex-start; margin: 0 22px; padding: 25px; } }
