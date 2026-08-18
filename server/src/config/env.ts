@@ -14,7 +14,7 @@ if (nodeEnv === 'production' && !process.env.AUTH_SECRET) {
 
 export const env = {
   nodeEnv,
-  port: numberFromEnv(process.env.SERVER_PORT, 4000),
+  port: numberFromEnv(process.env.PORT ?? process.env.SERVER_PORT, 4000),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   databaseUrl: process.env.DATABASE_URL,
   dbPoolMin: numberFromEnv(process.env.DB_POOL_MIN, 1),
