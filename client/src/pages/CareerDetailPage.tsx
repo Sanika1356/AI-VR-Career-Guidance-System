@@ -113,7 +113,7 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
           <button
             className="outline-button"
             type="button"
-            onClick={() => onNavigate(`/roadmap?careerId=${encodeURIComponent(career.id)}`)}
+            onClick={() => onNavigate(`/careers/${encodeURIComponent(career.id)}/roadmap`)}
           >
             View roadmap
           </button>
@@ -220,7 +220,7 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
             <button
               className="text-link"
               type="button"
-              onClick={() => onNavigate(`/roadmap?careerId=${encodeURIComponent(career.id)}`)}
+              onClick={() => onNavigate(`/careers/${encodeURIComponent(career.id)}/roadmap`)}
             >
               See all roadmap steps <span aria-hidden="true">↗</span>
             </button>

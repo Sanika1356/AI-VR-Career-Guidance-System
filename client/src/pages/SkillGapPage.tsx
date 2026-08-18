@@ -214,7 +214,7 @@ export function SkillGapPage({ careerId, onNavigate }: SkillGapPageProps) {
             </div>
             <Button
               type="button"
-              onClick={() => onNavigate(`/roadmap?careerId=${encodeURIComponent(careerId ?? '')}`)}
+              onClick={() => onNavigate(`/careers/${encodeURIComponent(careerId ?? '')}/roadmap`)}
             >
               Open learning roadmap <span aria-hidden="true">↗</span>
             </Button>
