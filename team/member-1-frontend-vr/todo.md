@@ -45,19 +45,6 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 4 — Assessment experience
 
-- [ ] Design the assessment introduction screen.
-- [ ] Build the question component for the agreed question types.
-- [ ] Build answer controls with keyboard and screen-reader support.
-- [ ] Add question progress, back, next, and submit controls.
-- [ ] Prevent submission when required answers are missing.
-- [ ] Preserve answers while navigating between questions.
-- [ ] Add a confirmation state before final submission.
-- [ ] Add loading behavior during question retrieval and submission.
-- [ ] Add a recoverable error state when questions cannot be loaded.
-- [ ] Create mock questions matching the API contract.
-- [ ] Connect the UI to `GET /api/assessment/questions`.
-- [ ] Connect the UI to `POST /api/assessment/submit`.
-- [ ] Build the assessment completion state.
 - [ ] Test refresh behavior and decide how unfinished local progress is handled.
 - [ ] Test assessment completion on narrow and wide screens.
 - [ ] Integrate with Member 2's assessment endpoints using a real development database.
@@ -116,8 +103,9 @@ This checklist covers the complete project from repository setup to final delive
 - [ ] Add a desktop keyboard and mouse interaction model.
 - [ ] Add camera controls and prevent disorienting default behavior.
 - [ ] Create the AI Engineer environment with a simple, performant scene.
-- [ ] Create the Data Scientist environment with a simple, performant scene.
+- [ ] Create the Data Analyst environment with a simple, performant scene.
 - [ ] Add career metadata and navigation from the hub to each environment.
+- [ ] Keep the career catalog broader than the MVP VR catalog: VR environments are optional and selected through stable, extensible environment metadata. The MVP VR catalog includes only AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`).
 - [ ] Add a visible exit or return-to-career-details control.
 - [ ] Add loading and fallback UI if a 3D asset fails.
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
