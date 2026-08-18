@@ -56,6 +56,14 @@ The advisor assembles only the authenticated user’s approved profile, latest a
 
 The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. Ollama is optional: if it is unavailable or returns an error, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
 
+## VR environment API
+
+`GET /api/vr/environments` returns `{ "environments": [...] }` with safe metadata for the client career hub. Each item contains only `key`, `careerId`, `title`, `description`, and `available`; the server does not expose scene files, provider credentials, internal database fields, or implementation details. The endpoint is public because it serves non-sensitive catalog metadata.
+
+The MVP seeds two high-quality environments: `ai-engineer-lab` for `career_ai_engineer` and `data-insights-studio` for `career_data_analyst`. The broader career catalog remains independent, so careers can exist without VR environments. Additional environments can be added later as rows in `vr_environments` without changing the core career, recommendation, or roadmap contracts.
+
+The MVP does not record VR visits or VR progress. The client owns the 3D/VR scene and uses the environment metadata to select an experience; future progress requirements must be agreed through a backward-compatible contract change.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.

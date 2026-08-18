@@ -49,17 +49,6 @@ This checklist contains only work that remains unresolved after auditing the imp
 
 The project uses optional local Ollama and a deterministic fallback, so no paid provider key is required. Any future approved provider credentials must remain server-side in environment variables.
 
-## Phase 9 — VR support APIs and demo data
-
-- [ ] Implement the VR environment model or configuration source.
-- [ ] Add `GET /api/vr/environments`.
-- [ ] Return only safe metadata needed by the client scene selector.
-- [ ] Verify that every career intended for the demo has a matching environment key.
-- [ ] Decide whether the server records VR visits or progress; implement only if required.
-- [ ] Add demo data for the AI Engineer and Data Scientist environments.
-- [ ] Test unavailable or disabled environments.
-- [ ] Coordinate the final VR metadata shape with Member 1 before the 3D integration.
-
 ## Phase 10 — Security, validation, and quality
 
 - [ ] Review CORS, security headers, request-size limits, and error responses.
