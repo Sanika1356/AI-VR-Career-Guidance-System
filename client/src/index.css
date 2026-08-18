@@ -1787,3 +1787,157 @@ em {
     flex-direction: column;
   }
 }
+
+.recommendations-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.recommendations-page__header {
+  align-items: end;
+}
+
+.recommendations-page__header p {
+  max-width: 46rem;
+}
+
+.recommendations-page__summary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem 1.125rem;
+  border: 1px solid #d9d6cc;
+  border-radius: 1rem;
+  background: #f0eee8;
+  color: #656a66;
+}
+
+.recommendations-page__summary p {
+  margin: 0;
+}
+
+.recommendations-page__summary-mark,
+.guidance-note__mark {
+  display: grid;
+  flex: 0 0 1.5rem;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #829d31;
+  color: #f5f4f0;
+  font-weight: 700;
+}
+
+.recommendations-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.recommendation-card {
+  display: grid;
+  gap: 1rem;
+}
+
+.recommendation-card__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.recommendation-card__score {
+  color: #60792f;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.recommendation-card__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.recommendation-card__reason {
+  max-width: 48rem;
+  margin: -0.25rem 0 0;
+  color: #656a66;
+}
+
+.recommendation-card__skills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.recommendation-card__skills h3 {
+  margin: 0 0 0.625rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.recommendation-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recommendation-skills li {
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+}
+
+.recommendation-skills--matched li {
+  border: 1px solid #b6c993;
+  background: #eff5df;
+}
+
+.recommendation-skills--missing li {
+  border: 1px solid #d9b78f;
+  background: #fbf0e4;
+}
+
+.recommendation-skills__empty {
+  margin: 0;
+  color: #777b73;
+  font-size: 0.9rem;
+}
+
+.guidance-note {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem 1.125rem;
+  border: 1px solid #d9d6cc;
+  border-radius: 1rem;
+  background: #f0eee8;
+}
+
+.guidance-note h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.guidance-note p {
+  max-width: 52rem;
+  margin: 0.35rem 0 0;
+  color: #656a66;
+}
+
+@media (max-width: 700px) {
+  .recommendations-page__header {
+    align-items: start;
+  }
+
+  .recommendations-page__header .ui-button {
+    width: 100%;
+  }
+
+  .recommendation-card__skills {
+    grid-template-columns: 1fr;
+  }
+}
