@@ -18,6 +18,12 @@ PostgreSQL and the `pg` driver are used locally. The optional AI advisor is conf
 
 `GET /api/health` returns `{ "status": "ok", "service": "career-guidance-api" }`. Unknown routes return a JSON `404` response. Every response receives an `x-request-id` header for local debugging and future observability.
 
+## Authentication and profile API
+
+`POST /api/auth/register` accepts `name`, `email`, and `password`, creates a user and empty profile in one transaction, and returns `{ user, token }` with HTTP `201`. `POST /api/auth/login` accepts `email` and `password`, verifies the account, and returns the same response shape with HTTP `200`. Duplicate email addresses return a safe `400` response, while invalid credentials return `401` without revealing whether the email exists.
+
+`GET /api/profile` requires `Authorization: Bearer <token>` and returns the authenticated user together with `interests`, `currentSkills`, `experience`, and `learningPreferences`. `PUT /api/profile` updates only those editable fields and performs the write inside a transaction. The server rejects unknown fields, malformed arrays, invalid emails, short passwords, missing bearer tokens, expired tokens, and tokens with invalid signatures.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.
