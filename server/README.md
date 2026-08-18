@@ -44,6 +44,10 @@ Recommendation rows are persisted in the `recommendations` table so later roadma
 
 `GET /api/careers/:careerId/skill-gap` requires a bearer token and compares the authenticated user’s `currentSkills` profile field with the selected career’s required skills. It returns `{ careerId, skills }`, where every skill includes its display name, required level, and either `matched` or `missing` status. Unknown careers return `404`; the endpoint does not expose another user’s profile data and does not require an external API.
 
+## Roadmap API
+
+`GET /api/careers/:careerId/roadmap` requires a bearer token and returns the career’s ordered roadmap steps with `id`, `title`, `description`, `skill`, `order`, and the authenticated user’s `completed` state. `PATCH /api/roadmap/:stepId` accepts only `{ "completed": boolean }` and upserts progress for the authenticated user. A user cannot update or read another user’s progress, and missing careers or roadmap steps return safe `404` responses.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.

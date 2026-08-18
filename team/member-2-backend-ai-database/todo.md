@@ -19,32 +19,13 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 1 — Local setup and server foundation
 
-- [ ] Clone the repository and configure Git identity.
-- [ ] Create a branch named `feature/member2-backend-foundation`.
-- [x] Initialize the TypeScript server inside `server/`.
-- [ ] Add Express, CORS, environment configuration, validation, logging, and the agreed PostgreSQL library or ORM.
 - [ ] Create the server environment file from `.env.example` without committing secrets.
-- [x] Add a clear development start command and verify that the server runs locally.
-- [x] Configure TypeScript, linting, formatting, and test tooling.
-- [x] Create the server folders: config, db, middleware, models, routes, controllers, services, validators, utils, and types.
-- [x] Implement the application entry point and graceful shutdown behavior.
 - [ ] Add a centralized configuration loader with required-variable checks.
-- [x] Add JSON parsing, CORS configuration, request IDs, logging, and a consistent error handler.
-- [x] Add `GET /api/health` returning the documented status response.
-- [x] Add a simple not-found handler for unknown API routes.
-- [x] Add server unit-test and integration-test scaffolding.
-- [x] Add a server README with local setup, database setup, test, and migration commands.
 - [ ] Run the server build, lint, and tests.
 - [ ] Commit the foundation with a focused message and open a pull request.
 
 ## Phase 2 — Database design and migrations
 
-- [ ] Design the PostgreSQL schema for users, profiles, skills, careers, career skills, assessment questions, assessment options, assessments, answers, results, recommendations, roadmap steps, roadmap progress, conversations, messages, and VR environments.
-- [ ] Decide which entities require stable public IDs and document the convention.
-- [ ] Add foreign keys, unique constraints, not-null constraints, indexes, and appropriate delete behavior.
-- [ ] Create the first migration.
-- [ ] Create a safe migration command for a new developer environment.
-- [ ] Create seed data for the initial careers, skills, assessment questions, and roadmap examples.
 - [ ] Add a reset or development-only seed procedure that cannot run accidentally in production.
 - [ ] Verify the schema on an empty local database.
 - [ ] Verify that the seed data supports the complete demo journey.
@@ -53,70 +34,28 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 3 — Authentication and profile APIs
 
-- [ ] Implement the user model and profile model.
-- [ ] Implement secure password hashing and password comparison.
-- [ ] Implement `POST /api/auth/register` according to `docs/api.md`.
-- [ ] Implement `POST /api/auth/login` according to `docs/api.md`.
-- [ ] Implement the agreed token or secure session mechanism.
-- [ ] Implement authentication middleware.
-- [ ] Implement authorization checks for user-owned resources.
-- [ ] Implement `GET /api/profile`.
-- [ ] Implement `PUT /api/profile` with request validation.
-- [ ] Add duplicate-email handling without leaking unnecessary account information.
-- [ ] Add invalid-credentials, expired-session, and malformed-token handling.
 - [ ] Add rate limiting or an equivalent protection for authentication endpoints where appropriate.
-- [ ] Add tests for registration, login, protected access, profile retrieval, profile update, and unauthorized access.
 - [ ] Run an authentication integration session with Member 1.
 - [ ] Update the API contract if an agreed response field changes.
 
 ## Phase 4 — Career catalog APIs
 
-- [ ] Implement career and skill models.
-- [ ] Implement the career-to-required-skill relationship.
-- [ ] Implement `GET /api/careers`.
-- [ ] Implement `GET /api/careers/:careerId`.
-- [ ] Implement validation for unknown career IDs.
-- [ ] Return stable, frontend-friendly career and skill response shapes.
-- [ ] Include the VR environment key only when the environment is available.
-- [ ] Add tests for career list, career detail, unknown career, missing optional data, and stable ordering.
 - [ ] Provide Member 1 with realistic API fixtures for UI development.
 
 ## Phase 5 — Assessment APIs and scoring
 
-- [ ] Implement assessment question and option models.
-- [ ] Implement assessment session creation or the agreed assessment lifecycle.
-- [ ] Implement `GET /api/assessment/questions` without exposing answer keys or private scoring weights.
-- [ ] Implement request validation for answer IDs and question IDs.
-- [ ] Implement `POST /api/assessment/submit`.
-- [ ] Prevent duplicate or invalid answer submissions according to the agreed product behavior.
-- [ ] Store answers and completion time safely.
-- [ ] Implement `GET /api/assessment/results/:resultId`.
 - [ ] Define and document the scoring dimensions, such as interest, aptitude, personality, and skills.
-- [ ] Implement deterministic scoring with test fixtures before adding AI-based features.
-- [ ] Add tests for a complete assessment, incomplete answers, invalid options, duplicate submissions, and result ownership.
 - [ ] Integrate the assessment flow with Member 1 using real API responses.
 
 ## Phase 6 — Recommendation engine
 
-- [ ] Define the recommendation input fields and scoring weights.
-- [ ] Implement the recommendation service using assessment results, profile data, and available skills.
-- [ ] Normalize and rank scores consistently.
-- [ ] Implement the top-career selection rule.
-- [ ] Generate a concise, explainable reason for each recommendation.
-- [ ] Include matched and missing skills where supported by the data.
-- [ ] Implement `GET /api/recommendations`.
 - [ ] Decide how recommendations behave before a user completes an assessment.
-- [ ] Add tests for ranking order, ties, missing inputs, score boundaries, and reproducibility.
 - [ ] Provide stable recommendation fixtures to Member 1.
 - [ ] Review the recommendation language with the team so it does not imply certainty about a student's future.
 
 ## Phase 7 — Skill-gap and roadmap APIs
 
-- [ ] Implement the user's skill profile and skill-level representation.
-- [ ] Implement the career-required-skill representation.
-- [ ] Implement the skill-gap calculation.
 - [ ] Define matched, partial, and missing status rules.
-- [ ] Implement `GET /api/careers/:careerId/skill-gap`.
 - [ ] Implement roadmap-step models and ordering.
 - [ ] Implement `GET /api/careers/:careerId/roadmap`.
 - [ ] Implement `PATCH /api/roadmap/:stepId` for completion updates.
