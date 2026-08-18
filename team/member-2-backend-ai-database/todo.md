@@ -56,9 +56,6 @@ The project uses optional local Ollama and a deterministic fallback, so no paid 
 
 ## Phase 11 — Deployment and operations
 
-- [ ] Choose the approved backend hosting and PostgreSQL hosting approach.
-- [ ] Create separate development and production configuration values.
-- [ ] Configure production environment variables without committing them.
 - [ ] Deploy the API to a development or staging environment first.
 - [ ] Verify CORS and frontend-to-backend connectivity in staging.
 - [ ] Test authentication, assessment, recommendation, skill gap, roadmap, AI, and VR metadata in staging.
