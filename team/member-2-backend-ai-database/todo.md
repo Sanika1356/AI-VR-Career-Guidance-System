@@ -1,42 +1,26 @@
-# Member 2 Todo: Backend + AI + Database
+# Member 2 Backend, AI, and Database Todo
 
 **Owner:** Member 2
 **Primary areas:** `server/`, backend-related parts of `docs/`, database design, AI integration, and deployment
 **Works with:** Member 1 through the API contract in `docs/api.md`
 
-This checklist covers the complete project from repository setup to final delivery. Check items only after the implementation has been tested and documented.
-
-## Phase 0 — Understand the project and agree with Member 1
-
-- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
-- [ ] Confirm the backend stack with Member 1: Node.js, Express, TypeScript, PostgreSQL, and the selected database client or ORM.
-- [ ] Confirm the authentication approach, token/session behavior, password policy, and protected-route rules.
-- [ ] Confirm the frontend's required data fields, loading expectations, error format, pagination needs, and date format.
-- [ ] Confirm the initial career catalog, assessment categories, scoring approach, skill levels, and roadmap format.
-- [ ] Confirm the AI advisor scope, provider, model configuration, rate limits, fallback behavior, and privacy boundaries.
-- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR metadata.
-- [ ] Record agreed backend assumptions in `docs/architecture.md` and `docs/api.md`.
+This checklist contains only work that remains unresolved after auditing the implemented server code, tests, documentation, migrations, and merged feature branches. Completed implementation tasks have been removed rather than left as unchecked items.
 
 ## Phase 1 — Local setup and server foundation
 
 - [ ] Create the server environment file from `.env.example` without committing secrets.
-- [ ] Add a centralized configuration loader with required-variable checks.
-- [ ] Run the server build, lint, and tests.
-- [ ] Commit the foundation with a focused message and open a pull request.
+- [ ] Run the server lint command once linting is configured, together with the existing build and test checks.
 
 ## Phase 2 — Database design and migrations
 
 - [ ] Add a reset or development-only seed procedure that cannot run accidentally in production.
 - [ ] Verify the schema on an empty local database.
 - [ ] Verify that the seed data supports the complete demo journey.
-- [ ] Document the schema and seed procedure in `docs/database.md`.
-- [ ] Add database tests for constraints and important relationships.
 
 ## Phase 3 — Authentication and profile APIs
 
 - [ ] Add rate limiting or an equivalent protection for authentication endpoints where appropriate.
 - [ ] Run an authentication integration session with Member 1.
-- [ ] Update the API contract if an agreed response field changes.
 
 ## Phase 4 — Career catalog APIs
 
@@ -44,31 +28,26 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 5 — Assessment APIs and scoring
 
-- [ ] Define and document the scoring dimensions, such as interest, aptitude, personality, and skills.
 - [ ] Integrate the assessment flow with Member 1 using real API responses.
 
 ## Phase 6 — Recommendation engine
 
-- [ ] Decide how recommendations behave before a user completes an assessment.
 - [ ] Provide stable recommendation fixtures to Member 1.
 - [ ] Review the recommendation language with the team so it does not imply certainty about a student's future.
 
 ## Phase 7 — Skill-gap and roadmap APIs
 
 - [ ] Define matched, partial, and missing status rules.
-- [ ] Implement roadmap-step models and ordering.
-- [ ] Implement `GET /api/careers/:careerId/roadmap`.
-- [ ] Implement `PATCH /api/roadmap/:stepId` for completion updates.
-- [ ] Ensure users can update only their own roadmap progress.
-- [ ] Add tests for matched skills, missing skills, partial skills, empty skill sets, and progress updates.
+- [ ] Add tests for partial skills and empty skill sets in addition to the existing matched, missing, and progress tests.
 - [ ] Integrate the real skill-gap and roadmap responses with Member 1's pages.
 
 ## Phase 8 — AI career advisor
 
-- [ ] Add the provider key and model name only through environment variables.
-- [ ] Add input length limits, output length limits, timeout handling, retry rules, and provider-error handling.
+- [ ] Add output length limits and retry rules while preserving the existing input limits, timeout handling, and provider-error fallback.
 - [ ] Perform a manual review of representative responses for relevance, clarity, privacy, and unsupported claims.
 - [ ] Integrate the advisor endpoint with Member 1's chatbot UI.
+
+The project uses optional local Ollama and a deterministic fallback, so no paid provider key is required. Any future approved provider credentials must remain server-side in environment variables.
 
 ## Phase 9 — VR support APIs and demo data
 
@@ -83,16 +62,12 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 10 — Security, validation, and quality
 
-- [ ] Validate every request body, query parameter, route parameter, and authorization condition.
-- [ ] Ensure passwords are never returned in API responses or logs.
-- [ ] Ensure tokens and AI provider keys are never committed or printed.
 - [ ] Review CORS, security headers, request-size limits, and error responses.
 - [ ] Add rate limits for authentication and AI endpoints where appropriate.
 - [ ] Check for SQL injection, unsafe dynamic queries, and unbounded list responses.
-- [ ] Add database transaction handling for multi-step writes such as assessment submission.
 - [ ] Add structured logs that are useful in development and safe in production.
-- [ ] Add health checks for the API and database dependency.
-- [ ] Run unit, integration, and API contract tests.
+- [ ] Add a health check for the database dependency in addition to the existing API health endpoint.
+- [ ] Run database integration and API contract tests in addition to the existing backend test suite.
 - [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, and server failure.
 - [ ] Review API behavior with Member 1 using the final client flow.
 
