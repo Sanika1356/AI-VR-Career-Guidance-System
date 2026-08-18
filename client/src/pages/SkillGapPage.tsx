@@ -16,7 +16,6 @@ interface SkillGapPageProps {
 
 const statusLabels: Record<SkillGapStatus, string> = {
   matched: 'Already matched',
-  partial: 'Developing',
   missing: 'Build next',
 };
 
@@ -44,7 +43,7 @@ function SkillGroup({
           <h2>{title}</h2>
           <p>{description}</p>
         </div>
-        <Badge tone={status === 'matched' ? 'success' : status === 'partial' ? 'info' : 'warning'}>
+        <Badge tone={status === 'matched' ? 'success' : 'warning'}>
           {skills.length}
         </Badge>
       </div>
@@ -98,7 +97,6 @@ export function SkillGapPage({ careerId, onNavigate }: SkillGapPageProps) {
   const groups = useMemo(
     () => ({
       matched: skills.filter((skill) => skill.status === 'matched'),
-      partial: skills.filter((skill) => skill.status === 'partial'),
       missing: skills.filter((skill) => skill.status === 'missing'),
     }),
     [skills],
@@ -168,12 +166,6 @@ export function SkillGapPage({ careerId, onNavigate }: SkillGapPageProps) {
                 <span>{groups.matched.length}</span>
                 <small>{statusLabels.matched}</small>
               </div>
-              {groups.partial.length > 0 && (
-                <div>
-                  <span>{groups.partial.length}</span>
-                  <small>{statusLabels.partial}</small>
-                </div>
-              )}
               <div>
                 <span>{groups.missing.length}</span>
                 <small>{statusLabels.missing}</small>
@@ -188,14 +180,6 @@ export function SkillGapPage({ careerId, onNavigate }: SkillGapPageProps) {
               skills={groups.matched}
               status="matched"
             />
-            {groups.partial.length > 0 && (
-              <SkillGroup
-                title="Skills in progress"
-                description="These skills are developing and may benefit from more practice."
-                skills={groups.partial}
-                status="partial"
-              />
-            )}
             <SkillGroup
               title="Priority skills to build"
               description="Start here when choosing learning resources or roadmap activities."

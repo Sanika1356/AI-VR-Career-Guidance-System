@@ -13,6 +13,7 @@ const primaryLinks = [
   { href: '/assessment', label: 'Assessment' },
   { href: '/careers', label: 'Career catalog' },
   { href: '/recommendations', label: 'Recommendations' },
+  { href: '/advisor', label: 'AI advisor' },
   { href: '/vr', label: 'VR experience' },
 ];
 
