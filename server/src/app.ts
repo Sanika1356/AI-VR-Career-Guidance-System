@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth.routes.js';
 import { profileRouter } from './routes/profile.routes.js';
 import { careerRouter } from './routes/career.routes.js';
 import { assessmentRouter } from './routes/assessment.routes.js';
+import { recommendationRouter } from './routes/recommendation.routes.js';
 
 export const app = express();
 
@@ -26,5 +27,6 @@ app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/careers', careerRouter);
 app.use('/api/assessment', assessmentRouter);
+app.use('/api/recommendations', recommendationRouter);
 app.use(notFound);
 app.use(errorHandler);
