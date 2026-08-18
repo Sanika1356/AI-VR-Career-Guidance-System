@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500;1,600&display=swap');
+
+:root { color: #202222; background: #f5f4f0; font-family: 'DM Sans', sans-serif; font-synthesis: none; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; }
+button, a { font: inherit; }
+a { color: inherit; text-decoration: none; }
+.app-shell { min-height: 100vh; overflow: hidden; }
+.topbar { align-items: center; display: flex; justify-content: space-between; margin: 0 auto; max-width: 1280px; padding: 26px 48px; }
+.brand { align-items: center; display: flex; font-size: 19px; font-weight: 700; gap: 9px; letter-spacing: -.05em; }
+.brand-mark { align-items: center; background: #c8ef65; border-radius: 50%; display: inline-flex; font-family: 'Playfair Display', serif; font-size: 17px; height: 31px; justify-content: center; width: 31px; }
+.brand-dot { color: #c2ed5e; }
+.topnav { display: flex; font-size: 12px; gap: 32px; letter-spacing: .08em; text-transform: uppercase; }
+.topnav a:hover, .text-link:hover { color: #829d31; }
+.outline-button { background: transparent; border: 1px solid #202222; border-radius: 99px; cursor: pointer; font-size: 12px; padding: 11px 20px; }
+.hero { display: grid; gap: 50px; grid-template-columns: minmax(0, 1fr) minmax(340px, .85fr); margin: 0 auto; max-width: 1280px; min-height: 650px; padding: 80px 48px 110px; }
+.hero-copy { align-self: center; max-width: 620px; }
+.eyebrow, .section-kicker { color: #777b73; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .12em; margin: 28px 0 17px; text-transform: uppercase; }
+h1 { font-size: clamp(64px, 9vw, 130px); font-weight: 500; letter-spacing: -.075em; line-height: .86; margin: 0; }
+em { font-family: 'Playfair Display', serif; font-weight: 500; }
+.hero-text, .section-text { color: #656a66; font-size: 16px; line-height: 1.65; max-width: 430px; }
+.hero-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 26px; margin-top: 38px; }
+.primary-button { background: #202222; border: 0; border-radius: 99px; color: white; cursor: pointer; font-size: 13px; padding: 16px 22px; transition: transform .2s, background .2s; }
+.primary-button:hover { background: #4b5940; transform: translateY(-2px); }
+.primary-button span { color: #c8ef65; font-size: 18px; margin-left: 14px; }
+.text-link { border-bottom: 1px solid #9b9d98; color: #565a57; font-family: 'DM Mono', monospace; font-size: 11px; padding-bottom: 4px; text-transform: uppercase; }
+.text-link span { color: #829d31; margin-left: 9px; }
+.hero-visual { align-items: center; background: #e4e6df; border-radius: 2px; display: flex; justify-content: center; min-height: 480px; overflow: hidden; position: relative; }
+.hero-visual::before { background: linear-gradient(135deg, rgba(200,239,101,.38), transparent 45%); content: ''; inset: 0; position: absolute; }
+.orb { align-items: center; border-radius: 50%; display: flex; justify-content: center; position: absolute; text-align: center; }
+.orb--large { background: radial-gradient(circle at 33% 25%, #d9f98f, #97bd4c 68%, #5f7b35); box-shadow: 22px 26px 50px rgba(63,83,43,.25); color: #324127; font-family: 'DM Mono', monospace; font-size: 10px; height: 290px; letter-spacing: .13em; line-height: 1.6; width: 290px; z-index: 2; }
+.orb--small { background: #202222; color: #c8ef65; font-family: 'DM Mono', monospace; font-size: 12px; height: 68px; right: 17%; top: 17%; width: 68px; z-index: 3; }
+.orbit { border: 1px solid rgba(32,34,34,.25); border-radius: 50%; height: 410px; position: absolute; transform: rotate(38deg); width: 180px; }
+.orbit--one { border-color: rgba(130,157,49,.45); }
+.orbit--two { height: 180px; transform: rotate(-43deg); width: 410px; }
+.visual-caption { bottom: 24px; color: #71766d; font-family: 'DM Mono', monospace; font-size: 10px; left: 24px; letter-spacing: .1em; position: absolute; text-transform: uppercase; }
+.status-pill { border: 1px solid #b7bbb1; border-radius: 99px; color: #6f746c; display: inline-block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .04em; padding: 7px 11px; text-transform: uppercase; }
+.status-pill--success { border-color: #91ae51; color: #60792f; }.status-pill--warning { border-color: #d0a37c; color: #9c6534; }
+.intro-grid { background: #202222; color: #f5f4f0; display: grid; gap: 60px; grid-template-columns: .8fr 1.2fr; padding: 100px max(48px, calc((100vw - 1184px) / 2)); }
+.intro-grid .section-kicker { color: #a9b0a5; margin: 7px 0; }.intro-grid h2 { font-size: clamp(36px, 5vw, 70px); font-weight: 400; letter-spacing: -.06em; line-height: .98; margin: 0 0 27px; }.intro-grid h2 em { color: #c8ef65; }.intro-grid .section-text { color: #aeb3ac; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 auto; max-width: 1280px; padding: 48px; }.feature-card { min-height: 300px; padding: 29px; position: relative; }.feature-card--dark { background: #3e493a; color: #f5f4f0; }.feature-card--warm { background: #e3d8c8; }.feature-card--lavender { background: #dcdce8; }.feature-number { font-family: 'DM Mono', monospace; font-size: 11px; opacity: .7; }.feature-card h3 { font-size: 32px; font-weight: 500; letter-spacing: -.06em; line-height: .95; margin: 85px 0 20px; }.feature-card h3 em { font-size: 35px; }.feature-card p { color: inherit; font-size: 13px; line-height: 1.5; max-width: 220px; opacity: .7; }.footer { color: #777b73; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .06em; padding: 25px 48px 38px; text-align: center; text-transform: uppercase; }.footer span { color: #b3d55d; margin: 0 8px; }
+@media (max-width: 760px) { .topbar { padding: 20px 22px; }.topnav { display: none; }.hero { display: block; min-height: auto; padding: 55px 22px 65px; }.hero-visual { margin-top: 55px; min-height: 360px; }.orb--large { height: 220px; width: 220px; }.intro-grid { display: block; padding: 65px 22px; }.intro-grid .section-kicker { margin-bottom: 30px; }.feature-grid { display: block; padding: 22px; }.feature-card { min-height: 260px; }.footer { padding: 25px 22px 35px; } }

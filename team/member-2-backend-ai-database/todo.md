@@ -21,19 +21,19 @@ This checklist covers the complete project from repository setup to final delive
 
 - [ ] Clone the repository and configure Git identity.
 - [ ] Create a branch named `feature/member2-backend-foundation`.
-- [ ] Initialize the TypeScript server inside `server/`.
+- [x] Initialize the TypeScript server inside `server/`.
 - [ ] Add Express, CORS, environment configuration, validation, logging, and the agreed PostgreSQL library or ORM.
 - [ ] Create the server environment file from `.env.example` without committing secrets.
-- [ ] Add a clear development start command and verify that the server runs locally.
-- [ ] Configure TypeScript, linting, formatting, and test tooling.
-- [ ] Create the server folders: config, db, middleware, models, routes, controllers, services, validators, utils, and types.
-- [ ] Implement the application entry point and graceful shutdown behavior.
+- [x] Add a clear development start command and verify that the server runs locally.
+- [x] Configure TypeScript, linting, formatting, and test tooling.
+- [x] Create the server folders: config, db, middleware, models, routes, controllers, services, validators, utils, and types.
+- [x] Implement the application entry point and graceful shutdown behavior.
 - [ ] Add a centralized configuration loader with required-variable checks.
-- [ ] Add JSON parsing, CORS configuration, request IDs, logging, and a consistent error handler.
-- [ ] Add `GET /api/health` returning the documented status response.
-- [ ] Add a simple not-found handler for unknown API routes.
-- [ ] Add server unit-test and integration-test scaffolding.
-- [ ] Add a server README with local setup, database setup, test, and migration commands.
+- [x] Add JSON parsing, CORS configuration, request IDs, logging, and a consistent error handler.
+- [x] Add `GET /api/health` returning the documented status response.
+- [x] Add a simple not-found handler for unknown API routes.
+- [x] Add server unit-test and integration-test scaffolding.
+- [x] Add a server README with local setup, database setup, test, and migration commands.
 - [ ] Run the server build, lint, and tests.
 - [ ] Commit the foundation with a focused message and open a pull request.
 

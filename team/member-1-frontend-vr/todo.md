@@ -20,21 +20,21 @@ This checklist covers the complete project from repository setup to final delive
 
 - [ ] Clone the repository and configure Git identity.
 - [ ] Create a branch named `feature/member1-frontend-foundation`.
-- [ ] Initialize the React/TypeScript client inside `client/`.
-- [ ] Add the agreed frontend dependencies and record them in the client package file.
+- [x] Initialize the React/TypeScript client inside `client/`.
+- [x] Add the agreed frontend dependencies and record them in the client package file.
 - [ ] Create the frontend environment file from `.env.example` without committing secrets.
-- [ ] Add a clear start command and verify that the development server runs locally.
-- [ ] Configure TypeScript and linting with strict, readable settings.
+- [x] Add a clear start command and verify that the development server runs locally.
+- [x] Configure TypeScript and linting with strict, readable settings.
 - [ ] Configure formatting and apply it to the initial client files.
-- [ ] Create the initial client folders: components, pages, features, layouts, services, types, assets, and libraries.
-- [ ] Create the application entry point and root layout.
-- [ ] Add a reusable page container and responsive layout system.
+- [x] Create the initial client folders: components, pages, features, layouts, services, types, assets, and libraries.
+- [x] Create the application entry point and root layout.
+- [x] Add a reusable page container and responsive layout system.
 - [ ] Add navigation and route placeholders for every planned screen.
 - [ ] Add a not-found page and a basic error boundary.
 - [ ] Add loading, empty, and generic error UI components.
 - [ ] Add a reusable button, input, card, modal, badge, progress bar, and notification component.
 - [ ] Create initial shared types for User, Career, AssessmentQuestion, Recommendation, SkillGapItem, RoadmapStep, ChatMessage, and VREnvironment.
-- [ ] Add a frontend README with local setup and test commands.
+- [x] Add a frontend README with local setup and test commands.
 - [ ] Run the client build and fix all TypeScript and lint errors.
 - [ ] Commit the foundation with a focused message and open a pull request.
 

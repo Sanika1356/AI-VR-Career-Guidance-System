@@ -1,0 +1,13 @@
+{
+  "name": "ai-vr-career-guidance-system",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:client": "pnpm --dir client dev",
+    "dev:server": "pnpm --dir server dev",
+    "build": "pnpm --dir client build && pnpm --dir server build",
+    "test": "pnpm --dir server test",
+    "check": "pnpm --dir client typecheck && pnpm --dir server typecheck"
+  }
+}

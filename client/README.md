@@ -1,6 +1,10 @@
 # Client Workspace
 
-This workspace contains the React and TypeScript browser application owned primarily by Member 1.
+The client is the React and TypeScript browser application owned primarily by Member 1. It currently includes the Vite foundation, a responsive Pathfinder app shell, shared API types, and a health-check client for verifying local server connectivity.
+
+## Local setup
+
+From the repository root, install workspace dependencies with `pnpm install`. Start the browser client with `pnpm dev:client`; it runs at `http://localhost:5173` by default. The client reads `VITE_API_BASE_URL` and falls back to `http://localhost:4000/api`.
 
 ## Ownership
 
