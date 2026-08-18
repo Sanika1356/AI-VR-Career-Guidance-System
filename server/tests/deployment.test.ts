@@ -21,6 +21,8 @@ test('Render and Neon deployment templates keep credentials as private placehold
   const neonTemplate = readFileSync(new URL('../deployment/neon.env.example', import.meta.url), 'utf8');
 
   assert.match(renderManifest, /plan: free/);
+  assert.match(renderManifest, /buildCommand: pnpm install --no-frozen-lockfile && pnpm --dir server build/);
+  assert.doesNotMatch(renderManifest, /buildCommand: pnpm install --frozen-lockfile/);
   assert.match(renderManifest, /startCommand: pnpm --dir server db:migrate && pnpm --dir server start/);
   assert.doesNotMatch(renderManifest, /preDeployCommand:/);
   assert.match(renderManifest, /healthCheckPath: \/api\/health/);
