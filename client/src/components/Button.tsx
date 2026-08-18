@@ -16,7 +16,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     `ui-button--${size}`,
     fullWidth ? 'ui-button--full-width' : '',
     className,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
-  return <button ref={ref} className={classes} {...props}>{children}</button>;
+  return (
+    <button ref={ref} className={classes} {...props}>
+      {children}
+    </button>
+  );
 });

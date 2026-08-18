@@ -17,7 +17,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
   return (
     <div className="ui-field">
-      <label className="ui-field__label" htmlFor={inputId}>{label}</label>
+      <label className="ui-field__label" htmlFor={inputId}>
+        {label}
+      </label>
       <input
         ref={ref}
         id={inputId}
@@ -26,8 +28,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-describedby={describedBy}
         {...props}
       />
-      {hint && <p className="ui-field__hint" id={hintId}>{hint}</p>}
-      {error && <p className="ui-field__error" id={errorId} role="alert">{error}</p>}
+      {hint && (
+        <p className="ui-field__hint" id={hintId}>
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p className="ui-field__error" id={errorId} role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 });

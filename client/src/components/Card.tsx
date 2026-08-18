@@ -8,7 +8,13 @@ interface CardProps {
   className?: string;
 }
 
-export function Card({ children, title, description, as: Component = 'article', className = '' }: CardProps) {
+export function Card({
+  children,
+  title,
+  description,
+  as: Component = 'article',
+  className = '',
+}: CardProps) {
   return (
     <Component className={`ui-card ${className}`.trim()}>
       {(title || description) && (

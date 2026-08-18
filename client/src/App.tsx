@@ -23,26 +23,34 @@ interface RouteState {
   careerId?: string;
 }
 
-const routes: Record<Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>, { title: string; description: string }> = {
+const routes: Record<
+  Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>,
+  { title: string; description: string }
+> = {
   register: {
     title: 'Create your Pathfinder account',
-    description: 'Registration will collect the details needed to personalize your career discovery journey.',
+    description:
+      'Registration will collect the details needed to personalize your career discovery journey.',
   },
   login: {
     title: 'Welcome back',
-    description: 'Sign in to continue your assessment, roadmap, advisor conversation, and VR exploration.',
+    description:
+      'Sign in to continue your assessment, roadmap, advisor conversation, and VR exploration.',
   },
   profile: {
     title: 'Your profile',
-    description: 'Review your interests, skills, learning preferences, experience level, and goals.',
+    description:
+      'Review your interests, skills, learning preferences, experience level, and goals.',
   },
   assessment: {
     title: 'Discover your direction',
-    description: 'Answer a focused set of questions to surface the career patterns that fit you best.',
+    description:
+      'Answer a focused set of questions to surface the career patterns that fit you best.',
   },
   recommendations: {
     title: 'Career recommendations',
-    description: 'Explore ranked career paths with transparent reasons, matched skills, and next steps.',
+    description:
+      'Explore ranked career paths with transparent reasons, matched skills, and next steps.',
   },
   'skill-gap': {
     title: 'Understand your skill gap',
@@ -54,7 +62,8 @@ const routes: Record<Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>,
   },
   advisor: {
     title: 'Talk with your AI career advisor',
-    description: 'Ask thoughtful questions and receive guidance grounded in your goals and progress.',
+    description:
+      'Ask thoughtful questions and receive guidance grounded in your goals and progress.',
   },
   vr: {
     title: 'Explore career worlds',
@@ -108,18 +117,57 @@ function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
     <>
       <section className="hero" id="journey">
         <div className="hero-copy">
-          <StatusPill label={apiStatus === 'online' ? 'API connected' : apiStatus === 'offline' ? 'API offline' : 'Connecting to API'} tone={apiStatus === 'online' ? 'success' : apiStatus === 'offline' ? 'warning' : 'neutral'} />
+          <StatusPill
+            label={
+              apiStatus === 'online'
+                ? 'API connected'
+                : apiStatus === 'offline'
+                  ? 'API offline'
+                  : 'Connecting to API'
+            }
+            tone={
+              apiStatus === 'online' ? 'success' : apiStatus === 'offline' ? 'warning' : 'neutral'
+            }
+          />
           <p className="eyebrow">A clearer direction starts here</p>
-          <h1>Meet the future<br /><em>you.</em></h1>
-          <p className="hero-text">Discover where your strengths can take you. Pathfinder combines thoughtful assessment, practical roadmaps, and immersive career worlds to help you move forward with confidence.</p>
+          <h1>
+            Meet the future
+            <br />
+            <em>you.</em>
+          </h1>
+          <p className="hero-text">
+            Discover where your strengths can take you. Pathfinder combines thoughtful assessment,
+            practical roadmaps, and immersive career worlds to help you move forward with
+            confidence.
+          </p>
           <div className="hero-actions">
-            <button className="primary-button" type="button" onClick={() => onNavigate('/register')}>Start your discovery <span>↗</span></button>
-            <a className="text-link" href="#explore">Browse career paths <span>↓</span></a>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => onNavigate('/register')}
+            >
+              Start your discovery <span>↗</span>
+            </button>
+            <a className="text-link" href="#explore">
+              Browse career paths <span>↓</span>
+            </a>
           </div>
         </div>
-        <div className="hero-visual" aria-label="Abstract career discovery visualization" role="img">
-          <div className="orb orb--large"><span>YOUR<br />POTENTIAL</span></div>
-          <div className="orb orb--small"><span>01</span></div>
+        <div
+          className="hero-visual"
+          aria-label="Abstract career discovery visualization"
+          role="img"
+        >
+          <div className="orb orb--large">
+            <span>
+              YOUR
+              <br />
+              POTENTIAL
+            </span>
+          </div>
+          <div className="orb orb--small">
+            <span>01</span>
+          </div>
           <div className="orbit orbit--one" />
           <div className="orbit orbit--two" />
           <div className="visual-caption">01 / Begin with curiosity</div>
@@ -129,15 +177,44 @@ function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
       <section className="intro-grid" id="explore">
         <p className="section-kicker">The path is yours</p>
         <div>
-          <h2>Turn uncertainty into <em>momentum.</em></h2>
-          <p className="section-text">Your career does not have to be a single decision. Start with a signal, test your interests, and build the skills that make your next step feel possible.</p>
+          <h2>
+            Turn uncertainty into <em>momentum.</em>
+          </h2>
+          <p className="section-text">
+            Your career does not have to be a single decision. Start with a signal, test your
+            interests, and build the skills that make your next step feel possible.
+          </p>
         </div>
       </section>
 
       <section className="feature-grid" aria-label="Product capabilities">
-        <article className="feature-card feature-card--dark"><span className="feature-number">01</span><h3>Know your<br /><em>strengths.</em></h3><p>A focused assessment surfaces the patterns behind what energizes you.</p></article>
-        <article className="feature-card feature-card--warm"><span className="feature-number">02</span><h3>See what<br /><em>fits.</em></h3><p>Explore career paths matched to your interests, skills, and ambitions.</p></article>
-        <article className="feature-card feature-card--lavender"><span className="feature-number">03</span><h3>Make it<br /><em>real.</em></h3><p>Step into immersive worlds and leave with a roadmap you can act on.</p></article>
+        <article className="feature-card feature-card--dark">
+          <span className="feature-number">01</span>
+          <h3>
+            Know your
+            <br />
+            <em>strengths.</em>
+          </h3>
+          <p>A focused assessment surfaces the patterns behind what energizes you.</p>
+        </article>
+        <article className="feature-card feature-card--warm">
+          <span className="feature-number">02</span>
+          <h3>
+            See what
+            <br />
+            <em>fits.</em>
+          </h3>
+          <p>Explore career paths matched to your interests, skills, and ambitions.</p>
+        </article>
+        <article className="feature-card feature-card--lavender">
+          <span className="feature-number">03</span>
+          <h3>
+            Make it
+            <br />
+            <em>real.</em>
+          </h3>
+          <p>Step into immersive worlds and leave with a roadmap you can act on.</p>
+        </article>
       </section>
     </>
   );
@@ -146,14 +223,36 @@ function HomePage({ onNavigate }: { onNavigate: (href: string) => void }) {
 export default function App() {
   const { route, navigate } = useRoute();
   const isHome = route.key === 'home';
-  const placeholder = route.key !== 'home' && route.key !== 'not-found' && route.key !== 'career-details' ? routes[route.key] : undefined;
+  const placeholder =
+    route.key !== 'home' && route.key !== 'not-found' && route.key !== 'career-details'
+      ? routes[route.key]
+      : undefined;
 
   return (
     <AppShell currentPath={window.location.pathname} onNavigate={navigate}>
       {isHome && <HomePage onNavigate={navigate} />}
-      {placeholder && <PlaceholderPage title={placeholder.title} description={placeholder.description} onNavigate={navigate} />}
-      {route.key === 'career-details' && <PlaceholderPage title="Career details" description={`A closer look at ${route.careerId?.replace(/-/g, ' ') || 'this career path'}, including skills, resources, and VR availability.`} onNavigate={navigate} />}
-      {route.key === 'not-found' && <PlaceholderPage title="That path is still undiscovered" description="The page you requested does not exist yet. Return home to continue exploring Pathfinder." onNavigate={navigate} notFound />}
+      {placeholder && (
+        <PlaceholderPage
+          title={placeholder.title}
+          description={placeholder.description}
+          onNavigate={navigate}
+        />
+      )}
+      {route.key === 'career-details' && (
+        <PlaceholderPage
+          title="Career details"
+          description={`A closer look at ${route.careerId?.replace(/-/g, ' ') || 'this career path'}, including skills, resources, and VR availability.`}
+          onNavigate={navigate}
+        />
+      )}
+      {route.key === 'not-found' && (
+        <PlaceholderPage
+          title="That path is still undiscovered"
+          description="The page you requested does not exist yet. Return home to continue exploring Pathfinder."
+          onNavigate={navigate}
+          notFound
+        />
+      )}
     </AppShell>
   );
 }
