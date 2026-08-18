@@ -4,6 +4,7 @@ import { AppShell } from './layouts/AppShell';
 import { AuthRequiredPage } from './pages/AuthRequiredPage';
 import { AuthPage } from './pages/AuthPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { clearAuthSession, readAuthSession } from './services/auth';
 import { getHealth } from './services/api';
 
@@ -246,7 +247,8 @@ export default function App() {
     route.key !== 'not-found' &&
     route.key !== 'career-details' &&
     route.key !== 'register' &&
-    route.key !== 'login'
+    route.key !== 'login' &&
+    route.key !== 'profile'
       ? routes[route.key]
       : undefined;
 
@@ -306,6 +308,7 @@ export default function App() {
       {isProtectedRoute && !session && (
         <AuthRequiredPage onNavigate={navigate} sessionExpired={sessionExpired} />
       )}
+      {route.key === 'profile' && session && <ProfilePage />}
       {placeholder && session && (
         <PlaceholderPage
           title={placeholder.title}
