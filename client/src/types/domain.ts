@@ -27,6 +27,30 @@ export interface LearningResource {
   description?: string;
   url?: string;
   provider?: string;
+  type?: string;
+  free?: boolean;
+}
+
+export interface CareerSummary {
+  id: string;
+  name: string;
+  description: string;
+  skills: string[];
+  environmentKey: string | null;
+}
+
+export interface CareerDetailRoadmapStep {
+  id: string;
+  title: string;
+  description: string;
+  skill: string;
+  displayOrder: number;
+}
+
+export interface CareerDetail extends CareerSummary {
+  learningResources: LearningResource[];
+  environment: VREnvironment | null;
+  roadmap: CareerDetailRoadmapStep[];
 }
 
 export type AssessmentQuestionType = 'single-choice' | 'multiple-choice' | 'scale' | 'text';
@@ -86,6 +110,7 @@ export interface Recommendation {
 }
 
 export interface RecommendationResponse {
+  resultId: string;
   recommendations: Recommendation[];
 }
 

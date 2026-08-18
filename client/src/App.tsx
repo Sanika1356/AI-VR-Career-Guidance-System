@@ -4,6 +4,8 @@ import { AppShell } from './layouts/AppShell';
 import { AuthRequiredPage } from './pages/AuthRequiredPage';
 import { AuthPage } from './pages/AuthPage';
 import { AssessmentPage } from './pages/AssessmentPage';
+import { CareerCatalogPage } from './pages/CareerCatalogPage';
+import { CareerDetailPage } from './pages/CareerDetailPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { clearAuthSession, readAuthSession } from './services/auth';
@@ -15,6 +17,7 @@ type RouteKey =
   | 'login'
   | 'profile'
   | 'assessment'
+  | 'careers'
   | 'recommendations'
   | 'career-details'
   | 'skill-gap'
@@ -52,6 +55,11 @@ const routes: Record<
     description:
       'Answer a focused set of questions to surface the career patterns that fit you best.',
   },
+  careers: {
+    title: 'Career paths',
+    description:
+      'Explore a broad catalog of careers and discover which paths fit your next chapter.',
+  },
   recommendations: {
     title: 'Career recommendations',
     description:
@@ -80,7 +88,6 @@ const protectedRouteKeys = new Set<RouteKey>([
   'profile',
   'assessment',
   'recommendations',
-  'career-details',
   'skill-gap',
   'roadmap',
   'advisor',
@@ -94,8 +101,8 @@ function getRoute(pathname: string): RouteState {
   if (normalizedPath === '/') return { key: 'home' };
   if (normalizedPath === '/careers' || normalizedPath.startsWith('/careers/')) {
     return normalizedPath === '/careers'
-      ? { key: 'not-found' }
-      : { key: 'career-details', careerId: normalizedPath.split('/')[2] };
+      ? { key: 'careers' }
+      : { key: 'career-details', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
   }
 
   const key = normalizedPath.slice(1) as Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>;
@@ -247,6 +254,7 @@ export default function App() {
     route.key !== 'home' &&
     route.key !== 'not-found' &&
     route.key !== 'career-details' &&
+    route.key !== 'careers' &&
     route.key !== 'register' &&
     route.key !== 'login' &&
     route.key !== 'profile' &&
@@ -312,6 +320,7 @@ export default function App() {
       )}
       {route.key === 'profile' && session && <ProfilePage />}
       {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
+      {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
       {placeholder && session && (
         <PlaceholderPage
           title={placeholder.title}
@@ -319,12 +328,8 @@ export default function App() {
           onNavigate={navigate}
         />
       )}
-      {route.key === 'career-details' && session && (
-        <PlaceholderPage
-          title="Career details"
-          description={`A closer look at ${route.careerId?.replace(/-/g, ' ') || 'this career path'}, including skills, resources, and VR availability.`}
-          onNavigate={navigate}
-        />
+      {route.key === 'career-details' && (
+        <CareerDetailPage careerId={route.careerId} onNavigate={navigate} />
       )}
       {route.key === 'not-found' && (
         <PlaceholderPage

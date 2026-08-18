@@ -19,19 +19,10 @@ This checklist covers the complete project from repository setup to final delive
 ## Phase 1 — Local setup and frontend foundation
 
 - [ ] Clone the repository and configure Git identity.
-- [x] Add the agreed frontend dependencies and record them in the client package file.
 - [ ] Create the frontend environment file from `.env.example` without committing secrets.
 
 ## Phase 2 — Design system and landing experience
 
-- [ ] Create the shared color tokens and typography styles.
-- [ ] Design the landing page hero section.
-- [ ] Add a concise explanation of assessment, AI guidance, skill-gap analysis, roadmap, and VR exploration.
-- [ ] Add a clear call-to-action for registration and login.
-- [ ] Add responsive behavior for mobile, tablet, and desktop widths.
-- [ ] Add accessible headings, labels, focus states, keyboard navigation, and sufficient contrast.
-- [ ] Add the footer and project information section.
-- [ ] Add placeholders for future screenshots or 3D preview assets.
 - [ ] Test the landing page in the supported browsers.
 - [ ] Confirm copy and visual choices with Member 2 before merging.
 
@@ -39,7 +30,6 @@ This checklist covers the complete project from repository setup to final delive
 
 - [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
 - [ ] Build the dashboard shell with summary cards and navigation.
-- [ ] Use mock profile data until the authentication and profile APIs are available.
 - [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
 - [ ] Coordinate an authentication integration session with Member 2.
 
@@ -56,7 +46,6 @@ This checklist covers the complete project from repository setup to final delive
 - [ ] Add sorting or filtering only if approved in the scope.
 - [ ] Add loading skeletons and an empty-results state.
 - [ ] Add a clear explanation that recommendations are guidance rather than a guaranteed outcome.
-- [ ] Build the career details page.
 - [ ] Display career description, responsibilities, required skills, learning resources, and VR availability.
 - [ ] Add navigation from a recommendation card to career details.
 - [ ] Add a saved or selected-career state if required by the product flow.
@@ -75,7 +64,6 @@ This checklist covers the complete project from repository setup to final delive
 - [ ] Add progress percentage and completed-step count.
 - [ ] Add the agreed interaction for marking a roadmap step complete.
 - [ ] Add loading, empty, and error states.
-- [ ] Use mock skill-gap and roadmap data while the APIs are being built.
 - [ ] Connect the UI to `GET /api/careers/:careerId/skill-gap`, `GET /api/careers/:careerId/roadmap`, and `PATCH /api/roadmap/:stepId`.
 - [ ] Verify that changing a roadmap step updates the progress display correctly.
 - [ ] Test the pages with zero, partial, and complete progress.
@@ -90,7 +78,6 @@ This checklist covers the complete project from repository setup to final delive
 - [ ] Display timestamps only where useful and keep the interface readable.
 - [ ] Add a clear notice about the advisory nature of AI responses.
 - [ ] Add safe handling for empty responses and unexpected response shapes.
-- [ ] Create mock advisor responses for UI development.
 - [ ] Connect the UI to `POST /api/advisor/chat`.
 - [ ] Test long messages, repeated submissions, network failures, and page refresh behavior.
 - [ ] Confirm with Member 2 that the UI does not expose provider keys or internal prompts.
