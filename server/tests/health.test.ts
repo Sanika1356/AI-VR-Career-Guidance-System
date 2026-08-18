@@ -17,6 +17,9 @@ test('GET /api/health returns the documented service status', async () => {
       service: 'career-guidance-api',
     });
     assert.ok(response.headers.get('x-request-id'));
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(response.headers.get('x-frame-options'), 'DENY');
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }

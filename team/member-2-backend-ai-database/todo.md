@@ -19,7 +19,6 @@ This checklist contains only work that remains unresolved after auditing the imp
 
 ## Phase 3 — Authentication and profile APIs
 
-- [ ] Add rate limiting or an equivalent protection for authentication endpoints where appropriate.
 - [ ] Run an authentication integration session with Member 1.
 
 ## Phase 4 — Career catalog APIs
@@ -49,24 +48,8 @@ This checklist contains only work that remains unresolved after auditing the imp
 
 The project uses optional local Ollama and a deterministic fallback, so no paid provider key is required. Any future approved provider credentials must remain server-side in environment variables.
 
-## Phase 9 — VR support APIs and demo data
-
-- [ ] Implement the VR environment model or configuration source.
-- [ ] Add `GET /api/vr/environments`.
-- [ ] Return only safe metadata needed by the client scene selector.
-- [ ] Verify that every career intended for the demo has a matching environment key.
-- [ ] Decide whether the server records VR visits or progress; implement only if required.
-- [ ] Add demo data for the AI Engineer and Data Scientist environments.
-- [ ] Test unavailable or disabled environments.
-- [ ] Coordinate the final VR metadata shape with Member 1 before the 3D integration.
-
 ## Phase 10 — Security, validation, and quality
 
-- [ ] Review CORS, security headers, request-size limits, and error responses.
-- [ ] Add rate limits for authentication and AI endpoints where appropriate.
-- [ ] Check for SQL injection, unsafe dynamic queries, and unbounded list responses.
-- [ ] Add structured logs that are useful in development and safe in production.
-- [ ] Add a health check for the database dependency in addition to the existing API health endpoint.
 - [ ] Run database integration and API contract tests in addition to the existing backend test suite.
 - [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, and server failure.
 - [ ] Review API behavior with Member 1 using the final client flow.

@@ -56,6 +56,22 @@ The advisor assembles only the authenticated user’s approved profile, latest a
 
 The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. Ollama is optional: if it is unavailable or returns an error, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
 
+## Security and quality hardening
+
+The server applies a `1mb` JSON request-size limit, disables Express fingerprinting, validates the configured CORS origin, and adds `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers without changing JSON response bodies. Authentication and advisor routes use configurable in-memory rate limits from `AUTH_RATE_LIMIT_*` and `AI_RATE_LIMIT_*`; rate-limited responses return `429` with a `Retry-After` header. These limits are appropriate for the zero-cost local MVP; a horizontally scaled deployment should use an approved shared limiter before production.
+
+Requests and unexpected server errors are logged as structured JSON containing request ID, method, path, status, duration, and safe error metadata. Request bodies, passwords, bearer tokens, provider keys, and database connection strings are not logged. Unknown errors return the same generic `500` response shape to clients.
+
+`GET /api/health` remains the lightweight API liveness endpoint with its existing response shape. `GET /api/health/dependencies` checks the PostgreSQL dependency and returns `200` with `{ "status": "ok", "service": "career-guidance-api", "database": "ok" }` when available, or `503` with the same safe shape and `database: "unavailable"` when the database is not configured or cannot be reached.
+
+## VR environment API
+
+`GET /api/vr/environments` returns `{ "environments": [...] }` with safe metadata for the client career hub. Each item contains only `key`, `careerId`, `title`, `description`, and `available`; the server does not expose scene files, provider credentials, internal database fields, or implementation details. The endpoint is public because it serves non-sensitive catalog metadata.
+
+The MVP seeds two high-quality environments: `ai-engineer-lab` for `career_ai_engineer` and `data-insights-studio` for `career_data_analyst`. The broader career catalog remains independent, so careers can exist without VR environments. Additional environments can be added later as rows in `vr_environments` without changing the core career, recommendation, or roadmap contracts.
+
+The MVP does not record VR visits or VR progress. The client owns the 3D/VR scene and uses the environment metadata to select an experience; future progress requirements must be agreed through a backward-compatible contract change.
+
 ## Ownership
 
 Member 2 owns routes, controllers, services, validators, database access, models, migrations, authentication, recommendation logic, skill-gap logic, roadmap logic, AI integration, tests, and deployment configuration. Member 1 should consume the documented API rather than accessing database tables directly.
