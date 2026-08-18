@@ -146,3 +146,27 @@ export interface VREnvironment {
 export interface VREnvironmentResponse {
   environments: VREnvironment[];
 }
+
+export interface ProfileData {
+  interests: string[];
+  currentSkills: string[];
+  experience: string;
+  learningPreferences: Record<string, unknown>;
+}
+
+export interface ProfileResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  profile: ProfileData;
+}
+
+export interface ProfileUpdateInput {
+  name?: string;
+  interests?: string[];
+  currentSkills?: string[];
+  experience?: string;
+  learningPreferences?: Record<string, unknown>;
+}
