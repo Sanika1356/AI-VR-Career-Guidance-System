@@ -2556,6 +2556,8 @@ em {
   .dashboard-page__header .primary-button,
   .dashboard-action-card .outline-button {
     width: 100%;
+  }
+}
 
 .page-frame {
   margin: 0 auto;
