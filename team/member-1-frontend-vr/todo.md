@@ -235,7 +235,7 @@ The MVP desktop scenes use original dependency-free canvas visuals and do not bu
 - [ ] Verify the production build output and test the deployed application after a fresh deployment.
 The local desktop fallback and VR demo path were rehearsed with both MVP environments, environment switching, keyboard movement, pointer interaction, reduced-motion behavior, and the unsupported-device fallback; final staging rehearsal remains pending.
 Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
-- [ ] Prepare a short product walkthrough, screenshots, or screen recording if required.
+The local walkthrough scope is prepared: authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. A final staging screenshot or recording remains optional and pending the deployed environment.
 - [ ] Help Member 2 perform the final end-to-end test and resolve or document every assigned issue.
 - [ ] Obtain both members’ approval before the final merge and release tag.
 
