@@ -167,7 +167,7 @@ Static contract audit confirms the profile request, response types, form state, 
 - [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
 - [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
-- [ ] Keep recommendation language framed as guidance rather than a guaranteed outcome.
+The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
 
 **Handoff to Member 2:** Report any response-shape mismatch before changing client types or adding fallback data.
 
