@@ -7,8 +7,9 @@ import { requirePool } from './pool.js';
 
 const migrationsDirectory = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
 
-async function migrate(): Promise<void> {
+export async function migrate(options: { runSeedData?: boolean } = {}): Promise<void> {
   const database = requirePool();
+  const runSeedData = options.runSeedData ?? env.runSeedData;
   const migrationFiles = (await readdir(migrationsDirectory))
     .filter((file) => file.endsWith('.sql'))
     .sort();
@@ -20,7 +21,7 @@ async function migrate(): Promise<void> {
 
   for (const file of migrationFiles) {
     const version = basename(file, '.sql');
-    if (!shouldRunMigration(version, env.runSeedData)) {
+    if (!shouldRunMigration(version, runSeedData)) {
       console.info(`Skipping seed migration ${version} because RUN_SEED_DATA is disabled`);
       continue;
     }
@@ -48,8 +49,3 @@ async function migrate(): Promise<void> {
 
   await database.end();
 }
-
-migrate().catch((error) => {
-  console.error('Database migration failed', error);
-  process.exitCode = 1;
-});

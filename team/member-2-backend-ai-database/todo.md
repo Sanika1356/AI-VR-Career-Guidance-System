@@ -31,15 +31,11 @@ This file contains only remaining work. The real backend foundation, authenticat
 | Gate D — Advisor/VR | Advisor fallback and VR metadata endpoints | Advisor UI and desktop/VR experience | Browser receives safe data and handles provider/server failures. |
 | Gate E — Release | Staging database, Render configuration, health, logs, and rollback notes | Deployed client URL and `VITE_API_BASE_URL` | Both members approve the same deployed end-to-end flow. |
 
-## 3. Phase A — Local setup and contract synchronization
+## 3. Completed backend checkpoint
 
-- [ ] Create the server environment file from `.env.example` without committing secrets.
-- [ ] Verify a clean local PostgreSQL database can apply schema and approved MVP seed migrations.
-- [ ] Add a development-only reset or seed procedure that cannot run accidentally in production.
-- [ ] Run the server lint command once linting is configured, together with the existing test, typecheck, and build checks.
-- [ ] Review `docs/api.md` against the current routes before each client handoff.
+**Phase A — Local setup and contract synchronization is complete.** The local `server/.env` is generated and ignored, PostgreSQL 16 is available for development, `pnpm --dir server db:reset` safely recreates and seeds only localhost development databases, migrations are idempotent, all four approved migrations apply, the catalog contains five careers and two approved VR environments, and the documented endpoints match the mounted routes. The current backend quality gate is `test`, `typecheck`, and `build`; no lint script is configured yet.
 
-**Handoff to Member 1:** Provide local setup commands, required non-secret variable names, migration/seed behavior, and the API commit used for client testing.
+**Handoff available to Member 1:** Use the local setup commands in `server/README.md`, the non-secret variable names in `server/.env.example`, the real local API at `http://localhost:4000/api`, and the tested backend commit for integration work.
 
 ## 4. Phase B — Authentication and profile integration
 

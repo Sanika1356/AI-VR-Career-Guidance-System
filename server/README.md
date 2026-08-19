@@ -8,7 +8,7 @@ From the repository root, install workspace dependencies with `pnpm install`. St
 
 The approved authentication contract uses `Authorization: Bearer <token>`. Passwords are hashed with Node.js built-in `crypto.scrypt`, and tokens are signed with Node.js built-in HMAC cryptography. No Firebase, Auth0, Clerk, or other external authentication service is used.
 
-Run `pnpm --dir server test` for the API and security tests, `pnpm --dir server typecheck` for TypeScript validation, and `pnpm --dir server build` for the production build. After PostgreSQL is running and `DATABASE_URL` is configured, run `pnpm --dir server db:migrate` to apply the SQL files in `server/src/db/migrations/`.
+Run `pnpm --dir server test` for the API and security tests, `pnpm --dir server typecheck` for TypeScript validation, and `pnpm --dir server build` for the production build. After PostgreSQL is running and `DATABASE_URL` is configured, run `pnpm --dir server db:migrate` to apply the SQL files in `server/src/db/migrations/`. For a disposable local database, `pnpm --dir server db:reset` drops and recreates the public schema, then reapplies all approved schema and seed migrations. The reset command refuses production mode and refuses non-local database hosts; never run it against Neon or another shared database.
 
 ## Zero-cost local resources
 
@@ -82,7 +82,7 @@ Render’s official [free deployment documentation](https://render.com/docs/free
 
 Build and start the server with `pnpm --dir server build` followed by `pnpm --dir server start`. Run `pnpm --dir server typecheck` and `pnpm --dir server test` before a release. Configure `NODE_ENV=production`, a strong `AUTH_SECRET`, `DATABASE_URL`, `CORS_ORIGIN` set to the deployed frontend origin, and the approved rate-limit and AI settings. Keep `RUN_SEED_DATA=false` in production unless demo seed data has been explicitly approved; local development defaults to `true`.
 
-Apply database migrations locally with `pnpm --dir server db:migrate`, or let the Render Free Start Command run `pnpm --dir server db:migrate && pnpm --dir server start` from the repository root. The migration runner applies each SQL file transactionally, records applied versions in `schema_migrations`, skips already-applied versions, and skips seed/catalog migrations only when `RUN_SEED_DATA=false`. A failed migration exits nonzero; the API process does not start against an unknown schema.
+Apply database migrations locally with `pnpm --dir server db:migrate`, or use `pnpm --dir server db:reset` only for a disposable localhost database. The Render Free Start Command runs `pnpm --dir server db:migrate && pnpm --dir server start` from the repository root. The migration runner applies each SQL file transactionally, records applied versions in `schema_migrations`, skips already-applied versions, and skips seed/catalog migrations only when `RUN_SEED_DATA=false`. A failed migration exits nonzero; the API process does not start against an unknown schema.
 
 Use `GET /api/health` for a lightweight process check and `GET /api/health/dependencies` for a PostgreSQL dependency check. A restart procedure is: stop the current process gracefully with `SIGTERM`, apply approved migrations, start `node dist/server.js`, then verify both health endpoints and the frontend CORS origin. A rollback should stop the new process, restore the previous application artifact and compatible environment, and only reverse database changes through a separately reviewed migration; never edit `schema_migrations` manually.
 
