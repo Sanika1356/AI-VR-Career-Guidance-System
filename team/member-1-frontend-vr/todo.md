@@ -183,7 +183,7 @@ The scene uses bounded movement and incremental horizontal look controls rather 
 
 The VR page has API loading, empty, and error states, and the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
-- [ ] Test keyboard, mouse, touch where applicable, reduced-motion preferences, and unsupported-device fallback.
+Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
 - [ ] Add WebXR support only after desktop 3D mode works reliably.
 - [ ] Test entering and exiting a headset session where hardware is available.
 The client keeps the metadata-only `GET /api/vr/environments` contract and does not move database or provider calls into the browser.
@@ -194,7 +194,7 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 
 - [ ] Verify every active page has loading, success, empty, and error behavior appropriate to its API.
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
-- [ ] Run accessibility checks for keyboard navigation, focus order, labels, contrast, semantic headings, and non-color status cues.
+The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
 - [ ] Run browser compatibility checks on the supported browsers.
 - [ ] Test slow network behavior, refresh during API requests, duplicate submissions, and expired sessions.
 The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
