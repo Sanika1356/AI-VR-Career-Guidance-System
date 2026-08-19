@@ -43,9 +43,7 @@ function SkillGroup({
           <h2>{title}</h2>
           <p>{description}</p>
         </div>
-        <Badge tone={status === 'matched' ? 'success' : 'warning'}>
-          {skills.length}
-        </Badge>
+        <Badge tone={status === 'matched' ? 'success' : 'warning'}>{skills.length}</Badge>
       </div>
       {skills.length > 0 ? (
         <ul className="skill-gap-list">

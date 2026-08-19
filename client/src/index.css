@@ -65,6 +65,21 @@ a {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.topnav a {
+  white-space: nowrap;
+}
+@media (max-width: 900px) and (min-width: 761px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 24px 32px;
+  }
+  .topnav {
+    flex-basis: 100%;
+    gap: 20px;
+    justify-content: center;
+  }
+}
 .topnav a:hover,
 .text-link:hover {
   color: #829d31;

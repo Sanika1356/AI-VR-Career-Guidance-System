@@ -1,70 +1,46 @@
-**Owns:** `client/`, frontend-related documentation, browser behavior, responsive UI, accessibility, and the 3D/VR experience.
+# Pathfinder Frontend TODO — Remaining Work Only
 
-**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO.
+**Owner:** Member 1 — frontend and VR client
 
-This file contains one consolidated remaining-work plan. The client already contains real pages and services for authentication, profile, assessment, career catalog, recommendations, skill gap, roadmap, advisor, and the VR metadata hub. Do not recreate those features with final mock data. The remaining work is integration verification, resilience, accessibility, visual/3D work, staging configuration, and final demonstration readiness.
+**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO. This file contains only unfinished frontend work; completed implementation and staging tasks are recorded as baseline evidence, not active checklist items.
 
-## 1. Separate-laptop working agreement
+## Working agreement
 
 | Rule | Frontend action |
 |---|---|
-| Branch ownership | Create a new branch for every frontend push using `feature/member1-<short-name>`. Never commit directly to `main`. |
+| Branch ownership | Create a new branch for every frontend push using `feature/member1-<short-name>` or `chore/member1-<short-name>` for checklist-only changes. Never commit directly to `main`. |
 | Pull before work | Start each task from the latest `origin/main`. Do not build on an old backend branch. |
-| File boundary | Modify `client/` for frontend work. Modify shared docs only after coordinating with Member 2. Do not edit `server/`. |
+| File boundary | Modify `client/` for frontend work. Modify this checklist only for frontend task tracking. Do not edit `server/`. |
 | API source of truth | Use `docs/api.md` and tested local or staging responses. Do not infer fields from stale task notes. |
 | Environment | Keep `client/.env.local` uncommitted. Use `VITE_API_BASE_URL=http://localhost:4000/api` locally or the approved Render API URL in a deployed build. |
 | Secrets | Never place `DATABASE_URL`, `AUTH_SECRET`, provider keys, internal prompts, or server-only credentials in client files. `VITE_*` values are public. |
 | Handoff | Before requesting a backend change, send the endpoint, method, request body, response fields, auth requirement, error behavior, and observed reproduction. |
-| Merge order | Merge backend contract changes before dependent client changes. After each merge, pull `origin/main` and rerun the client build. |
-| Completion evidence | Check a task only after it works against the real API and has a test, screenshot, browser check, or documented manual result. |
+| Evidence | Close a remaining item only after a real test, browser check, screenshot, or documented manual result. |
 
-## 2. Current contract decisions and completed baseline
+## Verified baseline — completed work removed from this TODO
 
-The profile MVP supports editable `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`. It does **not** support `goals`; do not add a client-only goals field. Goals remain a future coordinated database/API enhancement.
+The client implementation is complete for authentication, profile, assessment, career catalog and details, recommendations, skill gap, roadmap, advisor, VR metadata, and the dependency-free desktop VR fallback. The supported profile fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`; `goals` remains deferred because it is not in the approved backend contract. Skill-gap status is limited to `matched` and `missing`; roadmap completion may be zero, partial, or complete.
 
-Authentication uses stateless bearer tokens. The client sends `Authorization: Bearer <token>` for protected requests. The MVP has no refresh or logout endpoints: logout clears the stored token client-side, and expired or invalid tokens require a new login.
+The approved staging deployment was exercised with a synthetic account. Registration, login, profile persistence after refresh, assessment submission, recommendations, career details, skill-gap rendering, roadmap mutation, advisor fallback conversation, VR metadata selection, and switching between the AI Engineer and Data Analyst desktop environments passed. The verified staging API base is `https://ai-vr-career-guidance-system.onrender.com/api`, and the active frontend origin is `https://ai-vr-career-guidance-system-40ti.onrender.com` with matching CORS. The unavailable-career test returned HTTP 404 and rendered the existing retry and back-navigation error state after the initial Render cold start.
 
-The skill-gap MVP uses only `matched` and `missing` statuses. Do not render `partial` as a skill status unless both members approve a future proficiency-data contract. Roadmap progress may still be zero, partial, or complete; that is separate from skill-gap status.
+Assessment drafts now persist in `sessionStorage` by assessment ID, restore the stage, answers, and current question after refresh, and clear after successful submission. Storage failures are non-blocking. The client quality gate passes formatting, TypeScript, and production build checks.
 
-The career catalog is broader than the VR catalog. The MVP VR environments are AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`). A career does not require a VR environment.
+Sorting, filtering, saved-career state, profile goals, partial skill-gap status, and WebXR-dependent behavior remain outside the approved desktop MVP unless separately approved. The desktop canvas is the supported MVP VR path; headset validation requires compatible hardware.
 
-The frontend lockfile and CSS deployment fixes have been pushed on dedicated frontend branches. Before another deployment, pull the latest merged `main` and confirm the root lockfile and stylesheet fixes are present.
+## Phase 1 — Local backend integration checks
 
-## 3. Shared delivery gates
+These checks are specific to the local backend environment and should not be marked complete based only on the deployed staging run.
 
-| Gate | Member 1 deliverable | Member 2 dependency | Exit condition |
-|---|---|---|---|
-| Gate A — Local contract | Client environment, request wrapper, and route assumptions | Current `docs/api.md` and local server | Both laptops run client and server independently. |
-| Gate B — Authenticated flow | Browser session test with a clean account | Register, login, profile, bearer-token, and CORS behavior | Refresh, client-side logout, expired-token, and protected-route behavior are understood. |
-| Gate C — Learning flow | Assessment through roadmap UI | Assessment, recommendation, skill-gap, and roadmap APIs | A real test account completes the core guidance journey. |
-| Gate D — Advisor/VR | Advisor resilience and desktop VR hub/scene | Advisor and VR metadata endpoints | Failures are visible, no secrets appear in the browser, and fallback paths work. |
-| Gate E — Release | Browser, accessibility, responsive, and deployment checks | Render/Neon staging API and CORS | Both members approve the same end-to-end demo build. |
-
-## 4. Phase A — Local setup and contract synchronization
-
-Created the ignored local `client/.env.local` from the environment template with only the browser-safe local API URL; no secrets were added or committed.
-Fetched the latest `origin/main` at `f1f6a13` and confirmed that `docs/api.md` documents the merged auth, profile, career, assessment, recommendations, skill-gap, roadmap, advisor, and VR endpoints consumed by the client.
-The client API and authenticated request helpers use `VITE_API_BASE_URL` with a local fallback, and the source audit found no database, Ollama, or provider-key environment values in the browser client.
-The required client formatting, typecheck, and production build gate has been run repeatedly before advisor, VR, and quality branches; the current client remains build-clean.
-- [ ] Record any frontend assumption in `docs/api.md` or `docs/architecture.md` only after Member 2 approves the contract change.
-
-**Handoff to Member 2:** Send the exact API mismatch or browser error with a redacted request and response. Do not add a mock final path to hide a backend contract problem.
-
-## 5. Phase B — Authentication and profile integration
-
-- [ ] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real local backend.
+- [ ] Test token-expiry behavior specifically against the real local backend; registration, login, protected navigation, refresh, client-side logout, and missing-session redirect are verified locally.
 - [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
-- [ ] Test profile editing for `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`.
-Static contract audit confirms the profile request, response types, form state, and UI omit `goals`; the supported MVP fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`. Goals remain deferred until a future backend contract is approved.
-- [ ] Test validation errors, empty optional fields, persistence after refresh, and unauthorized responses.
-- [ ] Record any browser CORS or token-storage issue with the request, response status, and reproduction steps.
+- [ ] Test empty optional profile fields and a direct unauthorized profile API response against the local backend; required-name validation and valid persistence after refresh are verified locally.
 
-**Exit gate:** Both members can independently reproduce a successful authenticated profile session from separate laptops.
+**Local integration evidence required:** Record the environment, route, account type, response status, and reproduction steps without committing credentials or secrets.
 
-## 6. Phase C — Assessment, recommendations, and career details
+## Phase 2 — Learning-flow resilience and error checks
 
-- [ ] Test assessment refresh behavior and document how unfinished local progress is handled.
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
+
 - [x] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; after the initial Render cold-start loading period, retrying the route rendered the existing readable error state with `Try again` and `Back to career paths` controls. Long-name and synthetic empty-array fixtures remain outside the deployed catalog.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
 - [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
@@ -94,48 +70,35 @@ A client source audit found no provider keys, system prompts, private profile pa
 ## 9. Phase F — 3D career hub and VR environments
 
 
-The production client build remained stable before and after the desktop scene work; the MVP uses a dependency-free canvas implementation rather than adding Three.js or React Three Fiber.
-The desktop career hub is implemented with keyboard navigation, pointer focus, horizontal drag look controls, readable instructions, and a reduced-motion path.
-The AI Engineer environment renders a readable green-lime laboratory scene.
-The Data Analyst environment renders a distinct cyan analytics studio scene.
-The scene uses bounded movement and incremental horizontal look controls rather than a disorienting free-flight camera.
-
-The VR page has API loading, empty, and error states, and the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
+- [ ] Test long career names, missing optional fields, empty arrays, and career API failures; unavailable-career HTTP 404 and its rendered error state are verified locally and in staging.
+- [ ] Test server-failure responses for skill-gap and roadmap routes; unauthorized access and a missing roadmap step are verified locally.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry; page refresh and minimum-length validation are verified locally.
 
 
-The MVP has no models or texture payloads to optimize; the canvas scene uses lightweight procedural visuals. Formal performance measurement remains pending.
-Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
-- [ ] Add WebXR support only after desktop 3D mode works reliably.
-- [ ] Test entering and exiting a headset session where hardware is available.
-The client keeps the metadata-only `GET /api/vr/environments` contract and does not move database or provider calls into the browser.
+The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
-**Handoff to Member 2:** If the scene needs new metadata, propose the field and explain why existing safe metadata is insufficient before requesting a backend change.
+## Phase 3 — Accessibility, responsive, browser, and performance quality
 
-## 10. Phase G — Frontend quality and integration
+- [ ] Verify authenticated assessment and learning-flow behavior across supported desktop, tablet, and mobile viewport sizes. Public home and career-catalog spot checks, including the tablet navigation-wrap fix, are complete.
+- [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented in `docs/frontend-quality-audit.md`.
+- [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is documented in `docs/frontend-quality-audit.md`; target-device evidence remains pending.
+- [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available.
 
-Static audit confirms the active catalog, career-detail, assessment, recommendations, skill-gap, roadmap, and VR pages expose appropriate loading, success, empty, and error branches; authenticated dashboard and profile summaries expose loading, success, and error states because empty profile data is a valid editable state rather than an empty collection.
-- [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
-The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
-- [ ] Run browser compatibility checks on the supported browsers.
-Local checks covered protected-route expiry and rapid advisor form submission behavior; slow-network, refresh-during-request, real-backend duplicate-submission, and cross-page expiry testing remain pending.
-The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
-The MVP desktop scenes use original dependency-free canvas visuals and do not bundle external images, icons, models, fonts, or provider assets.
-- [ ] Open a final frontend integration pull request after the backend staging contract is stable.
+## Phase 4 — WebXR and headset validation
 
-## 11. Phase H — Staging, release, and presentation
+WebXR implementation is deferred beyond the approved MVP and must not be added without explicit scope approval from both members.
 
-- [ ] Set the deployed client’s `VITE_API_BASE_URL` to the approved Render API URL ending in `/api` at frontend build time.
-- [ ] Confirm Member 2 has set Render `CORS_ORIGIN` to the exact deployed frontend origin.
-- [ ] Run the complete flow with a fresh or approved demo account: register, login, profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and VR metadata.
-- [ ] Verify the production build output and test the deployed application after a fresh deployment.
-The local desktop fallback and VR demo path were rehearsed with both MVP environments, environment switching, keyboard movement, pointer interaction, reduced-motion behavior, and the unsupported-device fallback; final staging rehearsal remains pending.
-Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
-The local walkthrough scope is prepared: authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. A final staging screenshot or recording remains optional and pending the deployed environment.
-- [ ] Help Member 2 perform the final end-to-end test and resolve or document every assigned issue.
-- [ ] Obtain both members’ approval before the final merge and release tag.
+- [ ] Test entering and exiting a headset session with a compatible WebXR device.
 
-## 12. Definition of done for Member 1
+**Hardware gate:** Do not mark WebXR or headset validation complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
 
-Member 1’s work is complete when the client builds from a clean checkout, uses real documented APIs, handles loading and failure states, passes the agreed browser and accessibility checks, contains no final mock path or secret, and completes the shared staging flow with Member 2’s backend.
+## Phase 5 — Release and approval gates
 
-The final handoff to Member 2 must include the client branch, pull request, tested commit, environment variable names without secret values, supported browser/device notes, screenshots or manual test evidence, and a short list of unresolved limitations.
+- [ ] Merge the currently open frontend evidence pull requests after their checks pass. Review completed for [PR #61](https://github.com/Sanika1356/AI-VR-Career-Guidance-System/pull/61) and [PR #67](https://github.com/Sanika1356/AI-VR-Career-Guidance-System/pull/67); both remain open with no configured automated checks (`Checks 0`) and no human review, so merge remains pending.
+- [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
+
+The final release handoff must include the tested client branch and commit, pull request, environment-variable names without secret values, supported browser and device notes, staging evidence, and a concise list of unresolved limitations.
+
+## Completion rule
+
+Member 1’s frontend work is complete only when the remaining local integration checks, resilience checks, responsive and browser checks, accessibility matrix, deployment confirmation, and applicable hardware checks have real evidence, and the user approves production promotion and final release tagging. External approval, backend coordination, staging deployment, browser-matrix access, and WebXR hardware must not be inferred or self-approved.

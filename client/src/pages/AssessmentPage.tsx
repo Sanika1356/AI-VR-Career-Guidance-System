@@ -23,6 +23,51 @@ type AssessmentStage = 'intro' | 'questions' | 'confirm' | 'completed';
 
 type Answers = Record<string, string>;
 
+type AssessmentDraft = {
+  assessmentId: string;
+  answers: Answers;
+  stage: Exclude<AssessmentStage, 'completed'>;
+  currentQuestionIndex: number;
+};
+
+const ASSESSMENT_DRAFT_KEY = 'pathfinder.assessment.draft';
+
+function readAssessmentDraft(): AssessmentDraft | null {
+  try {
+    const raw = window.sessionStorage.getItem(ASSESSMENT_DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AssessmentDraft>;
+    if (
+      typeof parsed.assessmentId !== 'string' ||
+      !parsed.answers ||
+      typeof parsed.answers !== 'object' ||
+      !['intro', 'questions', 'confirm'].includes(parsed.stage ?? '') ||
+      typeof parsed.currentQuestionIndex !== 'number'
+    ) {
+      return null;
+    }
+    return parsed as AssessmentDraft;
+  } catch {
+    return null;
+  }
+}
+
+function saveAssessmentDraft(draft: AssessmentDraft): void {
+  try {
+    window.sessionStorage.setItem(ASSESSMENT_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Private browsing or storage limits should not block assessment progress.
+  }
+}
+
+function clearAssessmentDraft(): void {
+  try {
+    window.sessionStorage.removeItem(ASSESSMENT_DRAFT_KEY);
+  } catch {
+    // Ignore storage cleanup failures; the completed result remains usable in memory.
+  }
+}
+
 function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
@@ -268,16 +313,36 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<AssessmentResultResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDraftHydrated, setIsDraftHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadQuestions = useCallback(() => {
     let active = true;
     setIsLoading(true);
     setLoadError(null);
+    setIsDraftHydrated(false);
     getAssessmentQuestions()
       .then((response) => {
         if (!active) return;
         setQuestionSet(response);
+        const draft = readAssessmentDraft();
+        const questionIds = new Set(response.questions.map((question) => question.id));
+        const restoredAnswers = draft
+          ? Object.fromEntries(
+              Object.entries(draft.answers).filter(([questionId]) => questionIds.has(questionId)),
+            )
+          : {};
+        const canRestoreDraft = Boolean(
+          draft && (draft.stage === 'intro' || Object.keys(restoredAnswers).length > 0),
+        );
+        if (draft && canRestoreDraft) {
+          setAnswers(restoredAnswers);
+          setStage(draft.stage);
+          setCurrentQuestionIndex(
+            Math.min(Math.max(draft.currentQuestionIndex, 0), response.questions.length - 1),
+          );
+        }
+        setIsDraftHydrated(true);
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -293,6 +358,16 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
   }, []);
 
   useEffect(() => loadQuestions(), [loadQuestions]);
+
+  useEffect(() => {
+    if (!questionSet || !isDraftHydrated || stage === 'completed') return;
+    saveAssessmentDraft({
+      assessmentId: questionSet.assessmentId,
+      answers,
+      stage,
+      currentQuestionIndex,
+    });
+  }, [answers, currentQuestionIndex, isDraftHydrated, questionSet, stage]);
 
   const questions = questionSet?.questions ?? [];
   const currentQuestion = questions[currentQuestionIndex];
@@ -356,6 +431,7 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
     setSubmitError(null);
     try {
       const response = await submitAssessment(submission);
+      clearAssessmentDraft();
       setResult(response);
       setStage('completed');
     } catch (error: unknown) {
