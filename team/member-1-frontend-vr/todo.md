@@ -2,7 +2,7 @@
 
 **Owner:** Member 1 — frontend and VR client
 
-**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO. This file intentionally contains only unfinished frontend work. Completed implementation phases and completed task headlines have been removed.
+**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO. This file contains only unfinished frontend work; completed implementation and staging tasks are recorded as baseline evidence, not active checklist items.
 
 ## Working agreement
 
@@ -23,51 +23,53 @@ The client implementation is complete for authentication, profile, assessment, c
 
 The approved staging deployment was exercised with a synthetic account. Registration, login, profile persistence after refresh, assessment submission, recommendations, career details, skill-gap rendering, roadmap mutation, advisor fallback conversation, VR metadata selection, and switching between the AI Engineer and Data Analyst desktop environments passed. The verified staging API base is `https://ai-vr-career-guidance-system.onrender.com/api`, and the active frontend origin is `https://ai-vr-career-guidance-system-40ti.onrender.com` with matching CORS. The unavailable-career test returned HTTP 404 and rendered the existing retry and back-navigation error state after the initial Render cold start.
 
-The completed implementation phases, staging-flow items, roadmap mutation checks, catalog error-path check, advisor disclaimer and fallback checks, desktop VR behavior, and staging configuration checks are intentionally no longer listed as open tasks here. Sorting, filtering, saved-career state, profile goals, partial skill-gap status, and WebXR-dependent behavior remain outside the approved desktop MVP unless separately approved.
+Assessment drafts now persist in `sessionStorage` by assessment ID, restore the stage, answers, and current question after refresh, and clear after successful submission. Storage failures are non-blocking. The client quality gate passes formatting, TypeScript, and production build checks.
 
-## 1. Local backend integration checks
+Sorting, filtering, saved-career state, profile goals, partial skill-gap status, and WebXR-dependent behavior remain outside the approved desktop MVP unless separately approved. The desktop canvas is the supported MVP VR path; headset validation requires compatible hardware.
 
-These checks are still specific to the local backend environment and should not be marked complete based only on the deployed staging run.
+## Phase 1 — Local backend integration checks
+
+These checks are specific to the local backend environment and should not be marked complete based only on the deployed staging run.
 
 - [ ] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real local backend.
 - [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
 - [ ] Test profile validation errors, empty optional fields, persistence after refresh, and unauthorized responses against the local backend.
 - [ ] Test assessment refresh behavior and document how unfinished local progress is handled during a real authenticated local session.
 
-**Local integration evidence required:** Record the environment, route, account type, response status, and any reproduction steps without committing credentials or secrets.
+**Local integration evidence required:** Record the environment, route, account type, response status, and reproduction steps without committing credentials or secrets.
 
-## 2. Remaining data and resilience checks
+## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
+- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. The deployed invalid-career request already renders the client error state with the backend’s HTTP 404 after the Render cold-start delay; long-name, empty-array, and other API-failure cases remain pending.
 - [ ] Test unauthorized, missing-step, and server-failure responses for skill-gap and roadmap routes.
-- [ ] Test advisor long-message limits, real-backend repeated submissions, page refresh behavior, slow-network behavior, and cross-page session expiry.
-- [ ] Confirm that any new frontend assumption is approved by Member 2 before changing `docs/api.md`, `docs/architecture.md`, or client contracts.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, page-refresh behavior, slow-network behavior, and cross-page session expiry.
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
-## 3. Accessibility, responsive, and browser quality
+## Phase 3 — Accessibility, responsive, browser, and performance quality
 
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
 - [ ] Complete the manual accessibility matrix for focus order, contrast, headings, visible labels, and non-color status cues.
 - [ ] Run browser compatibility checks on the supported browsers.
-- [ ] Measure or document desktop VR fallback performance on the supported target hardware; the current scenes use lightweight procedural canvas visuals and no external models or textures.
+- [ ] Measure or document desktop VR fallback performance on supported target hardware; the current scenes use lightweight procedural canvas visuals and no external models or textures.
 - [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available.
 
-## 4. WebXR and headset validation
+## Phase 4 — WebXR and headset validation
 
-- [ ] Add WebXR support only after the desktop 3D mode remains reliable and the WebXR scope is approved.
+WebXR implementation is deferred beyond the approved MVP and must not be added without explicit scope approval from both members.
+
 - [ ] Test entering and exiting a headset session with a compatible WebXR device.
 
-**Hardware gate:** Do not mark WebXR or headset items complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
+**Hardware gate:** Do not mark WebXR or headset validation complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
 
-## 5. Release and approval gates
+## Phase 5 — Release and approval gates
 
-- [ ] Verify the production build output and test the deployed application after a fresh frontend deployment.
-- [ ] Open the final frontend integration pull request after the backend staging contract and client deployment are stable.
-- [ ] Obtain both members’ approval before the final merge and release tag.
+- [ ] Review and merge the currently open frontend evidence pull requests after their checks pass.
+- [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
 
-The final release handoff must include the tested client branch and commit, pull request, environment variable names without secret values, supported browser and device notes, staging screenshots or manual evidence, and a concise list of unresolved limitations.
+The final release handoff must include the tested client branch and commit, pull request, environment-variable names without secret values, supported browser and device notes, staging evidence, and a concise list of unresolved limitations.
 
 ## Completion rule
 
-Member 1’s frontend work is complete only when the remaining local integration checks, responsive and browser checks, accessibility matrix, deployment confirmation, and any applicable hardware checks have real evidence, and both members approve the final merge and release tag. External approval, backend coordination, staging deployment, browser-matrix access, and WebXR hardware must not be inferred or self-approved.
+Member 1’s frontend work is complete only when the remaining local integration checks, resilience checks, responsive and browser checks, accessibility matrix, deployment confirmation, and applicable hardware checks have real evidence, and the user approves production promotion and final release tagging. External approval, backend coordination, staging deployment, browser-matrix access, and WebXR hardware must not be inferred or self-approved.
