@@ -48,9 +48,9 @@ The current API already exposes the approved contracts. Do not add mock services
 
 ## Phase 3 — Accessibility, responsive, browser, and performance quality
 
-- [ ] Verify authenticated assessment and learning-flow behavior across supported desktop, tablet, and mobile viewport sizes; public home and career-catalog spot checks passed at 375px, 768px, and 1440px, including the tablet navigation-wrap fix.
-- [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available; Chromium local coverage and the manual accessibility matrix are documented in `docs/frontend-quality-audit.md`.
-- [ ] Measure desktop VR fallback performance on supported target hardware; a local Chromium baseline is documented in `docs/frontend-quality-audit.md`, while target-device evidence remains pending.
+- [ ] Verify authenticated assessment and learning-flow behavior across supported desktop, tablet, and mobile viewport sizes. Public home and career-catalog spot checks, including the tablet navigation-wrap fix, are complete.
+- [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented in `docs/frontend-quality-audit.md`.
+- [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is documented in `docs/frontend-quality-audit.md`; target-device evidence remains pending.
 - [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available.
 
 ## Phase 4 — WebXR and headset validation
