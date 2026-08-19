@@ -2,6 +2,101 @@
 
 **Owner:** Member 1
 
+**Primary areas:** `client/`, frontend-related parts of `docs/`, and the 3D/VR experience
+**Works with:** Member 2 through the API contract in `docs/api.md`
+
+This checklist covers the complete project from repository setup to final delivery. Check items only after the implementation has been tested and documented.
+
+## Phase 0 — Understand the project and agree with Member 2
+
+- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
+- [ ] Confirm the frontend stack with Member 2: React, TypeScript, Vite, Tailwind, routing, charts, Three.js, and React Three Fiber.
+- [ ] Confirm the authentication approach and how the client stores or receives the session.
+- [ ] Confirm the API base URL, local development ports, request headers, error format, and date format.
+- [ ] Confirm the visual direction, color palette, typography, responsive breakpoints, and accessibility expectations.
+- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR.
+- [ ] Add any agreed frontend assumptions to `docs/architecture.md` or `docs/api.md`.
+
+## Phase 1 — Local setup and frontend foundation
+
+- [ ] Clone the repository and configure Git identity.
+- [ ] Create the frontend environment file from `.env.example` without committing secrets.
+
+## Phase 2 — Design system and landing experience
+
+- [ ] Test the landing page in the supported browsers.
+- [ ] Confirm copy and visual choices with Member 2 before merging.
+
+## Phase 3 — Authentication and profile UI
+
+The profile MVP is complete for the API-supported fields: name, interests, current skills, experience level, and learning preferences. Goals are intentionally deferred as a future enhancement until they are added to the backend contract.
+Local smoke testing confirmed protected navigation renders an API error state and `pathfinder:session-expired` redirects to login with a visible session-ended notice; real registration, login, logout, refresh, and backend expiry testing remain pending.
+- [ ] Coordinate an authentication integration session with Member 2.
+
+## Phase 4 — Assessment experience
+
+Refresh behavior and unfinished-progress handling remain pending for a real authenticated backend session; the client does not persist unfinished assessment state in browser storage.
+- [ ] Test assessment completion on narrow and wide screens.
+- [ ] Integrate with Member 2's assessment endpoints using a real development database.
+
+## Phase 5 — Recommendation and career detail UI
+
+- [ ] Build the recommendations page using the agreed response shape.
+- [ ] Display ranked career cards with score, reason, matched skills, and missing skills.
+- [ ] Add sorting or filtering only if approved in the scope.
+- [ ] Add loading skeletons and an empty-results state.
+- [ ] Add a clear explanation that recommendations are guidance rather than a guaranteed outcome.
+- [ ] Display career description, responsibilities, required skills, learning resources, and VR availability.
+- [ ] Add navigation from a recommendation card to career details.
+- [ ] Add a saved or selected-career state if required by the product flow.
+- [ ] Connect the UI to `GET /api/recommendations`, `GET /api/careers`, and `GET /api/careers/:careerId`.
+- [ ] Test long career names, missing optional fields, empty arrays, and API failures.
+- [ ] Compare the displayed score and reason with Member 2's test responses.
+
+## Phase 6 — Skill-gap and roadmap UI
+
+- [ ] Build the skill-gap overview page.
+- [ ] Display matched, partially developed, and missing skills with clear visual states.
+- [ ] Avoid using color alone to communicate skill status.
+- [ ] Add accessible labels and a text alternative for charts or visual summaries.
+- [ ] Build the learning roadmap page.
+- [ ] Display ordered roadmap steps, target skills, descriptions, and completion status.
+- [ ] Add progress percentage and completed-step count.
+- [ ] Add the agreed interaction for marking a roadmap step complete.
+- [ ] Add loading, empty, and error states.
+- [ ] Connect the UI to `GET /api/careers/:careerId/skill-gap`, `GET /api/careers/:careerId/roadmap`, and `PATCH /api/roadmap/:stepId`.
+- [ ] Verify that changing a roadmap step updates the progress display correctly.
+- [ ] Test the pages with zero, partial, and complete progress.
+
+## Phase 7 — AI advisor interface
+
+- [ ] Design the AI advisor page and conversation layout.
+- [ ] Build the message list with user and advisor message states.
+- [ ] Build the message input with length validation and submit behavior.
+- [ ] Add disabled, loading, retry, and provider-error states.
+- [ ] Add conversation start and conversation continuation behavior.
+- [ ] Display timestamps only where useful and keep the interface readable.
+- [ ] Add a clear notice about the advisory nature of AI responses.
+- [ ] Add safe handling for empty responses and unexpected response shapes.
+- [ ] Connect the UI to `POST /api/advisor/chat`.
+Local advisor smoke testing covered network failure/retry, conversation continuation, malformed empty answers, and rapid repeated form submission behavior; long-message limits, page-refresh behavior, and real-backend duplicate-request testing remain pending.
+- [ ] Confirm with Member 2 that the UI does not expose provider keys or internal prompts.
+
+## Phase 8 — 3D career hub and VR environments
+
+- [ ] Review the selected 3D/VR scope and define the minimum desktop experience.
+- [ ] Add Three.js and React Three Fiber only after confirming the frontend build remains stable.
+- [ ] Create the career hub scene with a clear entry point and readable labels.
+- [ ] Add a desktop keyboard and mouse interaction model.
+- [ ] Add camera controls and prevent disorienting default behavior.
+- [ ] Create the AI Engineer environment with a simple, performant scene.
+- [ ] Create the Data Analyst environment with a simple, performant scene.
+- [ ] Add career metadata and navigation from the hub to each environment.
+- [ ] Keep the career catalog broader than the MVP VR catalog: VR environments are optional and selected through stable, extensible environment metadata. The MVP VR catalog includes only AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`).
+- [ ] Add a visible exit or return-to-career-details control.
+
+
+
 **Owns:** `client/`, frontend-related documentation, browser behavior, responsive UI, accessibility, and the 3D/VR experience.
 
 **Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO.
@@ -91,7 +186,7 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 
 The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language.
 No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
-- [ ] Verify that malformed or empty advisor responses produce a readable error and do not corrupt the conversation UI.
+The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble.
 A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
 
 - [ ] Keep the advisory disclaimer visible and avoid language that promises employment or guaranteed outcomes.
@@ -121,7 +216,7 @@ The VR page has API loading, empty, and error states, and the canvas provides an
 - [ ] Add loading and fallback UI if a 3D asset fails.
 
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
-- [ ] Test keyboard, mouse, touch where applicable, reduced-motion preferences, and unsupported-device fallback.
+Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
 - [ ] Add WebXR support only after desktop 3D mode works reliably.
 - [ ] Test entering and exiting a headset session where hardware is available.
 The client keeps the metadata-only `GET /api/vr/environments` contract and does not move database or provider calls into the browser.
@@ -132,9 +227,9 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 
 - [ ] Verify every active page has loading, success, empty, and error behavior appropriate to its API.
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
-- [ ] Run accessibility checks for keyboard navigation, focus order, labels, contrast, semantic headings, and non-color status cues.
+The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
 - [ ] Run browser compatibility checks on the supported browsers.
-- [ ] Test slow network behavior, refresh during API requests, duplicate submissions, and expired sessions.
+Local checks covered protected-route expiry and rapid advisor form submission behavior; slow-network, refresh-during-request, real-backend duplicate-submission, and cross-page expiry testing remain pending.
 The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
 The MVP desktop scenes use original dependency-free canvas visuals and do not bundle external images, icons, models, fonts, or provider assets.
 - [ ] Open a final frontend integration pull request after the backend staging contract is stable.
