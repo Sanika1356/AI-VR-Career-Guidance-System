@@ -47,7 +47,7 @@ The current API already exposes the approved contracts. Do not add mock services
 
 ## 3. Accessibility, responsive, and browser quality
 
-- [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
+- [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes. A staging smoke pass captured the public login shell at 1440x900, 1024x768, and 390x844 with no visible clipping; authenticated-page coverage remains pending.
 - [ ] Complete the manual accessibility matrix for focus order, contrast, headings, visible labels, and non-color status cues.
 - [ ] Run browser compatibility checks on the supported browsers.
 - [ ] Measure or document desktop VR fallback performance on the supported target hardware; the current scenes use lightweight procedural canvas visuals and no external models or textures.
