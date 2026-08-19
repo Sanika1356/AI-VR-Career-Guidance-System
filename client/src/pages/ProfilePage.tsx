@@ -236,6 +236,7 @@ export function ProfilePage() {
                 value={form.name}
                 onChange={(event) => updateField('name', event.target.value)}
                 error={errors.name}
+                required
                 autoComplete="name"
               />
               <Input
