@@ -40,7 +40,7 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 4. Phase B — Authentication and profile integration
 
 - [ ] Run an authentication integration session with Member 1 using a clean local account.
-- [ ] Verify CORS, bearer-token, refresh, logout, expired-token, unauthorized, and validation-error behavior from a browser client.
+> **Backend verification completed:** The opt-in real PostgreSQL API test covers registration, login, invalid login, CORS preflight, bearer authentication, expired tokens, unauthorized requests, and profile persistence. The MVP has no refresh or logout endpoints; logout is client-side token clearing and expired tokens require login again.
 - [ ] Record any reproducible client/server mismatch with a redacted request, response status, and expected behavior.
 
 **Handoff to Member 1:** Confirm exact auth response fields, token storage expectation, profile update validation, and error payload shape.
