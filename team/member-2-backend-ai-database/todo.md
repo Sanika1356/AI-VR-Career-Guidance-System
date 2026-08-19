@@ -30,9 +30,6 @@ These are the only remaining tasks. They require coordination with Member 1 and 
 
 - [ ] Member 1 reviews the staging record and approves the deployed frontend/API end-to-end journey.
 - [ ] Both members confirm that the final client and server branches are ready to merge, with no unresolved API contract mismatch.
-- [ ] Reconfirm before release that the frontend calls only the documented API and never connects directly to PostgreSQL or Ollama/another AI provider.
-- [ ] Reconfirm before release that no debug endpoints, test credentials, provider keys, raw tokens, passwords, database URLs, or unsafe development-only logging are present in the release artifact.
-- [ ] Review known MVP limitations with Member 1: Render Free cold starts, local-Ollama availability and deterministic fallback, process-local rate limiting, non-persisted VR visits/progress, and WebXR/device requirements.
 - [ ] Rehearse the final demonstration with Member 1, including desktop fallback when WebXR is unavailable.
 - [ ] Obtain the user’s explicit approval before promoting or redeploying production services.
 - [ ] After both members approve the final demonstration and the user approves production promotion, tag the final release and record the release commit.
