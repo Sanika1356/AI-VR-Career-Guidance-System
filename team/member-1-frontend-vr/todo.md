@@ -40,9 +40,40 @@ These checks are specific to the local backend environment and should not be mar
 ## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
+
+- [x] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; after the initial Render cold-start loading period, retrying the route rendered the existing readable error state with `Try again` and `Back to career paths` controls. Long-name and synthetic empty-array fixtures remain outside the deployed catalog.
+- [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
+- [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
+The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
+
+**Handoff to Member 2:** Report any response-shape mismatch before changing client types or adding fallback data.
+
+## 7. Phase D — Skill-gap and roadmap quality
+
+The client preserves only the approved MVP skill-gap statuses, `matched` and `missing`, and does not render `partial` without approved proficiency data in the profile and API contracts.
+Static markup review confirms skill status is communicated with visible text such as “Already matched” and “Build next,” while numeric alignment percentage and counts accompany the progress visualization; live screen-reader and contrast checks remain pending.
+- [ ] Verify that changing a roadmap step updates the completion state, percentage, and completed-step count correctly.
+- [ ] Test roadmap states with zero, partial, and complete progress; “partial progress” here refers to roadmap completion, not a skill-gap status.
+- [ ] Test unauthorized, missing-career, missing-step, and server-failure responses.
+
+## 8. Phase E — AI advisor interface
+
+- [ ] Test long messages, repeated submissions, network failures, retry behavior, conversation continuation, and page refresh behavior.
+
+The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language.
+No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
+The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble.
+A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
+
+**Handoff to Member 2:** Report provider timeout, fallback, output-length, or safety problems with a redacted request and response.
+
+## 9. Phase F — 3D career hub and VR environments
+
+
 - [ ] Test long career names, missing optional fields, empty arrays, and career API failures; unavailable-career HTTP 404 and its rendered error state are verified locally and in staging.
 - [ ] Test server-failure responses for skill-gap and roadmap routes; unauthorized access and a missing roadmap step are verified locally.
 - [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry; page refresh and minimum-length validation are verified locally.
+
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
