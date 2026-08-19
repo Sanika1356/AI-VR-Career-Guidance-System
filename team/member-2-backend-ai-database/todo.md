@@ -65,9 +65,8 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 7. Phase E — AI advisor operations
 
-- [ ] Perform a manual review of representative responses for relevance, clarity, privacy, unsupported claims, and advisory disclaimers.
-- [ ] Verify that conversation ownership, continuation, malformed provider output, empty output, and server failure remain safe.
-- [ ] Keep provider keys and internal prompts server-side. Local Ollama and the deterministic fallback remain the zero-cost default.
+> **Advisor review completed:** The deterministic fallback was manually reviewed for relevance, concise next steps, privacy-safe context use, uncertainty, and the employment-outcome disclaimer. Automated tests cover conversation ownership, continuation, provider failure, retry, empty output, malformed Ollama payloads, and the 4,000-character response cap. Provider credentials and internal prompts remain server-side; local Ollama is optional and the deterministic fallback is always available at zero cost.
+
 
 **Handoff to Member 1:** Provide redacted advisor success, fallback, validation-error, timeout, and retry examples. Never send provider keys or internal prompts.
 

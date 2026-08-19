@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import test from 'node:test';
 import { app } from '../src/app.js';
-import { chatAdvisor, type AdvisorProvider } from '../src/services/advisor.service.js';
+import { chatAdvisor, OllamaAdvisorProvider, type AdvisorProvider } from '../src/services/advisor.service.js';
 import type { DatabaseClient, DatabasePool } from '../src/db/types.js';
 import { validateAdvisorChatInput } from '../src/validators/advisor.js';
 
@@ -59,6 +59,12 @@ class FailingProvider implements AdvisorProvider {
   }
 }
 
+class EmptyProvider implements AdvisorProvider {
+  async generate(): Promise<string> {
+    return '   ';
+  }
+}
+
 class RetryProvider implements AdvisorProvider {
   attempts = 0;
 
@@ -106,6 +112,39 @@ test('advisor returns deterministic fallback text when local Ollama fails', asyn
 
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /Machine Learning/);
+  assert.match(response.answer, /general guidance, not a guarantee/);
+});
+
+test('advisor uses safe fallback text when a provider returns an empty answer', async () => {
+  const response = await chatAdvisor(
+    'user_asha',
+    { message: 'How do I start?', careerId: 'career_ai_engineer' },
+    new FakePool(),
+    new EmptyProvider(),
+  );
+
+  assert.match(response.answer, /I can help you plan your next career step/);
+  assert.match(response.answer, /general guidance, not a guarantee/);
+});
+
+test('advisor falls back when Ollama returns a malformed payload', async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({ message: { content: 123 } }),
+  })) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      'user_asha',
+      { message: 'How do I start?', careerId: 'career_ai_engineer' },
+      new FakePool(),
+      new OllamaAdvisorProvider(),
+    );
+    assert.match(response.answer, /I can help you plan your next career step/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test('advisor retries one transient provider failure and caps long responses', async () => {
@@ -127,6 +166,26 @@ test('advisor retries one transient provider failure and caps long responses', a
   );
   assert.equal(limited.answer.length, 4000);
   assert.equal(limited.answer.endsWith('…'), true);
+});
+
+test('advisor continues an owned conversation with the same conversation id', async () => {
+  const database = new FakePool();
+  const provider = new RecordingProvider();
+  const first = await chatAdvisor(
+    'user_asha',
+    { message: 'Start my plan', careerId: 'career_ai_engineer' },
+    database,
+    provider,
+  );
+  const second = await chatAdvisor(
+    'user_asha',
+    { message: 'Continue my plan', careerId: 'career_ai_engineer', conversationId: first.conversationId },
+    database,
+    provider,
+  );
+
+  assert.equal(second.conversationId, first.conversationId);
+  assert.ok(database.client.queries.filter((query) => query.includes('INSERT INTO messages')).length >= 4);
 });
 
 test('advisor rejects a conversation owned by another user', async () => {
