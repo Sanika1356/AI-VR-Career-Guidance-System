@@ -94,8 +94,17 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     assert.equal(profileUpdate.response.status, 200);
     assert.deepEqual(profileUpdate.body.profile.currentSkills, ['Python', 'APIs']);
 
+    const unauthenticatedQuestions = await request('/assessment/questions');
+    assert.equal(unauthenticatedQuestions.response.status, 401);
+
     const questions = await request('/assessment/questions', { headers: authHeaders });
     assert.equal(questions.response.status, 200);
+    const invalidSubmission = await request('/assessment/submit', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({ assessmentId: 'assessment_invalid', answers: [] }),
+    });
+    assert.equal(invalidSubmission.response.status, 400);
     const answers = questions.body.questions.map((question: { id: string; options: Array<{ id: string }> }) => ({
       questionId: question.id,
       optionId: question.options[0].id,
@@ -112,6 +121,9 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     assert.equal(result.response.status, 200);
     assert.equal(result.body.resultId, submitted.body.resultId);
 
+    const missingResult = await request('/assessment/results/result_missing_for_integration', { headers: authHeaders });
+    assert.equal(missingResult.response.status, 404);
+
     const recommendations = await request('/recommendations', { headers: authHeaders });
     assert.equal(recommendations.response.status, 200);
     const careerId = recommendations.body.recommendations[0].careerId as string;
@@ -120,14 +132,22 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     assert.equal(publicCareer.response.status, 200);
     assert.equal(publicCareer.body.id, careerId);
 
+    const missingCareer = await request('/careers/career_missing_for_integration');
+    assert.equal(missingCareer.response.status, 404);
+
     const skillGapWithoutToken = await request(`/careers/${careerId}/skill-gap`);
     assert.equal(skillGapWithoutToken.response.status, 401);
     const skillGap = await request(`/careers/${careerId}/skill-gap`, { headers: authHeaders });
     assert.equal(skillGap.response.status, 200);
     assert.ok(skillGap.body.skills.every((skill: { status: string }) => ['matched', 'missing'].includes(skill.status)));
 
+    const missingSkillGap = await request('/careers/career_missing_for_integration/skill-gap', { headers: authHeaders });
+    assert.equal(missingSkillGap.response.status, 404);
+
     const roadmap = await request(`/careers/${careerId}/roadmap`, { headers: authHeaders });
     assert.equal(roadmap.response.status, 200);
+    const missingRoadmap = await request('/careers/career_missing_for_integration/roadmap', { headers: authHeaders });
+    assert.equal(missingRoadmap.response.status, 404);
     if (roadmap.body.steps.length > 0) {
       const update = await request(`/roadmap/${roadmap.body.steps[0].id}`, {
         method: 'PATCH',
