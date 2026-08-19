@@ -114,7 +114,7 @@ export interface RecommendationResponse {
   recommendations: Recommendation[];
 }
 
-export type SkillGapStatus = 'matched' | 'partial' | 'missing';
+export type SkillGapStatus = 'matched' | 'missing';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface SkillGapItem {

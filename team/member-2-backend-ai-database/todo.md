@@ -1,199 +1,128 @@
-# Member 2 Todo: Backend + AI + Database
+# Member 2 — Backend, AI, Database, and Deployment Remaining Work
 
 **Owner:** Member 2
-**Primary areas:** `server/`, backend-related parts of `docs/`, database design, AI integration, and deployment
-**Works with:** Member 1 through the API contract in `docs/api.md`
 
-This checklist covers the complete project from repository setup to final delivery. Check items only after the implementation has been tested and documented.
+**Owns:** `server/`, backend-related documentation, database migrations, API behavior, AI service boundaries, deployment configuration, and backend operations.
 
-## Phase 0 — Understand the project and agree with Member 1
+**Coordinates with:** Member 1 through `docs/api.md`, pull requests, test accounts, staging checks, and the handoff rules in this file and the client TODO.
 
-- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
-- [ ] Confirm the backend stack with Member 1: Node.js, Express, TypeScript, PostgreSQL, and the selected database client or ORM.
-- [ ] Confirm the authentication approach, token/session behavior, password policy, and protected-route rules.
-- [ ] Confirm the frontend's required data fields, loading expectations, error format, pagination needs, and date format.
-- [ ] Confirm the initial career catalog, assessment categories, scoring approach, skill levels, and roadmap format.
-- [ ] Confirm the AI advisor scope, provider, model configuration, rate limits, fallback behavior, and privacy boundaries.
-- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR metadata.
-- [ ] Record agreed backend assumptions in `docs/architecture.md` and `docs/api.md`.
+This file contains only remaining work. The real backend foundation, authentication, profile, career catalog, assessment, recommendations, skill gap, roadmap, advisor, VR metadata, security hardening, and provider-neutral Render/Neon preparation already exist. Do not reimplement those APIs unless a confirmed contract defect is found.
 
-## Phase 1 — Local setup and server foundation
+## 1. Separate-laptop working agreement
 
-- [ ] Clone the repository and configure Git identity.
-- [ ] Create a branch named `feature/member2-backend-foundation`.
-- [x] Initialize the TypeScript server inside `server/`.
-- [ ] Add Express, CORS, environment configuration, validation, logging, and the agreed PostgreSQL library or ORM.
+| Rule | Backend action |
+|---|---|
+| Branch ownership | Create a new branch for each backend push using `feature/member2-<short-name>`. Never commit directly to `main`. |
+| Pull before work | Start each phase from the latest `origin/main`. Check whether Member 1’s client changes alter the shared contract. |
+| File boundary | Modify `server/` for backend work. Modify shared docs or this TODO only when the change is coordinated. Do not edit `client/` unless both members explicitly agree. |
+| API source of truth | Update `docs/api.md` when a request, response, auth rule, error, or environment variable changes. Do not leave stale endpoint claims. |
+| Secrets | Keep `DATABASE_URL`, `AUTH_SECRET`, `CORS_ORIGIN`, and any future provider credentials in private environment configuration. Never commit real values. |
+| Handoff | Before asking Member 1 to consume an endpoint, provide method, path, auth requirement, request example, response example, error behavior, seed/fixture requirement, and tested commit. |
+| Merge order | Merge backend contract changes before client code that depends on them. After each merge, both members pull `origin/main` and run their own checks. |
+| Completion evidence | Check a task only after the server code, tests, documentation, and a reproducible local or staging check support the claim. |
+
+## 2. Shared delivery gates
+
+| Gate | Backend deliverable | Client dependency | Exit condition |
+|---|---|---|---|
+| Gate A — Local contract | API docs, environment template, migrations, and seed instructions | Client request wrapper and local environment | Both laptops can run client and server independently. |
+| Gate B — Authenticated flow | Register, login, profile, token, and CORS behavior | Browser authentication and profile session | Both members reproduce a clean account flow. |
+| Gate C — Learning flow | Assessment, recommendations, career details, skill gap, and roadmap | Real client pages and fixtures | A test account completes the core guidance journey. |
+| Gate D — Advisor/VR | Advisor fallback and VR metadata endpoints | Advisor UI and desktop/VR experience | Browser receives safe data and handles provider/server failures. |
+| Gate E — Release | Staging database, Render configuration, health, logs, and rollback notes | Deployed client URL and `VITE_API_BASE_URL` | Both members approve the same deployed end-to-end flow. |
+
+## 3. Phase A — Local setup and contract synchronization
+
 - [ ] Create the server environment file from `.env.example` without committing secrets.
-- [x] Add a clear development start command and verify that the server runs locally.
-- [x] Configure TypeScript, linting, formatting, and test tooling.
-- [x] Create the server folders: config, db, middleware, models, routes, controllers, services, validators, utils, and types.
-- [x] Implement the application entry point and graceful shutdown behavior.
-- [ ] Add a centralized configuration loader with required-variable checks.
-- [x] Add JSON parsing, CORS configuration, request IDs, logging, and a consistent error handler.
-- [x] Add `GET /api/health` returning the documented status response.
-- [x] Add a simple not-found handler for unknown API routes.
-- [x] Add server unit-test and integration-test scaffolding.
-- [x] Add a server README with local setup, database setup, test, and migration commands.
-- [ ] Run the server build, lint, and tests.
-- [ ] Commit the foundation with a focused message and open a pull request.
+- [ ] Verify a clean local PostgreSQL database can apply schema and approved MVP seed migrations.
+- [ ] Add a development-only reset or seed procedure that cannot run accidentally in production.
+- [ ] Run the server lint command once linting is configured, together with the existing test, typecheck, and build checks.
+- [ ] Review `docs/api.md` against the current routes before each client handoff.
 
-## Phase 2 — Database design and migrations
+**Handoff to Member 1:** Provide local setup commands, required non-secret variable names, migration/seed behavior, and the API commit used for client testing.
 
-- [ ] Design the PostgreSQL schema for users, profiles, skills, careers, career skills, assessment questions, assessment options, assessments, answers, results, recommendations, roadmap steps, roadmap progress, conversations, messages, and VR environments.
-- [ ] Decide which entities require stable public IDs and document the convention.
-- [ ] Add foreign keys, unique constraints, not-null constraints, indexes, and appropriate delete behavior.
-- [ ] Create the first migration.
-- [ ] Create a safe migration command for a new developer environment.
-- [ ] Create seed data for the initial careers, skills, assessment questions, and roadmap examples.
-- [ ] Add a reset or development-only seed procedure that cannot run accidentally in production.
-- [ ] Verify the schema on an empty local database.
-- [ ] Verify that the seed data supports the complete demo journey.
-- [ ] Document the schema and seed procedure in `docs/database.md`.
-- [ ] Add database tests for constraints and important relationships.
+## 4. Phase B — Authentication and profile integration
 
-## Phase 3 — Authentication and profile APIs
+- [ ] Run an authentication integration session with Member 1 using a clean local account.
+- [ ] Verify CORS, bearer-token, refresh, logout, expired-token, unauthorized, and validation-error behavior from a browser client.
+- [ ] Record any reproducible client/server mismatch with a redacted request, response status, and expected behavior.
 
-- [ ] Implement the user model and profile model.
-- [ ] Implement secure password hashing and password comparison.
-- [ ] Implement `POST /api/auth/register` according to `docs/api.md`.
-- [ ] Implement `POST /api/auth/login` according to `docs/api.md`.
-- [ ] Implement the agreed token or secure session mechanism.
-- [ ] Implement authentication middleware.
-- [ ] Implement authorization checks for user-owned resources.
-- [ ] Implement `GET /api/profile`.
-- [ ] Implement `PUT /api/profile` with request validation.
-- [ ] Add duplicate-email handling without leaking unnecessary account information.
-- [ ] Add invalid-credentials, expired-session, and malformed-token handling.
-- [ ] Add rate limiting or an equivalent protection for authentication endpoints where appropriate.
-- [ ] Add tests for registration, login, protected access, profile retrieval, profile update, and unauthorized access.
-- [ ] Run an authentication integration session with Member 1.
-- [ ] Update the API contract if an agreed response field changes.
+**Handoff to Member 1:** Confirm exact auth response fields, token storage expectation, profile update validation, and error payload shape.
 
-## Phase 4 — Career catalog APIs
+## 5. Phase C — Assessment, recommendations, and career details
 
-- [ ] Implement career and skill models.
-- [ ] Implement the career-to-required-skill relationship.
-- [ ] Implement `GET /api/careers`.
-- [ ] Implement `GET /api/careers/:careerId`.
-- [ ] Implement validation for unknown career IDs.
-- [ ] Return stable, frontend-friendly career and skill response shapes.
-- [ ] Include the VR environment key only when the environment is available.
-- [ ] Add tests for career list, career detail, unknown career, missing optional data, and stable ordering.
-- [ ] Provide Member 1 with realistic API fixtures for UI development.
+- [ ] Integrate the assessment flow with Member 1 using real API responses and a real development database.
+- [ ] Provide stable recommendation fixtures or a documented seeded account for UI comparison.
+- [ ] Compare recommendation score, reason, matched skills, missing skills, career details, resources, roadmap, and VR metadata with the client display.
+- [ ] Review recommendation language with both members so it remains guidance and never implies guaranteed employment or outcomes.
+- [ ] Test assessment, recommendation, and career endpoints with invalid input, missing records, unauthorized access, empty results, and database failure.
 
-## Phase 5 — Assessment APIs and scoring
+**Handoff to Member 1:** Provide a redacted request/response set and expected UI states for assessment completion, recommendations, empty results, and career details.
 
-- [ ] Implement assessment question and option models.
-- [ ] Implement assessment session creation or the agreed assessment lifecycle.
-- [ ] Implement `GET /api/assessment/questions` without exposing answer keys or private scoring weights.
-- [ ] Implement request validation for answer IDs and question IDs.
-- [ ] Implement `POST /api/assessment/submit`.
-- [ ] Prevent duplicate or invalid answer submissions according to the agreed product behavior.
-- [ ] Store answers and completion time safely.
-- [ ] Implement `GET /api/assessment/results/:resultId`.
-- [ ] Define and document the scoring dimensions, such as interest, aptitude, personality, and skills.
-- [ ] Implement deterministic scoring with test fixtures before adding AI-based features.
-- [ ] Add tests for a complete assessment, incomplete answers, invalid options, duplicate submissions, and result ownership.
-- [ ] Integrate the assessment flow with Member 1 using real API responses.
+## 6. Phase D — Skill gap and roadmap contract
 
-## Phase 6 — Recommendation engine
+- [ ] Keep the approved MVP skill-gap statuses as `matched` and `missing`.
+- [ ] Add per-skill proficiency data and a `partial` status only if both members approve expanding the profile and API contract.
+- [ ] Verify roadmap progress persistence, ownership, ordering, zero progress, partial progress, complete progress, and invalid step behavior with the client.
+- [ ] Confirm that skill-gap and roadmap errors remain safe, stable, and documented.
 
-- [ ] Define the recommendation input fields and scoring weights.
-- [ ] Implement the recommendation service using assessment results, profile data, and available skills.
-- [ ] Normalize and rank scores consistently.
-- [ ] Implement the top-career selection rule.
-- [ ] Generate a concise, explainable reason for each recommendation.
-- [ ] Include matched and missing skills where supported by the data.
-- [ ] Implement `GET /api/recommendations`.
-- [ ] Decide how recommendations behave before a user completes an assessment.
-- [ ] Add tests for ranking order, ties, missing inputs, score boundaries, and reproducibility.
-- [ ] Provide stable recommendation fixtures to Member 1.
-- [ ] Review the recommendation language with the team so it does not imply certainty about a student's future.
+**Handoff to Member 1:** Provide the tested skill-gap/roadmap response shapes, progress fixtures, and known limitation that `partial` skill status is not currently supported.
 
-## Phase 7 — Skill-gap and roadmap APIs
+## 7. Phase E — AI advisor operations
 
-- [ ] Implement the user's skill profile and skill-level representation.
-- [ ] Implement the career-required-skill representation.
-- [ ] Implement the skill-gap calculation.
-- [ ] Define matched, partial, and missing status rules.
-- [ ] Implement `GET /api/careers/:careerId/skill-gap`.
-- [ ] Implement roadmap-step models and ordering.
-- [ ] Implement `GET /api/careers/:careerId/roadmap`.
-- [ ] Implement `PATCH /api/roadmap/:stepId` for completion updates.
-- [ ] Ensure users can update only their own roadmap progress.
-- [ ] Add tests for matched skills, missing skills, partial skills, empty skill sets, and progress updates.
-- [ ] Integrate the real skill-gap and roadmap responses with Member 1's pages.
+- [ ] Add output length limits and retry rules while preserving input limits, timeout handling, and deterministic provider-error fallback.
+- [ ] Perform a manual review of representative responses for relevance, clarity, privacy, unsupported claims, and advisory disclaimers.
+- [ ] Verify that conversation ownership, continuation, malformed provider output, empty output, and server failure remain safe.
+- [ ] Keep provider keys and internal prompts server-side. Local Ollama and the deterministic fallback remain the zero-cost default.
 
-## Phase 8 — AI career advisor
+**Handoff to Member 1:** Provide redacted advisor success, fallback, validation-error, timeout, and retry examples. Never send provider keys or internal prompts.
 
-- [ ] Read the selected AI provider documentation and confirm the approved server-side integration method.
-- [ ] Add the provider key and model name only through environment variables.
-- [ ] Create a server-side AI service with a narrow interface that can be tested independently.
-- [ ] Build the context assembly step using only the user's approved profile, assessment, selected career, skill gap, and roadmap data.
-- [ ] Create the system prompt and response rules for the career advisor.
-- [ ] Prevent the advisor from claiming guaranteed employment, making high-stakes decisions, or inventing unavailable user data.
-- [ ] Add input length limits, output length limits, timeout handling, retry rules, and provider-error handling.
-- [ ] Implement conversation and message persistence only if required by the agreed scope.
-- [ ] Implement `POST /api/advisor/chat` according to `docs/api.md`.
-- [ ] Return a stable response even when the provider is temporarily unavailable.
-- [ ] Add logging that excludes passwords, tokens, provider keys, and unnecessary personal data.
-- [ ] Add tests with a mocked AI provider so tests do not require live provider calls.
-- [ ] Perform a manual review of representative responses for relevance, clarity, privacy, and unsupported claims.
-- [ ] Integrate the advisor endpoint with Member 1's chatbot UI.
+## 8. Phase F — VR metadata and client scene support
 
-## Phase 9 — VR support APIs and demo data
+- [ ] Keep `GET /api/vr/environments` metadata-only and independent from career, recommendation, and roadmap contracts.
+- [ ] Verify the approved MVP environments: AI Engineer and Data Analyst.
+- [ ] Add or change VR metadata only after Member 1 explains the scene requirement and both members approve the field.
+- [ ] Do not persist VR visits or progress unless the product scope explicitly expands.
+- [ ] Test empty, unavailable, disabled, and future-extensible VR catalogs.
 
-- [ ] Implement the VR environment model or configuration source.
-- [ ] Add `GET /api/vr/environments`.
-- [ ] Return only safe metadata needed by the client scene selector.
-- [ ] Verify that every career intended for the demo has a matching environment key.
-- [ ] Decide whether the server records VR visits or progress; implement only if required.
-- [ ] Add demo data for the AI Engineer and Data Scientist environments.
-- [ ] Test unavailable or disabled environments.
-- [ ] Coordinate the final VR metadata shape with Member 1 before the 3D integration.
+**Handoff to Member 1:** Provide the safe metadata response and explain that the client owns scene rendering, device fallback, and WebXR behavior.
 
-## Phase 10 — Security, validation, and quality
+## 9. Phase G — Security, validation, and quality
 
-- [ ] Validate every request body, query parameter, route parameter, and authorization condition.
-- [ ] Ensure passwords are never returned in API responses or logs.
-- [ ] Ensure tokens and AI provider keys are never committed or printed.
-- [ ] Review CORS, security headers, request-size limits, and error responses.
-- [ ] Add rate limits for authentication and AI endpoints where appropriate.
-- [ ] Check for SQL injection, unsafe dynamic queries, and unbounded list responses.
-- [ ] Add database transaction handling for multi-step writes such as assessment submission.
-- [ ] Add structured logs that are useful in development and safe in production.
-- [ ] Add health checks for the API and database dependency.
-- [ ] Run unit, integration, and API contract tests.
-- [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, and server failure.
-- [ ] Review API behavior with Member 1 using the final client flow.
+- [ ] Add database integration and API contract tests in addition to the existing backend unit/service suite.
+- [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, provider failure, database failure, and server restart.
+- [ ] Review SQL queries, list bounds, CORS, security headers, request limits, rate limits, error responses, and structured logs after any contract change.
+- [ ] Review the final browser flow with Member 1 and resolve or document each mismatch.
+- [ ] Keep deployment tests free of real credentials and ensure placeholders are clearly identified.
 
-## Phase 11 — Deployment and operations
+## 10. Phase H — Staging and deployment
 
-- [ ] Choose the approved backend hosting and PostgreSQL hosting approach.
-- [ ] Create separate development and production configuration values.
-- [ ] Configure production environment variables without committing them.
-- [ ] Configure database migrations for deployment.
-- [ ] Configure seed data only for approved environments.
-- [ ] Configure build, start, health-check, and rollback procedures.
-- [ ] Deploy the API to a development or staging environment first.
-- [ ] Verify CORS and frontend-to-backend connectivity in staging.
-- [ ] Test authentication, assessment, recommendation, skill gap, roadmap, AI, and VR metadata in staging.
-- [ ] Add monitoring or at least a documented log-checking procedure.
-- [ ] Document how to restart, migrate, inspect logs, and recover the service.
+- [ ] Deploy the API to a development or staging environment using the approved Render Free and Neon plan, only after the required accounts and credentials are privately available.
+- [ ] Configure Render with the current build command, startup migration command, `/api/health` health path, `DATABASE_URL`, `AUTH_SECRET`, and exact frontend `CORS_ORIGIN`.
+- [ ] Verify CORS and frontend-to-backend connectivity in staging after Member 1 has a deployed frontend URL.
+- [ ] Test authentication, assessment, recommendations, skill gap, roadmap, advisor, and VR metadata in staging.
+- [ ] Confirm Render Free startup migrations succeed and never use the paid-only Pre-Deploy Command.
+- [ ] Document restart, migration, logs, health checks, rollback, free-tier limitations, and the Neon connection boundary.
 - [ ] Deploy the production API only after both members approve the staging test.
 
-## Phase 12 — Final integration and delivery
+**Credential boundary:** Member 2 must stop before account creation, credential entry, payment, upgrade, or live deployment if the required private values are not available. No real secret belongs in Git, chat, screenshots, or TODO files.
 
-- [ ] Run the complete flow with a clean test account.
-- [ ] Verify register, login, profile, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR metadata.
-- [ ] Verify that the frontend never calls the database or AI provider directly.
-- [ ] Verify that all API errors are displayed appropriately by the client.
-- [ ] Update `docs/api.md` to match the final implementation.
-- [ ] Update `docs/architecture.md` and add `docs/database.md` if needed.
-- [ ] Remove debug endpoints, test credentials, development-only logs, and unused seed data from production configuration.
-- [ ] Document known limitations and future improvements.
-- [ ] Help Member 1 rehearse the final demonstration.
+## 11. Phase I — Final integration and delivery
+
+- [ ] Run the complete flow with a clean test account: register, login, profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and VR metadata.
+- [ ] Verify the frontend never calls the database or AI provider directly.
+- [ ] Verify all API errors are displayed appropriately by the client.
+- [ ] Update `docs/api.md`, `docs/architecture.md`, and `docs/database.md` to match the final implementation.
+- [ ] Remove debug endpoints, test credentials, development-only logs, and unused production seed behavior.
+- [ ] Document known limitations, including local-Ollama fallback on hosted Render and WebXR device requirements.
+- [ ] Help Member 1 rehearse the final demonstration and desktop VR fallback.
 - [ ] Review all open issues and close or document each one.
-- [ ] Confirm that the deployed service is reachable and healthy.
-- [ ] Obtain Member 1's approval before merging the final backend changes.
+- [ ] Confirm the deployed service is reachable and healthy.
+- [ ] Obtain Member 1’s approval before merging final backend changes.
 - [ ] Tag the final release after the complete system test passes.
+
+## 12. Definition of done for Member 2
+
+Member 2’s work is complete when the server builds from a clean checkout, migrations are safe for local and Render Free operation, APIs match `docs/api.md`, secrets remain private, backend tests pass, the staging API is healthy, and both members approve the same deployed end-to-end journey.
+
+The final handoff to Member 1 must include the backend branch and pull request, tested commit, endpoint list, environment variable names without secret values, migration/seed instructions, staging URL, known limitations, and any unresolved client contract issue.

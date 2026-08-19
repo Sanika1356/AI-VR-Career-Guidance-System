@@ -151,7 +151,7 @@ Response:
 {
   "resultId": "result_123",
   "completedAt": "2026-08-18T00:00:00.000Z",
-  "topCareerIds": ["career_ai_engineer", "career_data_scientist"]
+  "topCareerIds": ["career_ai_engineer", "career_data_analyst"]
 }
 ```
 
@@ -269,7 +269,7 @@ Returns environments that the client can display in the career hub.
 }
 ```
 
-The VR scene itself is owned by Member 1. The server only supplies safe metadata and user progress required by the experience.
+The VR scene itself is owned by Member 1. The server supplies only safe environment metadata; the MVP does not persist VR visits or progress. A career may exist in the broader catalog without having a VR environment.
 
 ## Contract change procedure
 
