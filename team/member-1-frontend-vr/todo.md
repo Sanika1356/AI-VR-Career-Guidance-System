@@ -29,7 +29,6 @@ This checklist covers the complete project from repository setup to final delive
 ## Phase 3 — Authentication and profile UI
 
 - [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
-- [ ] Build the dashboard shell with summary cards and navigation.
 - [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
 - [ ] Coordinate an authentication integration session with Member 2.
 
