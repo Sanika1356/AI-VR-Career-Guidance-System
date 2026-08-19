@@ -30,12 +30,12 @@ This checklist covers the complete project from repository setup to final delive
 ## Phase 3 — Authentication and profile UI
 
 The profile MVP is complete for the API-supported fields: name, interests, current skills, experience level, and learning preferences. Goals are intentionally deferred as a future enhancement until they are added to the backend contract.
-- [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
+Local smoke testing confirmed protected navigation renders an API error state and `pathfinder:session-expired` redirects to login with a visible session-ended notice; real registration, login, logout, refresh, and backend expiry testing remain pending.
 - [ ] Coordinate an authentication integration session with Member 2.
 
 ## Phase 4 — Assessment experience
 
-- [ ] Test refresh behavior and decide how unfinished local progress is handled.
+Refresh behavior and unfinished-progress handling remain pending for a real authenticated backend session; the client does not persist unfinished assessment state in browser storage.
 - [ ] Test assessment completion on narrow and wide screens.
 - [ ] Integrate with Member 2's assessment endpoints using a real development database.
 
@@ -79,7 +79,7 @@ The profile MVP is complete for the API-supported fields: name, interests, curre
 - [ ] Add a clear notice about the advisory nature of AI responses.
 - [ ] Add safe handling for empty responses and unexpected response shapes.
 - [ ] Connect the UI to `POST /api/advisor/chat`.
-- [ ] Test long messages, repeated submissions, network failures, and page refresh behavior.
+Local advisor smoke testing covered network failure/retry, conversation continuation, malformed empty answers, and rapid repeated form submission behavior; long-message limits, page-refresh behavior, and real-backend duplicate-request testing remain pending.
 - [ ] Confirm with Member 2 that the UI does not expose provider keys or internal prompts.
 
 ## Phase 8 — 3D career hub and VR environments
@@ -168,7 +168,7 @@ This file contains only remaining work. The real client pages and services for a
 - [ ] Test long messages, repeated submissions, network failures, retry behavior, conversation continuation, and page refresh behavior.
 The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language.
 No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
-- [ ] Verify that malformed or empty advisor responses produce a readable error and do not corrupt the conversation UI.
+The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble.
 A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
 
 **Handoff to Member 2:** Report provider timeout, fallback, output-length, or safety problems with a redacted request and response.
@@ -196,7 +196,7 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
 The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
 - [ ] Run browser compatibility checks on the supported browsers.
-- [ ] Test slow network behavior, refresh during API requests, duplicate submissions, and expired sessions.
+Local checks covered protected-route expiry and rapid advisor form submission behavior; slow-network, refresh-during-request, real-backend duplicate-submission, and cross-page expiry testing remain pending.
 The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
 The MVP desktop scenes use original dependency-free canvas visuals and do not bundle external images, icons, models, fonts, or provider assets.
 - [ ] Open a final frontend integration pull request after the backend staging contract is stable.
