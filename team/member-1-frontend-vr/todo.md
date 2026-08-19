@@ -173,11 +173,10 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 
 ## 7. Phase D — Skill-gap and roadmap quality
 
-- [ ] Preserve the approved MVP skill-gap statuses: `matched` and `missing`.
-- [ ] Do not render `partial` as a skill status until approved proficiency data exists in both profile and API contracts.
-- [ ] Verify that skill status is not communicated by color alone and that labels remain understandable to keyboard and screen-reader users.
-- [ ] Verify that changing a roadmap step updates completion state, percentage, and completed-step count correctly.
-- [ ] Test roadmap states with zero, partial, and complete progress; roadmap partial progress is not the skill-gap `partial` status.
+- [ ] Preserve the approved MVP skill-gap statuses: `matched` and `missing`. Do not render `partial` until the profile and API contracts gain approved proficiency data.
+Static markup review confirms skill status is communicated with visible text such as “Already matched” and “Build next,” while numeric alignment percentage and counts accompany the progress visualization; live screen-reader and contrast checks remain pending.
+- [ ] Verify that changing a roadmap step updates the completion state, percentage, and completed-step count correctly.
+- [ ] Test roadmap states with zero, partial, and complete progress; “partial progress” here refers to roadmap completion, not a skill-gap status.
 - [ ] Test unauthorized, missing-career, missing-step, and server-failure responses.
 
 ## 8. Phase E — AI advisor interface
@@ -208,14 +207,14 @@ The scene uses bounded movement and incremental horizontal look controls rather 
 
 The VR page has API loading, empty, and error states, and the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 
-- [ ] Confirm the frontend build remains stable before adding Three.js or React Three Fiber.
-- [ ] Create a performant desktop career hub with keyboard and mouse interaction.
-- [ ] Create the AI Engineer environment with a simple, readable scene.
-- [ ] Create the Data Analyst environment with a simple, readable scene.
-- [ ] Add camera controls that avoid disorienting default behavior.
-- [ ] Add loading and fallback UI if a 3D asset fails.
+The frontend build remained stable before and after the VR work; the MVP intentionally uses a dependency-free canvas instead of adding Three.js or React Three Fiber.
+The desktop career hub provides keyboard and mouse interaction through the dependency-free canvas scene.
+The AI Engineer environment is implemented as a readable green-lime laboratory scene.
+The Data Analyst environment is implemented as a distinct cyan analytics studio scene.
+Bounded movement and incremental horizontal look controls avoid disorienting free-flight behavior.
+The VR page provides API loading, empty, and error states, while the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 
-- [ ] Optimize models, textures, lighting, and draw calls for browser performance.
+The MVP has no models or texture payloads to optimize; the canvas scene uses lightweight procedural visuals. Formal performance measurement remains pending.
 Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
 - [ ] Add WebXR support only after desktop 3D mode works reliably.
 - [ ] Test entering and exiting a headset session where hardware is available.
