@@ -80,10 +80,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 9. Phase G — Security, validation, and quality
 
-- [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, provider failure, database failure, and server restart.
-- [ ] Review SQL queries, list bounds, CORS, security headers, request limits, rate limits, error responses, and structured logs after any contract change.
+> **Backend quality verification completed:** Default and real PostgreSQL suites cover seeded data, invalid input, unauthorized access, provider failure, database degradation, security headers, rate limits, safe generic errors, and deployment-policy placeholders. A disposable empty database verified empty career/VR catalogs, health behavior, and successful server restart without live-data changes. SQL ownership, list bounds, CORS, request limits, structured errors, and migration safety were reviewed.
+
 - [ ] Review the final browser flow with Member 1 and resolve or document each mismatch.
-- [ ] Keep deployment tests free of real credentials and ensure placeholders are clearly identified.
 
 ## 10. Phase H — Staging and deployment
 
