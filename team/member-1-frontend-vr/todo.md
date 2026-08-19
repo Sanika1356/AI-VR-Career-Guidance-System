@@ -28,7 +28,7 @@ This checklist covers the complete project from repository setup to final delive
 
 ## Phase 3 — Authentication and profile UI
 
-- [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
+The profile MVP is complete for the API-supported fields: name, interests, current skills, experience level, and learning preferences. Goals are intentionally deferred as a future enhancement until they are added to the backend contract.
 - [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
 - [ ] Coordinate an authentication integration session with Member 2.
 
