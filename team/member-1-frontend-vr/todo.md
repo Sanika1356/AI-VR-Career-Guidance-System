@@ -64,7 +64,7 @@ Static contract audit confirms the profile request, response types, form state, 
 
 - [ ] Test assessment refresh behavior and document how unfinished local progress is handled.
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
-- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; the deployed detail route remained on its loading state instead of rendering the existing missing-career error state. Keep open for deployed-bundle/request-lifecycle investigation.
+- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. The deployed invalid-career request was rechecked and rendered the client error state with the backend’s HTTP 404 after the Render cold-start delay; long-name, empty-array, and other API-failure cases remain pending.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
 The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
 
@@ -103,7 +103,7 @@ The VR page has API loading, empty, and error states, and the canvas provides an
 
 The MVP has no models or texture payloads to optimize; the canvas scene uses lightweight procedural visuals. Formal performance measurement remains pending.
 Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
-- [ ] Add WebXR support only after desktop 3D mode works reliably.
+WebXR implementation is deferred beyond the MVP; do not add it without both members’ explicit scope approval. The desktop fallback remains the supported release path.
 - [ ] Test entering and exiting a headset session where hardware is available.
 The client keeps the metadata-only `GET /api/vr/environments` contract and does not move database or provider calls into the browser.
 
