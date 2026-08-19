@@ -154,7 +154,7 @@ The required client formatting, typecheck, and production build gate has been ru
 - [ ] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real local backend.
 - [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
 - [ ] Test profile editing for `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`.
-- [ ] Omit `goals` from the profile request and UI until a future backend contract is approved.
+Static contract audit confirms the profile request, response types, form state, and UI omit `goals`; the supported MVP fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`. Goals remain deferred until a future backend contract is approved.
 - [ ] Test validation errors, empty optional fields, persistence after refresh, and unauthorized responses.
 - [ ] Record any browser CORS or token-storage issue with the request, response status, and reproduction steps.
 
