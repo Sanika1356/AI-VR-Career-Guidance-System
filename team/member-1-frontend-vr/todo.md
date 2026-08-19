@@ -46,7 +46,6 @@ Created the ignored local `client/.env.local` from the environment template with
 Fetched the latest `origin/main` at `f1f6a13` and confirmed that `docs/api.md` documents the merged auth, profile, career, assessment, recommendations, skill-gap, roadmap, advisor, and VR endpoints consumed by the client.
 The client API and authenticated request helpers use `VITE_API_BASE_URL` with a local fallback, and the source audit found no database, Ollama, or provider-key environment values in the browser client.
 The required client formatting, typecheck, and production build gate has been run repeatedly before advisor, VR, and quality branches; the current client remains build-clean.
-- [ ] Record any frontend assumption in `docs/api.md` or `docs/architecture.md` only after Member 2 approves the contract change.
 
 **Handoff to Member 2:** Send the exact API mismatch or browser error with a redacted request and response. Do not add a mock final path to hide a backend contract problem.
 
@@ -74,8 +73,12 @@ Static contract audit confirms the profile request, response types, form state, 
 - [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; the deployed detail route remained on its loading state instead of rendering the existing missing-career error state. Keep open for deployed-bundle/request-lifecycle investigation.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
 
+
 - [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
 The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps. The real staging page rendered the expected guidance copy and broader catalog entries.
+
+The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
+
 
 **Handoff to Member 2:** Report any response-shape mismatch before changing client types or adding fallback data.
 
@@ -127,9 +130,10 @@ The client now provides visible focus rings for shared buttons, custom navigatio
 Local checks covered protected-route expiry and rapid advisor form submission behavior; slow-network, refresh-during-request, real-backend duplicate-submission, and cross-page expiry testing remain pending.
 The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
 The MVP desktop scenes use original dependency-free canvas visuals and do not bundle external images, icons, models, fonts, or provider assets.
-- [ ] Open a final frontend integration pull request after the backend staging contract is stable.
+- [ ] Review and merge the currently open frontend evidence pull requests (#59 and #61) after their checks pass.
 
 ## 11. Phase H — Staging, release, and presentation
+
 
 - [x] Set the deployed client’s `VITE_API_BASE_URL` to the approved Render API URL ending in `/api` at frontend build time. The verified staging base is `https://ai-vr-career-guidance-system.onrender.com/api`.
 - [x] Confirm Member 2 has set Render `CORS_ORIGIN` to the exact deployed frontend origin. The verified frontend origin is `https://ai-vr-career-guidance-system-40ti.onrender.com`.
@@ -140,6 +144,12 @@ Known limitations are documented by the current implementation: WebXR and headse
 The local walkthrough scope is prepared: authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. The deployed browser smoke test supplied staging screenshots and route evidence; a polished recording remains optional.
 - [x] Help Member 2 perform the final end-to-end test and resolve or document every assigned issue. The approved staging flow passed; remaining limitations are WebXR/headset hardware validation, browser compatibility, and approval gates.
 - [ ] Obtain both members’ approval before the final merge and release tag.
+
+The local desktop fallback and VR demo path were rehearsed with both MVP environments, environment switching, keyboard movement, pointer interaction, reduced-motion behavior, and the unsupported-device fallback. The deployed staging rehearsal is recorded in `docs/staging-verification.md`.
+Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
+The walkthrough scope covers authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. The deployed staging flow is recorded in `docs/staging-verification.md`; additional screenshots or recording remain optional.
+- [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
+
 
 ## 12. Definition of done for Member 1
 
