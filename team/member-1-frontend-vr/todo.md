@@ -173,7 +173,7 @@ Static contract audit confirms the profile request, response types, form state, 
 
 ## 7. Phase D — Skill-gap and roadmap quality
 
-- [ ] Preserve the approved MVP skill-gap statuses: `matched` and `missing`. Do not render `partial` until the profile and API contracts gain approved proficiency data.
+The client preserves only the approved MVP skill-gap statuses, `matched` and `missing`, and does not render `partial` without approved proficiency data in the profile and API contracts.
 Static markup review confirms skill status is communicated with visible text such as “Already matched” and “Build next,” while numeric alignment percentage and counts accompany the progress visualization; live screen-reader and contrast checks remain pending.
 - [ ] Verify that changing a roadmap step updates the completion state, percentage, and completed-step count correctly.
 - [ ] Test roadmap states with zero, partial, and complete progress; “partial progress” here refers to roadmap completion, not a skill-gap status.
@@ -187,12 +187,6 @@ The advisor browser smoke test confirmed the advisory disclaimer remains visible
 No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
 The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble.
 A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
-
-- [ ] Keep the advisory disclaimer visible and avoid language that promises employment or guaranteed outcomes.
-- [ ] Verify that malformed or empty advisor responses produce a readable error and do not corrupt the conversation UI.
-- [ ] Confirm that no provider key, system prompt, or private profile data appears in browser logs or rendered debugging output.
-- [ ] Add a provider/fallback label only if Member 2 exposes a safe provider-status field in the API.
-
 
 **Handoff to Member 2:** Report provider timeout, fallback, output-length, or safety problems with a redacted request and response.
 
