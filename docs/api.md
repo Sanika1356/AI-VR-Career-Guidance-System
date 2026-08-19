@@ -6,9 +6,9 @@ This document is the shared agreement between the frontend and backend. Member 2
 
 - Base path: `/api`
 - Content type: `application/json`
-- Authentication: bearer token or the agreed secure session mechanism
+- Authentication: stateless bearer token in the `Authorization: Bearer <token>` header
 - Dates: ISO 8601 strings in UTC
-- IDs: stable strings or integers; choose one convention before database implementation
+- IDs: stable string identifiers; database-backed IDs use the repository's string ID convention
 - Validation errors: HTTP `400`
 - Unauthenticated requests: HTTP `401`
 - Forbidden requests: HTTP `403`
@@ -78,6 +78,10 @@ Response:
   "token": "server-generated-token"
 }
 ```
+
+### Authentication token lifecycle
+
+The MVP returns a stateless bearer token from registration and login. The client sends it in the `Authorization: Bearer <token>` header for protected requests. The MVP does not expose refresh or logout endpoints: logout is implemented client-side by clearing the stored token, and an expired or invalid token receives HTTP `401` and requires a new login.
 
 ### `GET /api/profile`
 

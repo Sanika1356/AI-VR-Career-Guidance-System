@@ -3,7 +3,7 @@ services:
     name: ai-vr-career-guidance-api
     runtime: node
     plan: free
-    buildCommand: pnpm install --no-frozen-lockfile && pnpm --dir server build
+    buildCommand: pnpm install --frozen-lockfile && pnpm --dir server build
     startCommand: pnpm --dir server db:migrate && pnpm --dir server start
     healthCheckPath: /api/health
     envVars:

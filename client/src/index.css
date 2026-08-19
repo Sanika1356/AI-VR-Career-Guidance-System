@@ -570,7 +570,11 @@ em {
 .ui-button:focus-visible,
 .ui-input:focus-visible,
 .ui-modal__close:focus-visible,
-.ui-notification__dismiss:focus-visible {
+.ui-notification__dismiss:focus-visible,
+.primary-button:focus-visible,
+.text-link:focus-visible,
+.outline-button:focus-visible,
+.vr-environment-card:focus-visible {
   outline: 3px solid rgba(130, 157, 49, 0.45);
   outline-offset: 3px;
 }

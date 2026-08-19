@@ -1,48 +1,61 @@
-# Database Design Outline
+# Database Design
 
-This document is an initial shared outline. Member 2 owns the implementation, migrations, seed data, and database tests. Both members should review changes because database fields become API fields consumed by the client.
+This document describes the implemented PostgreSQL schema for the AI-VR Career Guidance System. Member 2 owns the schema, migrations, seed data, and database tests; both members review changes because persisted fields become API fields consumed by the client. The database uses PostgreSQL through the Node.js `pg` driver, and every application identifier is a stable `TEXT` value rather than an integer or database-generated UUID.
 
-## Core entities
+## Core tables
 
-| Entity | Purpose | Important relationships |
+| Table | Purpose | Ownership and relationships |
 |---|---|---|
-| `users` | Login identity and account status | One user has one profile and many assessment results |
-| `profiles` | Interests, skills, experience, and preferences | Belongs to one user |
-| `skills` | Canonical skill names and levels | Related to careers and user profiles |
-| `careers` | Career catalog and descriptions | Related to skills and VR environments |
-| `career_skills` | Required skills for each career | Joins careers and skills |
-| `assessment_questions` | Published assessment questions | Has many answer options |
-| `assessment_options` | Allowed answers and internal scoring metadata | Belongs to a question |
-| `assessment_results` | A user's completed assessment and category scores | Belongs to a user and assessment session |
-| `assessment_answers` | Answers submitted for a result | Belongs to a result and question |
-| `recommendations` | Ranked career results and explanations | Belongs to an assessment result and career |
-| `roadmap_steps` | Ordered learning steps for a career | Belongs to a career |
-| `roadmap_progress` | A user's completion state for roadmap steps | Belongs to a user and roadmap step |
-| `conversations` | Optional AI advisor conversation metadata | Belongs to a user |
-| `messages` | Optional AI advisor message history | Belongs to a conversation |
-| `vr_environments` | Safe metadata for client-side 3D scenes | Related to a career |
+| `users` | Login identity, password hash, account status, and timestamps | One user owns one `profiles` row and many assessments and conversations |
+| `profiles` | Interests, current skills, experience, and learning preferences stored as JSON/text fields | One-to-one with `users`; profile writes are authenticated and transactional |
+| `skills` | Canonical skill names | Referenced by `career_skills` |
+| `careers` | Broader career catalog, descriptions, and optional `environment_key` | Independent of VR availability; related to skills, roadmap steps, recommendations, and optional conversations/environments |
+| `career_skills` | Required skill and level for each career | Composite primary key on career and skill |
+| `assessment_questions` | Published assessment questions and ordering | Parent of `assessment_options` |
+| `assessment_options` | Public answer labels plus server-only scoring metadata | Belongs to one question; scoring data is never returned by the questions endpoint |
+| `assessments` | Authenticated assessment sessions and status | Belongs to one user; has answers and at most one result |
+| `assessment_answers` | Submitted question-option pairs | Composite primary key prevents duplicate answers for one assessment question |
+| `assessment_results` | Completed assessment category scores and top career IDs | Belongs to both the assessment session and its user |
+| `recommendations` | Ranked career recommendations with scores and skill explanations | Belongs to one result and one career; result/career and result/rank pairs are unique |
+| `roadmap_steps` | Ordered learning steps for each career | Composite uniqueness on career and display order |
+| `roadmap_progress` | Per-user completion state for roadmap steps | Composite primary key on user and step enforces ownership-scoped upsert behavior |
+| `conversations` | AI advisor conversation metadata | Belongs to one user and may reference a career |
+| `messages` | User and assistant messages | Belongs to one conversation and is deleted with that conversation |
+| `vr_environments` | Safe metadata for client-side 3D/VR scenes | Belongs to a career; a career may have zero, one, or multiple future environments |
+| `schema_migrations` | Applied migration versions and timestamps | Used by the idempotent migration runner |
 
-## Design rules
+## Migration sequence and seed policy
 
-- Use foreign keys and uniqueness constraints to protect relationships.
-- Keep authentication credentials separate from profile data.
-- Do not store raw passwords, provider keys, or unnecessary sensitive data.
-- Store canonical skill names once and reference them from join tables.
-- Use transactions for multi-step writes such as assessment submission.
-- Add indexes for user IDs, career IDs, result IDs, and fields used for filtering.
-- Use migrations for every schema change.
-- Seed only non-sensitive demo data.
-- Make development reset procedures explicit and impossible to trigger accidentally in production.
+The migration runner applies SQL files in lexical version order and records each successful version in `schema_migrations`. Each migration runs transactionally, and already-recorded versions are skipped. The current sequence is:
 
-## Review checklist
+| Migration | Content | Seed behavior |
+|---|---|---|
+| `001_initial_schema.sql` | Core tables, foreign keys, checks, unique constraints, and indexes | Always applied |
+| `002_career_catalog.sql` | Broader career, skill, career-skill, and roadmap catalog | Applied when `RUN_SEED_DATA=true` |
+| `003_assessment_seed.sql` | Published assessment questions, options, and deterministic scoring metadata | Applied when `RUN_SEED_DATA=true` |
+| `004_vr_mvp_catalog.sql` | MVP VR environments for AI Engineer and Data Analyst | Applied when `RUN_SEED_DATA=true` |
 
-- [ ] Every table has a primary key.
-- [ ] Every required relationship has a foreign key.
-- [ ] Unique fields have database-level uniqueness constraints.
-- [ ] Invalid status values are prevented by validation or database constraints.
-- [ ] Timestamps are stored consistently.
-- [ ] User-owned data cannot be retrieved by another user.
-- [ ] Assessment result ownership is checked in every result endpoint.
-- [ ] Roadmap progress ownership is checked before updates.
-- [ ] Database migrations run successfully on a clean database.
-- [ ] Seed data supports the documented demonstration path.
+Seed migrations use idempotent inserts and are safe to rerun through the migration runner. The MVP VR catalog is intentionally narrower than the career catalog: `ai-engineer-lab` belongs to `career_ai_engineer`, and `data-insights-studio` belongs to `career_data_analyst`. Additional careers do not require VR environments, and additional environments can be added as rows without changing core recommendation, skill-gap, or roadmap contracts.
+
+## Integrity and security rules
+
+The schema uses foreign keys, primary keys, unique constraints, and `CHECK` constraints for relationship and value integrity. Passwords are stored only as `scrypt` password hashes. Provider credentials, bearer tokens, raw passwords, and database connection strings are not stored in application tables or logged. User-owned results, recommendations, conversations, profiles, and roadmap progress are filtered by the authenticated user in the service layer and protected by foreign keys.
+
+Assessment submission is a multi-step transaction: the server validates the assessment session and answer ownership, writes answers, calculates deterministic category scores, creates the result, and persists recommendations. A completed assessment cannot be submitted twice. Roadmap progress uses an authenticated user/step composite key and is upserted only for a valid roadmap step. Conversation reads and writes verify conversation ownership before message access.
+
+## Development and deployment operations
+
+For local development, `pnpm --dir server db:migrate` applies pending migrations. `pnpm --dir server db:reset` is restricted to a disposable localhost database and refuses production mode or non-local hosts. Render Free has no paid-only Pre-Deploy Command, so the deployment Start Command runs `pnpm --dir server db:migrate && pnpm --dir server start` before serving the API. The startup migration process is safe on every restart because applied versions are recorded and skipped.
+
+Use a Neon PostgreSQL connection only through a private `DATABASE_URL`; never commit real credentials. `RUN_SEED_DATA=true` is appropriate for the approved MVP staging/demo deployment when seeded catalog data is required. For a production deployment, seed behavior should be explicitly approved and the database must remain the durable source of truth; the API does not depend on the ephemeral Render filesystem.
+
+## Schema review checklist
+
+- Every implemented table has a primary key or an intentional composite primary key.
+- Required relationships use foreign keys with reviewed delete behavior.
+- User-owned reads and writes enforce authenticated ownership.
+- Assessment scoring metadata remains server-side.
+- Invalid status, rank, order, score, and message-role values are constrained.
+- Migrations are transactional, ordered, repeatable, and recorded in `schema_migrations`.
+- Clean-database migration and real PostgreSQL API integration tests pass before release.
+- Seed data supports the documented MVP flow without restricting the broader career catalog.
