@@ -7,7 +7,11 @@ import { AdvisorPage } from './pages/AdvisorPage';
 import { AssessmentPage } from './pages/AssessmentPage';
 import { CareerCatalogPage } from './pages/CareerCatalogPage';
 import { CareerDetailPage } from './pages/CareerDetailPage';
+
+import { DashboardPage } from './pages/DashboardPage';
+
 import { VRPage } from './pages/VRPage';
+
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
@@ -21,6 +25,7 @@ type RouteKey =
   | 'register'
   | 'login'
   | 'profile'
+  | 'dashboard'
   | 'assessment'
   | 'careers'
   | 'recommendations'
@@ -54,6 +59,10 @@ const routes: Record<
     title: 'Your profile',
     description:
       'Review your interests, skills, learning preferences, experience level, and goals.',
+  },
+  dashboard: {
+    title: 'Your Pathfinder dashboard',
+    description: 'See your profile signals and choose the next step in your career journey.',
   },
   assessment: {
     title: 'Discover your direction',
@@ -91,6 +100,7 @@ const routes: Record<
 
 const protectedRouteKeys = new Set<RouteKey>([
   'profile',
+  'dashboard',
   'assessment',
   'recommendations',
   'skill-gap',
@@ -263,6 +273,24 @@ export default function App() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const isHome = route.key === 'home';
   const isProtectedRoute = protectedRouteKeys.has(route.key);
+
+  const placeholder =
+    route.key !== 'home' &&
+    route.key !== 'not-found' &&
+    route.key !== 'career-details' &&
+    route.key !== 'careers' &&
+    route.key !== 'register' &&
+    route.key !== 'login' &&
+    route.key !== 'profile' &&
+    route.key !== 'dashboard' &&
+    route.key !== 'assessment' &&
+    route.key !== 'recommendations' &&
+    route.key !== 'skill-gap' &&
+    route.key !== 'roadmap'
+      ? routes[route.key]
+      : undefined;
+
+
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());
     const handleSessionExpired = () => {
@@ -320,6 +348,7 @@ export default function App() {
         <AuthRequiredPage onNavigate={navigate} sessionExpired={sessionExpired} />
       )}
       {route.key === 'profile' && session && <ProfilePage />}
+      {route.key === 'dashboard' && session && <DashboardPage onNavigate={navigate} />}
       {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
       {route.key === 'recommendations' && session && <RecommendationsPage onNavigate={navigate} />}
       {route.key === 'skill-gap' && session && (

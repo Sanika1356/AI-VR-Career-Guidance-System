@@ -2,6 +2,100 @@
 
 **Owner:** Member 1
 
+**Primary areas:** `client/`, frontend-related parts of `docs/`, and the 3D/VR experience
+**Works with:** Member 2 through the API contract in `docs/api.md`
+
+This checklist covers the complete project from repository setup to final delivery. Check items only after the implementation has been tested and documented.
+
+## Phase 0 — Understand the project and agree with Member 2
+
+- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
+- [ ] Confirm the frontend stack with Member 2: React, TypeScript, Vite, Tailwind, routing, charts, Three.js, and React Three Fiber.
+- [ ] Confirm the authentication approach and how the client stores or receives the session.
+- [ ] Confirm the API base URL, local development ports, request headers, error format, and date format.
+- [ ] Confirm the visual direction, color palette, typography, responsive breakpoints, and accessibility expectations.
+- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR.
+- [ ] Add any agreed frontend assumptions to `docs/architecture.md` or `docs/api.md`.
+
+## Phase 1 — Local setup and frontend foundation
+
+- [ ] Clone the repository and configure Git identity.
+- [ ] Create the frontend environment file from `.env.example` without committing secrets.
+
+## Phase 2 — Design system and landing experience
+
+- [ ] Test the landing page in the supported browsers.
+- [ ] Confirm copy and visual choices with Member 2 before merging.
+
+## Phase 3 — Authentication and profile UI
+
+- [ ] Add editable interests, skills, experience level, learning preferences, and goals as agreed in the API contract.
+- [ ] Test registration, login, logout, protected navigation, refresh, and expired sessions.
+- [ ] Coordinate an authentication integration session with Member 2.
+
+## Phase 4 — Assessment experience
+
+- [ ] Test refresh behavior and decide how unfinished local progress is handled.
+- [ ] Test assessment completion on narrow and wide screens.
+- [ ] Integrate with Member 2's assessment endpoints using a real development database.
+
+## Phase 5 — Recommendation and career detail UI
+
+- [ ] Build the recommendations page using the agreed response shape.
+- [ ] Display ranked career cards with score, reason, matched skills, and missing skills.
+- [ ] Add sorting or filtering only if approved in the scope.
+- [ ] Add loading skeletons and an empty-results state.
+- [ ] Add a clear explanation that recommendations are guidance rather than a guaranteed outcome.
+- [ ] Display career description, responsibilities, required skills, learning resources, and VR availability.
+- [ ] Add navigation from a recommendation card to career details.
+- [ ] Add a saved or selected-career state if required by the product flow.
+- [ ] Connect the UI to `GET /api/recommendations`, `GET /api/careers`, and `GET /api/careers/:careerId`.
+- [ ] Test long career names, missing optional fields, empty arrays, and API failures.
+- [ ] Compare the displayed score and reason with Member 2's test responses.
+
+## Phase 6 — Skill-gap and roadmap UI
+
+- [ ] Build the skill-gap overview page.
+- [ ] Display matched, partially developed, and missing skills with clear visual states.
+- [ ] Avoid using color alone to communicate skill status.
+- [ ] Add accessible labels and a text alternative for charts or visual summaries.
+- [ ] Build the learning roadmap page.
+- [ ] Display ordered roadmap steps, target skills, descriptions, and completion status.
+- [ ] Add progress percentage and completed-step count.
+- [ ] Add the agreed interaction for marking a roadmap step complete.
+- [ ] Add loading, empty, and error states.
+- [ ] Connect the UI to `GET /api/careers/:careerId/skill-gap`, `GET /api/careers/:careerId/roadmap`, and `PATCH /api/roadmap/:stepId`.
+- [ ] Verify that changing a roadmap step updates the progress display correctly.
+- [ ] Test the pages with zero, partial, and complete progress.
+
+## Phase 7 — AI advisor interface
+
+- [ ] Design the AI advisor page and conversation layout.
+- [ ] Build the message list with user and advisor message states.
+- [ ] Build the message input with length validation and submit behavior.
+- [ ] Add disabled, loading, retry, and provider-error states.
+- [ ] Add conversation start and conversation continuation behavior.
+- [ ] Display timestamps only where useful and keep the interface readable.
+- [ ] Add a clear notice about the advisory nature of AI responses.
+- [ ] Add safe handling for empty responses and unexpected response shapes.
+- [ ] Connect the UI to `POST /api/advisor/chat`.
+- [ ] Test long messages, repeated submissions, network failures, and page refresh behavior.
+- [ ] Confirm with Member 2 that the UI does not expose provider keys or internal prompts.
+
+## Phase 8 — 3D career hub and VR environments
+
+- [ ] Review the selected 3D/VR scope and define the minimum desktop experience.
+- [ ] Add Three.js and React Three Fiber only after confirming the frontend build remains stable.
+- [ ] Create the career hub scene with a clear entry point and readable labels.
+- [ ] Add a desktop keyboard and mouse interaction model.
+- [ ] Add camera controls and prevent disorienting default behavior.
+- [ ] Create the AI Engineer environment with a simple, performant scene.
+- [ ] Create the Data Analyst environment with a simple, performant scene.
+- [ ] Add career metadata and navigation from the hub to each environment.
+- [ ] Keep the career catalog broader than the MVP VR catalog: VR environments are optional and selected through stable, extensible environment metadata. The MVP VR catalog includes only AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`).
+- [ ] Add a visible exit or return-to-career-details control.
+
+
 **Owns:** `client/`, frontend-related documentation, browser behavior, responsive UI, accessibility, and the 3D/VR experience.
 
 **Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, and the handoff rules in this file and the server TODO.
@@ -86,6 +180,7 @@ This file contains only remaining work. The real client pages and services for a
 - [ ] Create the AI Engineer environment with a simple, readable scene.
 - [ ] Create the Data Analyst environment with a simple, readable scene.
 - [ ] Add camera controls that avoid disorienting default behavior.
+
 - [ ] Add loading and fallback UI if a 3D asset fails.
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
 - [ ] Test keyboard, mouse, touch where applicable, reduced-motion preferences, and unsupported-device fallback.
