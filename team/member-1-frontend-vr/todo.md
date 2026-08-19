@@ -63,7 +63,7 @@ WebXR implementation is deferred beyond the approved MVP and must not be added w
 
 ## Phase 5 — Release and approval gates
 
-- [ ] Review and merge the currently open frontend evidence pull requests after their checks pass.
+- [ ] Merge the currently open frontend evidence pull requests after their checks pass. Review completed for [PR #61](https://github.com/Sanika1356/AI-VR-Career-Guidance-System/pull/61) and [PR #67](https://github.com/Sanika1356/AI-VR-Career-Guidance-System/pull/67); both remain open with no configured automated checks (`Checks 0`) and no human review, so merge remains pending.
 - [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
 
 The final release handoff must include the tested client branch and commit, pull request, environment-variable names without secret values, supported browser and device notes, staging evidence, and a concise list of unresolved limitations.
