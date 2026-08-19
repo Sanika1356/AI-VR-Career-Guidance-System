@@ -3,6 +3,8 @@ import { createServer, type Server } from 'node:http';
 import test from 'node:test';
 import { app } from '../src/app.js';
 import { pool } from '../src/db/pool.js';
+import { env } from '../src/config/env.js';
+import { createAccessToken } from '../src/utils/token.js';
 
 const integrationEnabled = process.env.RUN_DB_INTEGRATION_TESTS === 'true';
 
@@ -45,6 +47,40 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     assert.equal(registered.response.headers.get('access-control-allow-origin'), 'http://localhost:5173');
     const token = registered.body.token as string;
     const authHeaders = { Authorization: `Bearer ${token}` };
+
+    const login = await request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    assert.equal(login.response.status, 200);
+    assert.equal(login.body.user.email, email);
+    assert.equal(typeof login.body.token, 'string');
+
+    const invalidLogin = await request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password: 'incorrect-password' }),
+    });
+    assert.equal(invalidLogin.response.status, 401);
+
+    const preflight = await fetch(`${baseUrl}/auth/login`, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type,authorization',
+      },
+    });
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get('access-control-allow-origin'), 'http://localhost:5173');
+
+    const expiredToken = createAccessToken(
+      'user_missing',
+      Math.floor(Date.now() / 1000) - env.tokenExpirySeconds - 60,
+    );
+    const expiredProfile = await request('/profile', {
+      headers: { Authorization: `Bearer ${expiredToken}` },
+    });
+    assert.equal(expiredProfile.response.status, 401);
 
     const profile = await request('/profile', { headers: authHeaders });
     assert.equal(profile.response.status, 200);
