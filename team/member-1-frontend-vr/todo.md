@@ -207,12 +207,6 @@ The scene uses bounded movement and incremental horizontal look controls rather 
 
 The VR page has API loading, empty, and error states, and the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 
-The frontend build remained stable before and after the VR work; the MVP intentionally uses a dependency-free canvas instead of adding Three.js or React Three Fiber.
-The desktop career hub provides keyboard and mouse interaction through the dependency-free canvas scene.
-The AI Engineer environment is implemented as a readable green-lime laboratory scene.
-The Data Analyst environment is implemented as a distinct cyan analytics studio scene.
-Bounded movement and incremental horizontal look controls avoid disorienting free-flight behavior.
-The VR page provides API loading, empty, and error states, while the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 
 The MVP has no models or texture payloads to optimize; the canvas scene uses lightweight procedural visuals. Formal performance measurement remains pending.
 Keyboard, mouse, reduced-motion, and unsupported-device fallback behavior is implemented and locally smoke-tested; touch and headset hardware testing remain pending.
