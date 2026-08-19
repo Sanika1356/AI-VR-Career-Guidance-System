@@ -10,6 +10,7 @@ interface AppShellProps {
 }
 
 const primaryLinks = [
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/assessment', label: 'Assessment' },
   { href: '/careers', label: 'Career catalog' },
   { href: '/recommendations', label: 'Recommendations' },
