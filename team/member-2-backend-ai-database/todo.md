@@ -31,15 +31,11 @@ This file contains only remaining work. The real backend foundation, authenticat
 | Gate D — Advisor/VR | Advisor fallback and VR metadata endpoints | Advisor UI and desktop/VR experience | Browser receives safe data and handles provider/server failures. |
 | Gate E — Release | Staging database, Render configuration, health, logs, and rollback notes | Deployed client URL and `VITE_API_BASE_URL` | Both members approve the same deployed end-to-end flow. |
 
-## 3. Phase A — Local setup and contract synchronization
+## 3. Completed backend checkpoint
 
-- [ ] Create the server environment file from `.env.example` without committing secrets.
-- [ ] Verify a clean local PostgreSQL database can apply schema and approved MVP seed migrations.
-- [ ] Add a development-only reset or seed procedure that cannot run accidentally in production.
-- [ ] Run the server lint command once linting is configured, together with the existing test, typecheck, and build checks.
-- [ ] Review `docs/api.md` against the current routes before each client handoff.
+**Phase A — Local setup and contract synchronization is complete.** The local `server/.env` is generated and ignored, PostgreSQL 16 is available for development, `pnpm --dir server db:reset` safely recreates and seeds only localhost development databases, migrations are idempotent, all four approved migrations apply, the catalog contains five careers and two approved VR environments, and the documented endpoints match the mounted routes. The current backend quality gate is `test`, `typecheck`, and `build`; no lint script is configured yet.
 
-**Handoff to Member 1:** Provide local setup commands, required non-secret variable names, migration/seed behavior, and the API commit used for client testing.
+**Handoff available to Member 1:** Use the local setup commands in `server/README.md`, the non-secret variable names in `server/.env.example`, the real local API at `http://localhost:4000/api`, and the tested backend commit for integration work.
 
 ## 4. Phase B — Authentication and profile integration
 
@@ -61,8 +57,7 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 6. Phase D — Skill gap and roadmap contract
 
-- [ ] Keep the approved MVP skill-gap statuses as `matched` and `missing`.
-- [ ] Add per-skill proficiency data and a `partial` status only if both members approve expanding the profile and API contract.
+> **Contract decision completed:** The MVP exposes only `matched` and `missing` skill-gap statuses. Proficiency data and `partial` require a separately approved profile/API expansion and are not part of the current implementation.
 - [ ] Verify roadmap progress persistence, ownership, ordering, zero progress, partial progress, complete progress, and invalid step behavior with the client.
 - [ ] Confirm that skill-gap and roadmap errors remain safe, stable, and documented.
 
@@ -70,7 +65,6 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 7. Phase E — AI advisor operations
 
-- [ ] Add output length limits and retry rules while preserving input limits, timeout handling, and deterministic provider-error fallback.
 - [ ] Perform a manual review of representative responses for relevance, clarity, privacy, unsupported claims, and advisory disclaimers.
 - [ ] Verify that conversation ownership, continuation, malformed provider output, empty output, and server failure remain safe.
 - [ ] Keep provider keys and internal prompts server-side. Local Ollama and the deterministic fallback remain the zero-cost default.
@@ -79,17 +73,13 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 8. Phase F — VR metadata and client scene support
 
-- [ ] Keep `GET /api/vr/environments` metadata-only and independent from career, recommendation, and roadmap contracts.
-- [ ] Verify the approved MVP environments: AI Engineer and Data Analyst.
 - [ ] Add or change VR metadata only after Member 1 explains the scene requirement and both members approve the field.
-- [ ] Do not persist VR visits or progress unless the product scope explicitly expands.
 - [ ] Test empty, unavailable, disabled, and future-extensible VR catalogs.
 
 **Handoff to Member 1:** Provide the safe metadata response and explain that the client owns scene rendering, device fallback, and WebXR behavior.
 
 ## 9. Phase G — Security, validation, and quality
 
-- [ ] Add database integration and API contract tests in addition to the existing backend unit/service suite.
 - [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, provider failure, database failure, and server restart.
 - [ ] Review SQL queries, list bounds, CORS, security headers, request limits, rate limits, error responses, and structured logs after any contract change.
 - [ ] Review the final browser flow with Member 1 and resolve or document each mismatch.
@@ -98,11 +88,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 10. Phase H — Staging and deployment
 
 - [ ] Deploy the API to a development or staging environment using the approved Render Free and Neon plan, only after the required accounts and credentials are privately available.
-- [ ] Configure Render with the current build command, startup migration command, `/api/health` health path, `DATABASE_URL`, `AUTH_SECRET`, and exact frontend `CORS_ORIGIN`.
 - [ ] Verify CORS and frontend-to-backend connectivity in staging after Member 1 has a deployed frontend URL.
 - [ ] Test authentication, assessment, recommendations, skill gap, roadmap, advisor, and VR metadata in staging.
 - [ ] Confirm Render Free startup migrations succeed and never use the paid-only Pre-Deploy Command.
-- [ ] Document restart, migration, logs, health checks, rollback, free-tier limitations, and the Neon connection boundary.
 - [ ] Deploy the production API only after both members approve the staging test.
 
 **Credential boundary:** Member 2 must stop before account creation, credential entry, payment, upgrade, or live deployment if the required private values are not available. No real secret belongs in Git, chat, screenshots, or TODO files.
