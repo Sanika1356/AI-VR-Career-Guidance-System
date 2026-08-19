@@ -37,3 +37,7 @@ services:
         value: llama3.2:3b
       - key: AI_REQUEST_TIMEOUT_MS
         value: "30000"
+      - key: AI_MAX_RESPONSE_CHARS
+        value: "4000"
+      - key: AI_RETRY_ATTEMPTS
+        value: "1"

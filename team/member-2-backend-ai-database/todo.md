@@ -88,11 +88,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 10. Phase H — Staging and deployment
 
 - [ ] Deploy the API to a development or staging environment using the approved Render Free and Neon plan, only after the required accounts and credentials are privately available.
-- [ ] Configure Render with the current build command, startup migration command, `/api/health` health path, `DATABASE_URL`, `AUTH_SECRET`, and exact frontend `CORS_ORIGIN`.
 - [ ] Verify CORS and frontend-to-backend connectivity in staging after Member 1 has a deployed frontend URL.
 - [ ] Test authentication, assessment, recommendations, skill gap, roadmap, advisor, and VR metadata in staging.
 - [ ] Confirm Render Free startup migrations succeed and never use the paid-only Pre-Deploy Command.
-- [ ] Document restart, migration, logs, health checks, rollback, free-tier limitations, and the Neon connection boundary.
 - [ ] Deploy the production API only after both members approve the staging test.
 
 **Credential boundary:** Member 2 must stop before account creation, credential entry, payment, upgrade, or live deployment if the required private values are not available. No real secret belongs in Git, chat, screenshots, or TODO files.
