@@ -31,25 +31,24 @@ Sorting, filtering, saved-career state, profile goals, partial skill-gap status,
 
 These checks are specific to the local backend environment and should not be marked complete based only on the deployed staging run.
 
-- [ ] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real local backend.
+- [ ] Test token-expiry behavior specifically against the real local backend; registration, login, protected navigation, refresh, client-side logout, and missing-session redirect are verified locally.
 - [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
-- [ ] Test profile validation errors, empty optional fields, persistence after refresh, and unauthorized responses against the local backend.
-- [ ] Test assessment refresh behavior and document how unfinished local progress is handled during a real authenticated local session.
+- [ ] Test empty optional profile fields and a direct unauthorized profile API response against the local backend; required-name validation and valid persistence after refresh are verified locally.
 
 **Local integration evidence required:** Record the environment, route, account type, response status, and reproduction steps without committing credentials or secrets.
 
 ## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
-- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. The deployed invalid-career request already renders the client error state with the backend’s HTTP 404 after the Render cold-start delay; long-name, empty-array, and other API-failure cases remain pending.
-- [ ] Test unauthorized, missing-step, and server-failure responses for skill-gap and roadmap routes.
-- [ ] Test advisor long-message limits, real-backend repeated submissions, page-refresh behavior, slow-network behavior, and cross-page session expiry.
+- [ ] Test long career names, missing optional fields, empty arrays, and career API failures; unavailable-career HTTP 404 and its rendered error state are verified locally and in staging.
+- [ ] Test server-failure responses for skill-gap and roadmap routes; unauthorized access and a missing roadmap step are verified locally.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry; page refresh and minimum-length validation are verified locally.
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
 ## Phase 3 — Accessibility, responsive, browser, and performance quality
 
-- [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
+- [ ] Verify authenticated assessment and learning-flow behavior across supported desktop, tablet, and mobile viewport sizes; public home and career-catalog spot checks passed at 375px, 768px, and 1440px, including the tablet navigation-wrap fix.
 - [ ] Complete the manual accessibility matrix for focus order, contrast, headings, visible labels, and non-color status cues.
 - [ ] Run browser compatibility checks on the supported browsers.
 - [ ] Measure or document desktop VR fallback performance on supported target hardware; the current scenes use lightweight procedural canvas visuals and no external models or textures.
