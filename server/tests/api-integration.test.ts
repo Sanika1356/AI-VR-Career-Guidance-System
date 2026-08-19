@@ -149,6 +149,17 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     const missingRoadmap = await request('/careers/career_missing_for_integration/roadmap', { headers: authHeaders });
     assert.equal(missingRoadmap.response.status, 404);
     if (roadmap.body.steps.length > 0) {
+      assert.ok(roadmap.body.steps.every((step: { order: number }, index: number, steps: Array<{ order: number }>) => (
+        index === 0 || steps[index - 1].order <= step.order
+      )));
+      const invalidUpdate = await request(`/roadmap/${roadmap.body.steps[0].id}`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ completed: 'true' }),
+      });
+      assert.equal(invalidUpdate.response.status, 400);
+      assert.equal(invalidUpdate.body.error, 'validation_error');
+
       const update = await request(`/roadmap/${roadmap.body.steps[0].id}`, {
         method: 'PATCH',
         headers: authHeaders,

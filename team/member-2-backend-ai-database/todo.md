@@ -57,8 +57,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 6. Phase D — Skill gap and roadmap contract
 
 > **Contract decision completed:** The MVP exposes only `matched` and `missing` skill-gap statuses. Proficiency data and `partial` require a separately approved profile/API expansion and are not part of the current implementation.
-- [ ] Verify roadmap progress persistence, ownership, ordering, zero progress, partial progress, complete progress, and invalid step behavior with the client.
-- [ ] Confirm that skill-gap and roadmap errors remain safe, stable, and documented.
+
+> **Backend verification completed:** Service tests and the real PostgreSQL API integration cover skill-gap status mapping, authenticated ownership, unknown-career errors, roadmap ordering, user-specific progress persistence, zero/updated completion states, invalid progress payloads, missing roadmap steps, unauthorized access, and safe documented error envelopes.
+
 
 **Handoff to Member 1:** Provide the tested skill-gap/roadmap response shapes, progress fixtures, and known limitation that `partial` skill status is not currently supported.
 
