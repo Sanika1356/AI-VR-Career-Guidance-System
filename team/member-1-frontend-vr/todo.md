@@ -233,8 +233,8 @@ The MVP desktop scenes use original dependency-free canvas visuals and do not bu
 - [ ] Confirm Member 2 has set Render `CORS_ORIGIN` to the exact deployed frontend origin.
 - [ ] Run the complete flow with a fresh or approved demo account: register, login, profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and VR metadata.
 - [ ] Verify the production build output and test the deployed application after a fresh deployment.
-- [ ] Rehearse the desktop fallback and VR demo path.
-- [ ] Document known limitations, especially device requirements for WebXR and advisor fallback behavior.
+The local desktop fallback and VR demo path were rehearsed with both MVP environments, environment switching, keyboard movement, pointer interaction, reduced-motion behavior, and the unsupported-device fallback; final staging rehearsal remains pending.
+Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
 - [ ] Prepare a short product walkthrough, screenshots, or screen recording if required.
 - [ ] Help Member 2 perform the final end-to-end test and resolve or document every assigned issue.
 - [ ] Obtain both members’ approval before the final merge and release tag.
