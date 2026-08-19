@@ -65,7 +65,7 @@ Static contract audit confirms the profile request, response types, form state, 
 
 - [ ] Test assessment refresh behavior and document how unfinished local progress is handled.
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
-- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures.
+- [x] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; after the initial Render cold-start loading period, retrying the route rendered the existing readable error state with `Try again` and `Back to career paths` controls. Long-name and synthetic empty-array fixtures remain outside the deployed catalog.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
 - [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
 The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
