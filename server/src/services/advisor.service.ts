@@ -174,7 +174,9 @@ export async function chatAdvisor(
   try {
     const [profileResult, assessmentResult] = await Promise.all([
       client.query<ProfileRow>(
-        'SELECT name, interests, current_skills, experience, learning_preferences FROM profiles WHERE user_id = $1',
+        `SELECT u.name, p.interests, p.current_skills, p.experience, p.learning_preferences
+         FROM profiles p JOIN users u ON u.id = p.user_id
+         WHERE p.user_id = $1`,
         [userId],
       ),
       client.query<AssessmentRow>(
