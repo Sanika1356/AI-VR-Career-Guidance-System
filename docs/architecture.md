@@ -26,7 +26,7 @@ Node.js + Express server
 | Boundary | Member 1 | Member 2 |
 |---|---|---|
 | User interface | Owns all pages, components, navigation, form states, loading states, and responsive behavior | Reviews API assumptions and verifies error states are supported |
-| 3D/VR | Owns the career hub, career environments, controls, scene loading, and WebXR fallback | Provides career metadata and progress data through documented endpoints |
+| 3D/VR | Owns the career hub, career environments, controls, scene loading, and WebXR fallback | Provides safe career-environment metadata; VR visits and progress are not persisted in the MVP |
 | API | Consumes documented endpoints and reports missing fields or usability issues | Designs, implements, validates, tests, and documents endpoints |
 | Database | Requests required fields through the API contract | Owns schema, migrations, seed data, constraints, and backups for development |
 | AI | Owns chat layout and user interaction | Owns prompt orchestration, profile context, safety rules, rate limits, and provider integration |
@@ -40,7 +40,7 @@ The client should contain pages for the landing experience, authentication, prof
 
 ### Server modules
 
-The server should expose versioned routes under `/api`. Routes should remain thin and delegate business rules to services. Controllers should translate validated HTTP input into service calls. Database access belongs in `server/src/db/` and data models belong in `server/src/models/`. Authentication and authorization belong in middleware. External AI calls must remain server-side.
+The server exposes REST routes under `/api`. Routes remain thin and delegate business rules to services. Controllers should translate validated HTTP input into service calls. Database access belongs in `server/src/db/` and data models belong in `server/src/models/`. Authentication and authorization belong in middleware. External AI calls must remain server-side.
 
 ## 4. Development milestones
 
@@ -52,7 +52,7 @@ The server should expose versioned routes under `/api`. Routes should remain thi
 | Recommendations | Ranked career cards | Scoring and recommendation services | Scores render from real data |
 | Skill gap and roadmap | Skill-gap and roadmap pages | Gap calculation and roadmap APIs | Selected career produces actionable results |
 | AI advisor | Chat experience | Context-aware AI service | User receives a profile-aware answer |
-| VR | Desktop 3D hub and environments | Career/progress data support | VR entry is connected to a career |
+| VR | Desktop 3D hub and environments | Extensible environment metadata API | VR entry is connected to a career when an environment is available |
 | Release | Responsive, accessible, polished UI | Tested, secured, deployable API | Clean-user full-system demo passes |
 
 ## 5. Integration rules

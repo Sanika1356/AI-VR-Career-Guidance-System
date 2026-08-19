@@ -6,9 +6,9 @@ This document is the shared agreement between the frontend and backend. Member 2
 
 - Base path: `/api`
 - Content type: `application/json`
-- Authentication: bearer token or the agreed secure session mechanism
+- Authentication: stateless bearer token in the `Authorization: Bearer <token>` header
 - Dates: ISO 8601 strings in UTC
-- IDs: stable strings or integers; choose one convention before database implementation
+- IDs: stable string identifiers; database-backed IDs use the repository's string ID convention
 - Validation errors: HTTP `400`
 - Unauthenticated requests: HTTP `401`
 - Forbidden requests: HTTP `403`
