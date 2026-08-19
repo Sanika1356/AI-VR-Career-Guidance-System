@@ -135,8 +135,8 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 - [ ] Run accessibility checks for keyboard navigation, focus order, labels, contrast, semantic headings, and non-color status cues.
 - [ ] Run browser compatibility checks on the supported browsers.
 - [ ] Test slow network behavior, refresh during API requests, duplicate submissions, and expired sessions.
-- [ ] Remove unused mock data, debug logs, placeholder text, and unfinished active routes.
-- [ ] Confirm images, icons, models, fonts, and other assets have appropriate usage rights or are original project assets.
+The local quality audit found no unused mock API paths, debug logs, provider secrets, or unfinished active routes; the stale unused route-placeholder computation was removed in the client quality branch.
+The MVP desktop scenes use original dependency-free canvas visuals and do not bundle external images, icons, models, fonts, or provider assets.
 - [ ] Open a final frontend integration pull request after the backend staging contract is stable.
 
 ## 11. Phase H — Staging, release, and presentation

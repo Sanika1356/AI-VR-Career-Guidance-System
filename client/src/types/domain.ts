@@ -6,7 +6,6 @@ export interface User {
   skills?: string[];
   experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
   learningPreferences?: string[];
-  goals?: string[];
 }
 
 export interface Career {

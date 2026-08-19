@@ -273,24 +273,6 @@ export default function App() {
   const isHome = route.key === 'home';
   const isProtectedRoute = protectedRouteKeys.has(route.key);
 
-  const placeholder =
-    route.key !== 'home' &&
-    route.key !== 'not-found' &&
-    route.key !== 'career-details' &&
-    route.key !== 'careers' &&
-    route.key !== 'register' &&
-    route.key !== 'login' &&
-    route.key !== 'profile' &&
-    route.key !== 'dashboard' &&
-    route.key !== 'assessment' &&
-    route.key !== 'recommendations' &&
-    route.key !== 'skill-gap' &&
-    route.key !== 'roadmap' &&
-    route.key !== 'advisor' &&
-    route.key !== 'vr'
-      ? routes[route.key]
-      : undefined;
-
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());
     const handleSessionExpired = () => {
