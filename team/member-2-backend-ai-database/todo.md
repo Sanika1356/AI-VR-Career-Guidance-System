@@ -80,7 +80,6 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 9. Phase G — Security, validation, and quality
 
-- [ ] Add database integration and API contract tests in addition to the existing backend unit/service suite.
 - [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, provider failure, database failure, and server restart.
 - [ ] Review SQL queries, list bounds, CORS, security headers, request limits, rate limits, error responses, and structured logs after any contract change.
 - [ ] Review the final browser flow with Member 1 and resolve or document each mismatch.

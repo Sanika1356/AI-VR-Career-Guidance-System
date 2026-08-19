@@ -8,7 +8,7 @@ From the repository root, install workspace dependencies with `pnpm install`. St
 
 The approved authentication contract uses `Authorization: Bearer <token>`. Passwords are hashed with Node.js built-in `crypto.scrypt`, and tokens are signed with Node.js built-in HMAC cryptography. No Firebase, Auth0, Clerk, or other external authentication service is used.
 
-Run `pnpm --dir server test` for the API and security tests, `pnpm --dir server typecheck` for TypeScript validation, and `pnpm --dir server build` for the production build. After PostgreSQL is running and `DATABASE_URL` is configured, run `pnpm --dir server db:migrate` to apply the SQL files in `server/src/db/migrations/`. For a disposable local database, `pnpm --dir server db:reset` drops and recreates the public schema, then reapplies all approved schema and seed migrations. The reset command refuses production mode and refuses non-local database hosts; never run it against Neon or another shared database.
+Run `pnpm --dir server test` for the API and security tests, `RUN_DB_INTEGRATION_TESTS=true pnpm --dir server test` for the opt-in real-PostgreSQL API flow, `pnpm --dir server typecheck` for TypeScript validation, and `pnpm --dir server build` for the production build. After PostgreSQL is running and `DATABASE_URL` is configured, run `pnpm --dir server db:migrate` to apply the SQL files in `server/src/db/migrations/`. For a disposable local database, `pnpm --dir server db:reset` drops and recreates the public schema, then reapplies all approved schema and seed migrations. The reset command refuses production mode and refuses non-local database hosts; never run it against Neon or another shared database.
 
 ## Zero-cost local resources
 
