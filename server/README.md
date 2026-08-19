@@ -54,7 +54,7 @@ Recommendation rows are persisted in the `recommendations` table so later roadma
 
 The advisor assembles only the authenticated user’s approved profile, latest assessment summary, selected career, skill-gap information, and roadmap progress. The server-side prompt instructs the advisor to provide practical educational guidance, avoid guaranteed employment claims or high-stakes decisions, and never invent unavailable user information. Conversations and user/assistant messages are persisted in PostgreSQL for the authenticated user.
 
-The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. Ollama is optional: if it is unavailable or returns an error, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
+The default provider is local Ollama, configured through `OLLAMA_BASE_URL`, `OLLAMA_MODEL`, and `AI_REQUEST_TIMEOUT_MS`. `AI_RETRY_ATTEMPTS` controls bounded retries, capped at two retries by server configuration, and `AI_MAX_RESPONSE_CHARS` bounds the stored and returned answer length with a default of 4,000 characters. Ollama is optional: if it is unavailable, returns an error, or produces empty output, the API uses a deterministic fallback response derived from the same career context and still returns a stable response shape. No hosted AI service or paid API key is required, and provider credentials—if a future approved provider is added—must remain server-side in environment variables.
 
 ## Security and quality hardening
 

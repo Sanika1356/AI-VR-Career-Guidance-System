@@ -57,8 +57,7 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 6. Phase D — Skill gap and roadmap contract
 
-- [ ] Keep the approved MVP skill-gap statuses as `matched` and `missing`.
-- [ ] Add per-skill proficiency data and a `partial` status only if both members approve expanding the profile and API contract.
+> **Contract decision completed:** The MVP exposes only `matched` and `missing` skill-gap statuses. Proficiency data and `partial` require a separately approved profile/API expansion and are not part of the current implementation.
 - [ ] Verify roadmap progress persistence, ownership, ordering, zero progress, partial progress, complete progress, and invalid step behavior with the client.
 - [ ] Confirm that skill-gap and roadmap errors remain safe, stable, and documented.
 
@@ -66,7 +65,6 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 7. Phase E — AI advisor operations
 
-- [ ] Add output length limits and retry rules while preserving input limits, timeout handling, and deterministic provider-error fallback.
 - [ ] Perform a manual review of representative responses for relevance, clarity, privacy, unsupported claims, and advisory disclaimers.
 - [ ] Verify that conversation ownership, continuation, malformed provider output, empty output, and server failure remain safe.
 - [ ] Keep provider keys and internal prompts server-side. Local Ollama and the deterministic fallback remain the zero-cost default.
@@ -75,10 +73,7 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 8. Phase F — VR metadata and client scene support
 
-- [ ] Keep `GET /api/vr/environments` metadata-only and independent from career, recommendation, and roadmap contracts.
-- [ ] Verify the approved MVP environments: AI Engineer and Data Analyst.
 - [ ] Add or change VR metadata only after Member 1 explains the scene requirement and both members approve the field.
-- [ ] Do not persist VR visits or progress unless the product scope explicitly expands.
 - [ ] Test empty, unavailable, disabled, and future-extensible VR catalogs.
 
 **Handoff to Member 1:** Provide the safe metadata response and explain that the client owns scene rendering, device fallback, and WebXR behavior.

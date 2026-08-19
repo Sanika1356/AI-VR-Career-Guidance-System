@@ -93,6 +93,27 @@ function fallbackAnswer(message: string, careerName: string | undefined, missing
   return `I can help you plan your next career step${focus}. Based on the information available, start with one achievable learning activity related to your question: “${message}”.${skills} This is general guidance, not a guarantee of an employment outcome.`;
 }
 
+function limitAdvisorOutput(value: string): string {
+  const answer = value.trim();
+  if (answer.length <= env.aiMaxResponseChars) return answer;
+  const suffix = '…';
+  return `${answer.slice(0, Math.max(0, env.aiMaxResponseChars - suffix.length)).trimEnd()}${suffix}`;
+}
+
+async function generateWithRetry(provider: AdvisorProvider, prompt: string): Promise<string> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= env.aiRetryAttempts; attempt += 1) {
+    try {
+      const answer = limitAdvisorOutput(await provider.generate(prompt));
+      if (answer.length === 0) throw new Error('Advisor provider returned an empty answer');
+      return answer;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Advisor provider failed');
+}
+
 function buildPrompt(
   input: AdvisorChatInput,
   profile: ProfileRow | undefined,
@@ -216,13 +237,13 @@ export async function chatAdvisor(
 
     let answer: string;
     try {
-      answer = await provider.generate(prompt);
+      answer = await generateWithRetry(provider, prompt);
     } catch {
-      answer = await new FallbackAdvisorProvider({
+      answer = limitAdvisorOutput(await new FallbackAdvisorProvider({
         message: input.message,
         careerName: career?.name,
         missingSkills,
-      }).generate();
+      }).generate());
     }
 
     await client.query('BEGIN');

@@ -24,6 +24,8 @@ export const env = {
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
   ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.2:3b',
   aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 30_000),
+  aiMaxResponseChars: Math.max(200, Math.floor(numberFromEnv(process.env.AI_MAX_RESPONSE_CHARS, 4_000))),
+  aiRetryAttempts: Math.min(2, Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 1)))),
   authRateLimitWindowMs: numberFromEnv(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 60_000),
   authRateLimitMax: numberFromEnv(process.env.AUTH_RATE_LIMIT_MAX, 10),
   aiRateLimitWindowMs: numberFromEnv(process.env.AI_RATE_LIMIT_WINDOW_MS, 60_000),

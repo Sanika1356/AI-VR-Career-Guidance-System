@@ -59,6 +59,22 @@ class FailingProvider implements AdvisorProvider {
   }
 }
 
+class RetryProvider implements AdvisorProvider {
+  attempts = 0;
+
+  async generate(): Promise<string> {
+    this.attempts += 1;
+    if (this.attempts === 1) throw new Error('transient provider failure');
+    return 'The provider recovered after one retry.';
+  }
+}
+
+class LongProvider implements AdvisorProvider {
+  async generate(): Promise<string> {
+    return 'x'.repeat(5000);
+  }
+}
+
 test('advisor enriches the local provider prompt with profile, assessment, career, skill gap, and roadmap context', async () => {
   const database = new FakePool();
   const provider = new RecordingProvider();
@@ -90,6 +106,27 @@ test('advisor returns deterministic fallback text when local Ollama fails', asyn
 
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /Machine Learning/);
+});
+
+test('advisor retries one transient provider failure and caps long responses', async () => {
+  const retryProvider = new RetryProvider();
+  const retried = await chatAdvisor(
+    'user_asha',
+    { message: 'What should I learn next?' },
+    new FakePool(),
+    retryProvider,
+  );
+  assert.equal(retryProvider.attempts, 2);
+  assert.equal(retried.answer, 'The provider recovered after one retry.');
+
+  const limited = await chatAdvisor(
+    'user_asha',
+    { message: 'Give me a concise plan.' },
+    new FakePool(),
+    new LongProvider(),
+  );
+  assert.equal(limited.answer.length, 4000);
+  assert.equal(limited.answer.endsWith('…'), true);
 });
 
 test('advisor rejects a conversation owned by another user', async () => {
