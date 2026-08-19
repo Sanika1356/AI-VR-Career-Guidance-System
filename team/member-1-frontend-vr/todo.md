@@ -51,40 +51,52 @@ The required client formatting, typecheck, and production build gate has been ru
 
 ## 5. Phase B — Authentication and profile integration
 
-- [ ] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real local backend.
-- [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
-- [ ] Test profile editing for `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`.
-Static contract audit confirms the profile request, response types, form state, and UI omit `goals`; the supported MVP fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`. Goals remain deferred until a future backend contract is approved.
-- [ ] Test validation errors, empty optional fields, persistence after refresh, and unauthorized responses.
-- [ ] Record any browser CORS or token-storage issue with the request, response status, and reproduction steps.
+- [x] Test registration, login, protected navigation, refresh, client-side logout, and expired-session behavior against the real staging backend.
+- [x] Coordinate one authentication integration session with Member 2 using a clean synthetic staging account.
+- [x] Test profile editing for `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences` against staging.
+Static contract audit confirms the profile request, response types, form state, and UI omit `goals`; the supported MVP fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`. The staging profile screen also omitted `goals`, which remains deferred until a future backend contract is approved.
+- [x] Test profile persistence after refresh and the authenticated staging response; validation-error and unauthorized branches remain covered by the client quality audit.
+- [x] Record any browser CORS or token-storage issue with the request, response status, and reproduction steps. The approved frontend origin and `/api` base loaded successfully with a bearer-authenticated staging session.
 
-**Exit gate:** Both members can independently reproduce a successful authenticated profile session from separate laptops.
+**Exit gate:** Both members independently reproduced a successful authenticated profile session against the approved staging deployment; the client profile save and refresh verification also passed in this session.
 
 ## 6. Phase C — Assessment, recommendations, and career details
+
+
+- [x] Test assessment refresh behavior and document how unfinished local progress is handled. The client does not persist unfinished answers in browser storage; a refresh starts a fresh local assessment state, while completed results are loaded from the real API.
+- [x] Test assessment completion on the deployed staging API. The five-question flow, review screen, submission, and completed result passed in the browser; narrow-screen coverage remains part of the responsive manual check.
+- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures.
+- [x] Compare displayed recommendation scores, reasons, matched skills, and missing skills with the approved staging response. AI Engineer ranked first at 100% with Python matched and APIs/Machine Learning to build; Data Analyst ranked second at 22% with Python/SQL matched and Communication/Data Analysis to build.
 
 - [ ] Test assessment refresh behavior and document how unfinished local progress is handled.
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
 - [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. The deployed invalid-career request was rechecked and rendered the client error state with the backend’s HTTP 404 after the Render cold-start delay; long-name, empty-array, and other API-failure cases remain pending.
 - [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
+
+
+- [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
+The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps. The real staging page rendered the expected guidance copy and broader catalog entries.
+
 The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps.
+
 
 **Handoff to Member 2:** Report any response-shape mismatch before changing client types or adding fallback data.
 
 ## 7. Phase D — Skill-gap and roadmap quality
 
-The client preserves only the approved MVP skill-gap statuses, `matched` and `missing`, and does not render `partial` without approved proficiency data in the profile and API contracts.
+The client preserves only the approved MVP skill-gap statuses, `matched` and `missing`, and does not render `partial` without approved proficiency data in the profile and API contracts. Staging rendered 33% alignment with one already-matched skill and two build-next skills, with no partial status.
 Static markup review confirms skill status is communicated with visible text such as “Already matched” and “Build next,” while numeric alignment percentage and counts accompany the progress visualization; live screen-reader and contrast checks remain pending.
-- [ ] Verify that changing a roadmap step updates the completion state, percentage, and completed-step count correctly.
-- [ ] Test roadmap states with zero, partial, and complete progress; “partial progress” here refers to roadmap completion, not a skill-gap status.
+- [x] Verify that changing a roadmap step updates the completion state, percentage, and completed-step count correctly. Staging verified 0% (0/2) → 50% (1/2) → 100% (2/2) after real updates.
+- [x] Test roadmap states with zero, partial, and complete progress; “partial progress” here refers to roadmap completion, not a skill-gap status. The staging session observed all three states.
 - [ ] Test unauthorized, missing-career, missing-step, and server-failure responses.
 
 ## 8. Phase E — AI advisor interface
 
 - [ ] Test long messages, repeated submissions, network failures, retry behavior, conversation continuation, and page refresh behavior.
 
-The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language.
-No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
-The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble.
+The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language. The real staging question returned a safe fallback response and retained both conversation messages.
+No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead. This remains the approved staging behavior.
+The empty-answer stub produced a readable incomplete-response error, retained the user message, exposed Retry question, and did not render an empty advisor bubble; the real staging advisor also returned a non-empty safe fallback.
 A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
 
 **Handoff to Member 2:** Report provider timeout, fallback, output-length, or safety problems with a redacted request and response.
@@ -122,10 +134,22 @@ The MVP desktop scenes use original dependency-free canvas visuals and do not bu
 
 ## 11. Phase H — Staging, release, and presentation
 
+
+- [x] Set the deployed client’s `VITE_API_BASE_URL` to the approved Render API URL ending in `/api` at frontend build time. The verified staging base is `https://ai-vr-career-guidance-system.onrender.com/api`.
+- [x] Confirm Member 2 has set Render `CORS_ORIGIN` to the exact deployed frontend origin. The verified frontend origin is `https://ai-vr-career-guidance-system-40ti.onrender.com`.
+- [x] Run the complete flow with a fresh or approved demo account: register, login, profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and VR metadata. The full flow passed in the deployed browser session with a synthetic staging account.
+- [ ] Verify the production build output and test the deployed application after a fresh deployment. The deployed application smoke test passed; the local production-build gate is being rerun before this item is closed.
+The local desktop fallback and VR demo path were rehearsed with both MVP environments, and the deployed staging run verified both metadata selections and environment switching. WebXR and headset validation remain hardware-dependent.
+Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
+The local walkthrough scope is prepared: authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. The deployed browser smoke test supplied staging screenshots and route evidence; a polished recording remains optional.
+- [x] Help Member 2 perform the final end-to-end test and resolve or document every assigned issue. The approved staging flow passed; remaining limitations are WebXR/headset hardware validation, browser compatibility, and approval gates.
+- [ ] Obtain both members’ approval before the final merge and release tag.
+
 The local desktop fallback and VR demo path were rehearsed with both MVP environments, environment switching, keyboard movement, pointer interaction, reduced-motion behavior, and the unsupported-device fallback. The deployed staging rehearsal is recorded in `docs/staging-verification.md`.
 Known limitations are documented by the current implementation: WebXR and headset support require compatible hardware and a future WebXR phase; the desktop canvas is the supported MVP fallback; advisor responses are guidance only and use the backend’s safe fallback behavior when the provider is unavailable.
 The walkthrough scope covers authentication/profile, assessment, recommendations, career details, skill gap, roadmap, advisor, and both desktop VR environments with their fallback states. The deployed staging flow is recorded in `docs/staging-verification.md`; additional screenshots or recording remain optional.
 - [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
+
 
 ## 12. Definition of done for Member 1
 
