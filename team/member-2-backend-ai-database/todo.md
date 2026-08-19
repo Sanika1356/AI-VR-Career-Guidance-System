@@ -72,8 +72,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 
 ## 8. Phase F — VR metadata and client scene support
 
+> **Backend verification completed:** VR service and migration tests cover the empty catalog, unavailable/disabled metadata, safe public fields, stable ordering, the two approved MVP environments, and future extensibility without inventing careers or exposing internal scene/provider fields.
+
 - [ ] Add or change VR metadata only after Member 1 explains the scene requirement and both members approve the field.
-- [ ] Test empty, unavailable, disabled, and future-extensible VR catalogs.
 
 **Handoff to Member 1:** Provide the safe metadata response and explain that the client owns scene rendering, device fallback, and WebXR behavior.
 
