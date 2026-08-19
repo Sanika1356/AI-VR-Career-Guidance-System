@@ -28,9 +28,6 @@ The staging record is available at `docs/staging-verification.md`. It documents 
 
 These are the only remaining tasks. They require coordination with Member 1 and explicit user approval before any production promotion or live configuration change.
 
-- [ ] Member 1 reviews the staging record and approves the deployed frontend/API end-to-end journey.
-- [ ] Both members confirm that the final client and server branches are ready to merge, with no unresolved API contract mismatch.
-- [ ] Rehearse the final demonstration with Member 1, including desktop fallback when WebXR is unavailable.
 - [ ] Obtain the user’s explicit approval before promoting or redeploying production services.
 - [ ] After both members approve the final demonstration and the user approves production promotion, tag the final release and record the release commit.
 
