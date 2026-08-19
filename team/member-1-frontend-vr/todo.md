@@ -224,7 +224,7 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 
 ## 10. Phase G — Frontend quality and integration
 
-- [ ] Verify every active page has loading, success, empty, and error behavior appropriate to its API.
+Static audit confirms the active catalog, career-detail, assessment, recommendations, skill-gap, roadmap, and VR pages expose appropriate loading, success, empty, and error branches; authenticated dashboard and profile summaries expose loading, success, and error states because empty profile data is a valid editable state rather than an empty collection.
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
 The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
 - [ ] Run browser compatibility checks on the supported browsers.
