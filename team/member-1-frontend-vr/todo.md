@@ -1,102 +1,3 @@
-# Member 1 — Frontend and VR Remaining Work
-
-**Owner:** Member 1
-
-**Primary areas:** `client/`, frontend-related parts of `docs/`, and the 3D/VR experience
-**Works with:** Member 2 through the API contract in `docs/api.md`
-
-This checklist covers the complete project from repository setup to final delivery. Check items only after the implementation has been tested and documented.
-
-## Phase 0 — Understand the project and agree with Member 2
-
-- [ ] Read the root `README.md`, `docs/architecture.md`, and `docs/api.md`.
-- [ ] Confirm the frontend stack with Member 2: React, TypeScript, Vite, Tailwind, routing, charts, Three.js, and React Three Fiber.
-- [ ] Confirm the authentication approach and how the client stores or receives the session.
-- [ ] Confirm the API base URL, local development ports, request headers, error format, and date format.
-- [ ] Confirm the visual direction, color palette, typography, responsive breakpoints, and accessibility expectations.
-- [ ] Confirm the minimum viable user journey: register, login, assessment, recommendations, career details, skill gap, roadmap, AI advisor, and VR.
-- [ ] Add any agreed frontend assumptions to `docs/architecture.md` or `docs/api.md`.
-
-## Phase 1 — Local setup and frontend foundation
-
-- [ ] Clone the repository and configure Git identity.
-- [ ] Create the frontend environment file from `.env.example` without committing secrets.
-
-## Phase 2 — Design system and landing experience
-
-- [ ] Test the landing page in the supported browsers.
-- [ ] Confirm copy and visual choices with Member 2 before merging.
-
-## Phase 3 — Authentication and profile UI
-
-The profile MVP is complete for the API-supported fields: name, interests, current skills, experience level, and learning preferences. Goals are intentionally deferred as a future enhancement until they are added to the backend contract.
-Local smoke testing confirmed protected navigation renders an API error state and `pathfinder:session-expired` redirects to login with a visible session-ended notice; real registration, login, logout, refresh, and backend expiry testing remain pending.
-- [ ] Coordinate an authentication integration session with Member 2.
-
-## Phase 4 — Assessment experience
-
-Refresh behavior and unfinished-progress handling remain pending for a real authenticated backend session; the client does not persist unfinished assessment state in browser storage.
-- [ ] Test assessment completion on narrow and wide screens.
-- [ ] Integrate with Member 2's assessment endpoints using a real development database.
-
-## Phase 5 — Recommendation and career detail UI
-
-- [ ] Build the recommendations page using the agreed response shape.
-- [ ] Display ranked career cards with score, reason, matched skills, and missing skills.
-- [ ] Add sorting or filtering only if approved in the scope.
-- [ ] Add loading skeletons and an empty-results state.
-- [ ] Add a clear explanation that recommendations are guidance rather than a guaranteed outcome.
-- [ ] Display career description, responsibilities, required skills, learning resources, and VR availability.
-- [ ] Add navigation from a recommendation card to career details.
-- [ ] Add a saved or selected-career state if required by the product flow.
-- [ ] Connect the UI to `GET /api/recommendations`, `GET /api/careers`, and `GET /api/careers/:careerId`.
-- [ ] Test long career names, missing optional fields, empty arrays, and API failures.
-- [ ] Compare the displayed score and reason with Member 2's test responses.
-
-## Phase 6 — Skill-gap and roadmap UI
-
-- [ ] Build the skill-gap overview page.
-- [ ] Display matched, partially developed, and missing skills with clear visual states.
-- [ ] Avoid using color alone to communicate skill status.
-- [ ] Add accessible labels and a text alternative for charts or visual summaries.
-- [ ] Build the learning roadmap page.
-- [ ] Display ordered roadmap steps, target skills, descriptions, and completion status.
-- [ ] Add progress percentage and completed-step count.
-- [ ] Add the agreed interaction for marking a roadmap step complete.
-- [ ] Add loading, empty, and error states.
-- [ ] Connect the UI to `GET /api/careers/:careerId/skill-gap`, `GET /api/careers/:careerId/roadmap`, and `PATCH /api/roadmap/:stepId`.
-- [ ] Verify that changing a roadmap step updates the progress display correctly.
-- [ ] Test the pages with zero, partial, and complete progress.
-
-## Phase 7 — AI advisor interface
-
-- [ ] Design the AI advisor page and conversation layout.
-- [ ] Build the message list with user and advisor message states.
-- [ ] Build the message input with length validation and submit behavior.
-- [ ] Add disabled, loading, retry, and provider-error states.
-- [ ] Add conversation start and conversation continuation behavior.
-- [ ] Display timestamps only where useful and keep the interface readable.
-- [ ] Add a clear notice about the advisory nature of AI responses.
-- [ ] Add safe handling for empty responses and unexpected response shapes.
-- [ ] Connect the UI to `POST /api/advisor/chat`.
-Local advisor smoke testing covered network failure/retry, conversation continuation, malformed empty answers, and rapid repeated form submission behavior; long-message limits, page-refresh behavior, and real-backend duplicate-request testing remain pending.
-- [ ] Confirm with Member 2 that the UI does not expose provider keys or internal prompts.
-
-## Phase 8 — 3D career hub and VR environments
-
-- [ ] Review the selected 3D/VR scope and define the minimum desktop experience.
-- [ ] Add Three.js and React Three Fiber only after confirming the frontend build remains stable.
-- [ ] Create the career hub scene with a clear entry point and readable labels.
-- [ ] Add a desktop keyboard and mouse interaction model.
-- [ ] Add camera controls and prevent disorienting default behavior.
-- [ ] Create the AI Engineer environment with a simple, performant scene.
-- [ ] Create the Data Analyst environment with a simple, performant scene.
-- [ ] Add career metadata and navigation from the hub to each environment.
-- [ ] Keep the career catalog broader than the MVP VR catalog: VR environments are optional and selected through stable, extensible environment metadata. The MVP VR catalog includes only AI Engineer (`career_ai_engineer`, `ai-engineer-lab`) and Data Analyst (`career_data_analyst`, `data-insights-studio`).
-- [ ] Add a visible exit or return-to-career-details control.
-
-
-
 **Owns:** `client/`, frontend-related documentation, browser behavior, responsive UI, accessibility, and the 3D/VR experience.
 
 **Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO.
@@ -162,10 +63,17 @@ Static contract audit confirms the profile request, response types, form state, 
 
 ## 6. Phase C — Assessment, recommendations, and career details
 
+
 - [x] Test assessment refresh behavior and document how unfinished local progress is handled. The client does not persist unfinished answers in browser storage; a refresh starts a fresh local assessment state, while completed results are loaded from the real API.
 - [x] Test assessment completion on the deployed staging API. The five-question flow, review screen, submission, and completed result passed in the browser; narrow-screen coverage remains part of the responsive manual check.
 - [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures.
 - [x] Compare displayed recommendation scores, reasons, matched skills, and missing skills with the approved staging response. AI Engineer ranked first at 100% with Python matched and APIs/Machine Learning to build; Data Analyst ranked second at 22% with Python/SQL matched and Communication/Data Analysis to build.
+
+- [ ] Test assessment refresh behavior and document how unfinished local progress is handled.
+- [ ] Test assessment completion on narrow and wide screens against a real development database.
+- [ ] Test long career names, missing optional fields, empty arrays, unavailable career data, and API failures. Staging returned HTTP 404 `career_not_found` for `/careers/not-a-real-career`; the deployed detail route remained on its loading state instead of rendering the existing missing-career error state. Keep open for deployed-bundle/request-lifecycle investigation.
+- [ ] Compare displayed recommendation scores, reasons, matched skills, and missing skills with Member 2’s documented test responses.
+
 - [ ] Add sorting, filtering, or saved-career state only if both members approve it in the shared scope.
 The recommendations page frames ranked paths as thoughtful starting points rather than guarantees, and the guidance note encourages comparing paths and using skill gaps to choose next steps. The real staging page rendered the expected guidance copy and broader catalog entries.
 
