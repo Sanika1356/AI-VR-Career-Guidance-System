@@ -57,8 +57,7 @@ const routes: Record<
   },
   profile: {
     title: 'Your profile',
-    description:
-      'Review your interests, skills, learning preferences, experience level, and goals.',
+    description: 'Review your interests, skills, learning preferences, and experience level.',
   },
   dashboard: {
     title: 'Your Pathfinder dashboard',
