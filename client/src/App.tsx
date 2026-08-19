@@ -286,10 +286,11 @@ export default function App() {
     route.key !== 'assessment' &&
     route.key !== 'recommendations' &&
     route.key !== 'skill-gap' &&
-    route.key !== 'roadmap'
+    route.key !== 'roadmap' &&
+    route.key !== 'advisor' &&
+    route.key !== 'vr'
       ? routes[route.key]
       : undefined;
-
 
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());
