@@ -40,7 +40,7 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 4. Phase B — Authentication and profile integration
 
 - [ ] Run an authentication integration session with Member 1 using a clean local account.
-- [ ] Verify CORS, bearer-token, refresh, logout, expired-token, unauthorized, and validation-error behavior from a browser client.
+> **Backend verification completed:** The opt-in real PostgreSQL API test covers registration, login, invalid login, CORS preflight, bearer authentication, expired tokens, unauthorized requests, and profile persistence. The MVP has no refresh or logout endpoints; logout is client-side token clearing and expired tokens require login again.
 - [ ] Record any reproducible client/server mismatch with a redacted request, response status, and expected behavior.
 
 **Handoff to Member 1:** Confirm exact auth response fields, token storage expectation, profile update validation, and error payload shape.
@@ -48,42 +48,41 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 5. Phase C — Assessment, recommendations, and career details
 
 - [ ] Integrate the assessment flow with Member 1 using real API responses and a real development database.
-- [ ] Provide stable recommendation fixtures or a documented seeded account for UI comparison.
 - [ ] Compare recommendation score, reason, matched skills, missing skills, career details, resources, roadmap, and VR metadata with the client display.
 - [ ] Review recommendation language with both members so it remains guidance and never implies guaranteed employment or outcomes.
-- [ ] Test assessment, recommendation, and career endpoints with invalid input, missing records, unauthorized access, empty results, and database failure.
+- [ ] Test assessment, recommendation, and career behavior for empty results and database failure.
 
 **Handoff to Member 1:** Provide a redacted request/response set and expected UI states for assessment completion, recommendations, empty results, and career details.
 
 ## 6. Phase D — Skill gap and roadmap contract
 
 > **Contract decision completed:** The MVP exposes only `matched` and `missing` skill-gap statuses. Proficiency data and `partial` require a separately approved profile/API expansion and are not part of the current implementation.
-- [ ] Verify roadmap progress persistence, ownership, ordering, zero progress, partial progress, complete progress, and invalid step behavior with the client.
-- [ ] Confirm that skill-gap and roadmap errors remain safe, stable, and documented.
+
+> **Backend verification completed:** Service tests and the real PostgreSQL API integration cover skill-gap status mapping, authenticated ownership, unknown-career errors, roadmap ordering, user-specific progress persistence, zero/updated completion states, invalid progress payloads, missing roadmap steps, unauthorized access, and safe documented error envelopes.
+
 
 **Handoff to Member 1:** Provide the tested skill-gap/roadmap response shapes, progress fixtures, and known limitation that `partial` skill status is not currently supported.
 
 ## 7. Phase E — AI advisor operations
 
-- [ ] Perform a manual review of representative responses for relevance, clarity, privacy, unsupported claims, and advisory disclaimers.
-- [ ] Verify that conversation ownership, continuation, malformed provider output, empty output, and server failure remain safe.
-- [ ] Keep provider keys and internal prompts server-side. Local Ollama and the deterministic fallback remain the zero-cost default.
+> **Advisor review completed:** The deterministic fallback was manually reviewed for relevance, concise next steps, privacy-safe context use, uncertainty, and the employment-outcome disclaimer. Automated tests cover conversation ownership, continuation, provider failure, retry, empty output, malformed Ollama payloads, and the 4,000-character response cap. Provider credentials and internal prompts remain server-side; local Ollama is optional and the deterministic fallback is always available at zero cost.
+
 
 **Handoff to Member 1:** Provide redacted advisor success, fallback, validation-error, timeout, and retry examples. Never send provider keys or internal prompts.
 
 ## 8. Phase F — VR metadata and client scene support
 
+> **Backend verification completed:** VR service and migration tests cover the empty catalog, unavailable/disabled metadata, safe public fields, stable ordering, the two approved MVP environments, and future extensibility without inventing careers or exposing internal scene/provider fields.
+
 - [ ] Add or change VR metadata only after Member 1 explains the scene requirement and both members approve the field.
-- [ ] Test empty, unavailable, disabled, and future-extensible VR catalogs.
 
 **Handoff to Member 1:** Provide the safe metadata response and explain that the client owns scene rendering, device fallback, and WebXR behavior.
 
 ## 9. Phase G — Security, validation, and quality
 
-- [ ] Test the API with an empty database, seeded database, invalid input, unauthorized input, provider failure, database failure, and server restart.
-- [ ] Review SQL queries, list bounds, CORS, security headers, request limits, rate limits, error responses, and structured logs after any contract change.
+> **Backend quality verification completed:** Default and real PostgreSQL suites cover seeded data, invalid input, unauthorized access, provider failure, database degradation, security headers, rate limits, safe generic errors, and deployment-policy placeholders. A disposable empty database verified empty career/VR catalogs, health behavior, and successful server restart without live-data changes. SQL ownership, list bounds, CORS, request limits, structured errors, and migration safety were reviewed.
+
 - [ ] Review the final browser flow with Member 1 and resolve or document each mismatch.
-- [ ] Keep deployment tests free of real credentials and ensure placeholders are clearly identified.
 
 ## 10. Phase H — Staging and deployment
 

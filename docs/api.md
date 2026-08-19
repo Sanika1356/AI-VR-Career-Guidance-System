@@ -79,6 +79,10 @@ Response:
 }
 ```
 
+### Authentication token lifecycle
+
+The MVP returns a stateless bearer token from registration and login. The client sends it in the `Authorization: Bearer <token>` header for protected requests. The MVP does not expose refresh or logout endpoints: logout is implemented client-side by clearing the stored token, and an expired or invalid token receives HTTP `401` and requires a new login.
+
 ### `GET /api/profile`
 
 Returns the authenticated user's profile, interests, current skills, and learning preferences.
