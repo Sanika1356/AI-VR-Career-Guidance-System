@@ -2770,62 +2770,65 @@ em {
 .vr-stage-card {
   min-height: 520px;
 }
-.vr-stage {
-  align-items: center;
-  background: radial-gradient(circle at 50% 40%, #8aa94d, #3e493a 50%, #202222 100%);
-  display: flex;
-  justify-content: center;
-  min-height: 300px;
+.vr-world {
+  background: #202626;
   overflow: hidden;
   position: relative;
 }
-.vr-stage::before,
-.vr-stage::after {
-  border: 1px solid rgba(200, 239, 101, 0.36);
-  border-radius: 50%;
-  content: '';
+.vr-world__canvas {
+  display: block;
   height: 420px;
+  outline: none;
+  touch-action: none;
+  width: 100%;
+}
+.vr-world__canvas:focus-visible {
+  box-shadow: inset 0 0 0 3px #c8ef65;
+}
+.vr-world__hint {
+  background: rgba(18, 24, 24, 0.84);
+  bottom: 0;
+  color: #f5f4ef;
+  font-size: 12px;
+  left: 0;
+  line-height: 1.5;
+  margin: 0;
+  padding: 10px 16px;
   position: absolute;
-  transform: rotate(28deg);
-  width: 160px;
+  right: 0;
 }
-.vr-stage::after {
-  height: 160px;
-  transform: rotate(-28deg);
-  width: 420px;
-}
-.vr-stage__orb {
-  background: radial-gradient(circle at 32% 25%, #e3fb9b, #8eaf4e 62%, #4b662d);
-  border-radius: 50%;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
-  height: 120px;
-  position: relative;
-  width: 120px;
-  z-index: 1;
-}
-.vr-stage__grid {
-  background-image:
-    linear-gradient(rgba(200, 239, 101, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 239, 101, 0.12) 1px, transparent 1px);
-  background-size: 30px 30px;
-  inset: 0;
-  opacity: 0.45;
-  position: absolute;
-  transform: perspective(280px) rotateX(62deg) scale(1.5);
-  transform-origin: bottom;
-}
-.vr-stage__label {
-  bottom: 18px;
-  color: #d9f98f;
+.vr-world__hint strong,
+.vr-world__fallback strong {
+  color: #c8ef65;
   font-family: 'DM Mono', monospace;
   font-size: 10px;
-  left: 20px;
-  letter-spacing: 0.12em;
-  position: absolute;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+.vr-world__fallback {
+  align-items: center;
+  background: linear-gradient(145deg, #202626, #3e493a);
+  color: #f5f4ef;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+  min-height: 420px;
+  padding: 32px;
+  text-align: center;
+}
+.vr-world__fallback span {
+  color: rgba(245, 244, 239, 0.8);
+  line-height: 1.6;
+  max-width: 440px;
 }
 .vr-stage-card__content {
   padding-top: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .vr-world__canvas {
+    animation: none;
+  }
 }
 .vr-stage-card__content h2 {
   font-size: 32px;
@@ -2861,5 +2864,11 @@ em {
   }
   .vr-stage-card {
     margin-top: 20px;
+  }
+  .vr-world__canvas {
+    height: 340px;
+  }
+  .vr-world__hint {
+    font-size: 11px;
   }
 }
