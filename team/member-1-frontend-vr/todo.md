@@ -141,10 +141,10 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 
 ## 4. Phase A — Local setup and contract synchronization
 
-- [ ] Create `client/.env.local` from the current frontend environment template without committing secrets.
+Created the ignored local `client/.env.local` from the environment template with only the browser-safe local API URL; no secrets were added or committed.
 - [ ] Pull the latest `origin/main` and confirm that `docs/api.md` matches the backend commit being tested.
-- [ ] Confirm that all client requests use `VITE_API_BASE_URL` and that no server-only value reaches the browser bundle.
-- [ ] Run the client typecheck and production build before starting each feature phase.
+The client API and authenticated request helpers use `VITE_API_BASE_URL` with a local fallback, and the source audit found no database, Ollama, or provider-key environment values in the browser client.
+The required client formatting, typecheck, and production build gate has been run repeatedly before advisor, VR, and quality branches; the current client remains build-clean.
 - [ ] Record any frontend assumption in `docs/api.md` or `docs/architecture.md` only after Member 2 approves the contract change.
 
 **Handoff to Member 2:** Send the exact API mismatch or browser error with a redacted request and response. Do not add a mock final path to hide a backend contract problem.
@@ -224,7 +224,7 @@ The client keeps the metadata-only `GET /api/vr/environments` contract and does 
 
 ## 10. Phase G — Frontend quality and integration
 
-- [ ] Verify every active page has loading, success, empty, and error behavior appropriate to its API.
+Static audit confirms the active catalog, career-detail, assessment, recommendations, skill-gap, roadmap, and VR pages expose appropriate loading, success, empty, and error branches; authenticated dashboard and profile summaries expose loading, success, and error states because empty profile data is a valid editable state rather than an empty collection.
 - [ ] Verify responsive behavior across supported desktop, tablet, and mobile viewport sizes.
 The client now provides visible focus rings for shared buttons, custom navigation links, outline actions, and VR environment cards; the complete manual accessibility matrix for focus order, contrast, headings, and non-color cues remains pending.
 - [ ] Run browser compatibility checks on the supported browsers.
