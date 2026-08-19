@@ -48,10 +48,9 @@ This file contains only remaining work. The real backend foundation, authenticat
 ## 5. Phase C — Assessment, recommendations, and career details
 
 - [ ] Integrate the assessment flow with Member 1 using real API responses and a real development database.
-- [ ] Provide stable recommendation fixtures or a documented seeded account for UI comparison.
 - [ ] Compare recommendation score, reason, matched skills, missing skills, career details, resources, roadmap, and VR metadata with the client display.
 - [ ] Review recommendation language with both members so it remains guidance and never implies guaranteed employment or outcomes.
-- [ ] Test assessment, recommendation, and career endpoints with invalid input, missing records, unauthorized access, empty results, and database failure.
+- [ ] Test assessment, recommendation, and career behavior for empty results and database failure.
 
 **Handoff to Member 1:** Provide a redacted request/response set and expected UI states for assessment completion, recommendations, empty results, and career details.
 
