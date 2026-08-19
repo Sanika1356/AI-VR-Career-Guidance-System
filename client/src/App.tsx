@@ -57,8 +57,7 @@ const routes: Record<
   },
   profile: {
     title: 'Your profile',
-    description:
-      'Review your interests, skills, learning preferences, experience level, and goals.',
+    description: 'Review your interests, skills, learning preferences, and experience level.',
   },
   dashboard: {
     title: 'Your Pathfinder dashboard',
@@ -286,10 +285,11 @@ export default function App() {
     route.key !== 'assessment' &&
     route.key !== 'recommendations' &&
     route.key !== 'skill-gap' &&
-    route.key !== 'roadmap'
+    route.key !== 'roadmap' &&
+    route.key !== 'advisor' &&
+    route.key !== 'vr'
       ? routes[route.key]
       : undefined;
-
 
   useEffect(() => {
     const syncSession = () => setSession(readAuthSession());

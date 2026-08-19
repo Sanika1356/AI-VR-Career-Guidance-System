@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
+import { CareerWorldCanvas } from '../components/CareerWorldCanvas';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
@@ -44,6 +45,11 @@ export function VRPage({ onNavigate }: VRPageProps) {
   }, []);
 
   const selected = environments.find((environment) => environment.key === selectedKey) ?? null;
+
+  function selectEnvironment(key: string) {
+    setSelectedKey(key);
+    window.history.replaceState({}, '', `/vr?environment=${encodeURIComponent(key)}`);
+  }
 
   return (
     <div className="page-frame vr-page">
@@ -90,10 +96,7 @@ export function VRPage({ onNavigate }: VRPageProps) {
                 key={environment.key}
                 className={`vr-environment-card${selectedKey === environment.key ? ' vr-environment-card--active' : ''}`}
                 type="button"
-                onClick={() => {
-                  setSelectedKey(environment.key);
-                  window.history.replaceState({}, '', `/vr?environment=${encodeURIComponent(environment.key)}`);
-                }}
+                onClick={() => selectEnvironment(environment.key)}
                 aria-pressed={selectedKey === environment.key}
               >
                 <span className="vr-environment-card__key">{environment.key}</span>
@@ -108,11 +111,7 @@ export function VRPage({ onNavigate }: VRPageProps) {
 
           {selected && (
             <Card className="vr-stage-card">
-              <div className="vr-stage" role="img" aria-label={`${selected.title} interactive scene preview`}>
-                <div className="vr-stage__orb" />
-                <div className="vr-stage__grid" />
-                <span className="vr-stage__label">{selected.key}</span>
-              </div>
+              <CareerWorldCanvas environment={selected} />
               <div className="vr-stage-card__content">
                 <p className="eyebrow">Selected environment</p>
                 <h2>{selected.title}</h2>
@@ -127,7 +126,9 @@ export function VRPage({ onNavigate }: VRPageProps) {
                   <Button
                     variant="outline"
                     type="button"
-                    onClick={() => onNavigate(`/advisor?careerId=${encodeURIComponent(selected.careerId)}`)}
+                    onClick={() =>
+                      onNavigate(`/advisor?careerId=${encodeURIComponent(selected.careerId)}`)
+                    }
                   >
                     Ask the advisor
                   </Button>

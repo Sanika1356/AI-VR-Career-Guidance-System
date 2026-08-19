@@ -88,14 +88,30 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 ## 8. Phase E — AI advisor interface
 
 - [ ] Test long messages, repeated submissions, network failures, retry behavior, conversation continuation, and page refresh behavior.
+
+The advisor browser smoke test confirmed the advisory disclaimer remains visible and avoids guaranteed-outcome language.
+No provider label was added because the current API does not expose a safe provider-status field; the client shows a generic provider/network error instead.
+- [ ] Verify that malformed or empty advisor responses produce a readable error and do not corrupt the conversation UI.
+A client source audit found no provider keys, system prompts, private profile payloads, or debug logging exposed in the browser bundle.
+
 - [ ] Keep the advisory disclaimer visible and avoid language that promises employment or guaranteed outcomes.
 - [ ] Verify that malformed or empty advisor responses produce a readable error and do not corrupt the conversation UI.
 - [ ] Confirm that no provider key, system prompt, or private profile data appears in browser logs or rendered debugging output.
 - [ ] Add a provider/fallback label only if Member 2 exposes a safe provider-status field in the API.
 
+
 **Handoff to Member 2:** Report provider timeout, fallback, output-length, or safety problems with a redacted request and response.
 
 ## 9. Phase F — 3D career hub and VR environments
+
+
+The production client build remained stable before and after the desktop scene work; the MVP uses a dependency-free canvas implementation rather than adding Three.js or React Three Fiber.
+The desktop career hub is implemented with keyboard navigation, pointer focus, horizontal drag look controls, readable instructions, and a reduced-motion path.
+The AI Engineer environment renders a readable green-lime laboratory scene.
+The Data Analyst environment renders a distinct cyan analytics studio scene.
+The scene uses bounded movement and incremental horizontal look controls rather than a disorienting free-flight camera.
+
+The VR page has API loading, empty, and error states, and the canvas provides an unsupported-device fallback; the MVP has no external 3D asset payloads.
 
 - [ ] Confirm the frontend build remains stable before adding Three.js or React Three Fiber.
 - [ ] Create a performant desktop career hub with keyboard and mouse interaction.
@@ -103,11 +119,12 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 - [ ] Create the Data Analyst environment with a simple, readable scene.
 - [ ] Add camera controls that avoid disorienting default behavior.
 - [ ] Add loading and fallback UI if a 3D asset fails.
+
 - [ ] Optimize models, textures, lighting, and draw calls for browser performance.
 - [ ] Test keyboard, mouse, touch where applicable, reduced-motion preferences, and unsupported-device fallback.
 - [ ] Add WebXR support only after desktop 3D mode works reliably.
 - [ ] Test entering and exiting a headset session where hardware is available.
-- [ ] Keep the metadata-only `GET /api/vr/environments` contract; do not move database or provider calls into the browser.
+The client keeps the metadata-only `GET /api/vr/environments` contract and does not move database or provider calls into the browser.
 
 **Handoff to Member 2:** If the scene needs new metadata, propose the field and explain why existing safe metadata is insufficient before requesting a backend change.
 
