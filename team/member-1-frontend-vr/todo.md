@@ -142,7 +142,7 @@ The frontend lockfile and CSS deployment fixes have been pushed on dedicated fro
 ## 4. Phase A — Local setup and contract synchronization
 
 Created the ignored local `client/.env.local` from the environment template with only the browser-safe local API URL; no secrets were added or committed.
-- [ ] Pull the latest `origin/main` and confirm that `docs/api.md` matches the backend commit being tested.
+Fetched the latest `origin/main` at `f1f6a13` and confirmed that `docs/api.md` documents the merged auth, profile, career, assessment, recommendations, skill-gap, roadmap, advisor, and VR endpoints consumed by the client.
 The client API and authenticated request helpers use `VITE_API_BASE_URL` with a local fallback, and the source audit found no database, Ollama, or provider-key environment values in the browser client.
 The required client formatting, typecheck, and production build gate has been run repeatedly before advisor, VR, and quality branches; the current client remains build-clean.
 - [ ] Record any frontend assumption in `docs/api.md` or `docs/architecture.md` only after Member 2 approves the contract change.
