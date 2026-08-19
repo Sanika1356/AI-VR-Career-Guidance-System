@@ -313,24 +313,36 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<AssessmentResultResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDraftHydrated, setIsDraftHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadQuestions = useCallback(() => {
     let active = true;
     setIsLoading(true);
     setLoadError(null);
+    setIsDraftHydrated(false);
     getAssessmentQuestions()
       .then((response) => {
         if (!active) return;
         setQuestionSet(response);
         const draft = readAssessmentDraft();
-        if (draft?.assessmentId === response.assessmentId) {
-          setAnswers(draft.answers);
+        const questionIds = new Set(response.questions.map((question) => question.id));
+        const restoredAnswers = draft
+          ? Object.fromEntries(
+              Object.entries(draft.answers).filter(([questionId]) => questionIds.has(questionId)),
+            )
+          : {};
+        const canRestoreDraft = Boolean(
+          draft && (draft.stage === 'intro' || Object.keys(restoredAnswers).length > 0),
+        );
+        if (draft && canRestoreDraft) {
+          setAnswers(restoredAnswers);
           setStage(draft.stage);
           setCurrentQuestionIndex(
             Math.min(Math.max(draft.currentQuestionIndex, 0), response.questions.length - 1),
           );
         }
+        setIsDraftHydrated(true);
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -348,14 +360,14 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
   useEffect(() => loadQuestions(), [loadQuestions]);
 
   useEffect(() => {
-    if (!questionSet || stage === 'completed') return;
+    if (!questionSet || !isDraftHydrated || stage === 'completed') return;
     saveAssessmentDraft({
       assessmentId: questionSet.assessmentId,
       answers,
       stage,
       currentQuestionIndex,
     });
-  }, [answers, currentQuestionIndex, questionSet, stage]);
+  }, [answers, currentQuestionIndex, isDraftHydrated, questionSet, stage]);
 
   const questions = questionSet?.questions ?? [];
   const currentQuestion = questions[currentQuestionIndex];
