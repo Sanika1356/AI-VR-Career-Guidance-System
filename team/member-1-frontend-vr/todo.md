@@ -7,8 +7,6 @@ Only tasks that still lack the required evidence are listed below.
 ## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test long career names, missing optional fields, and empty-array fixtures using controlled data that does not change the approved production contract. No safe fixture injection is currently available.
-- [ ] Test controlled server-failure responses for skill-gap and roadmap routes. Unauthorized access and missing-step responses are already covered; controlled failure injection remains required.
-- [ ] Test advisor slow-network behavior and cross-page session expiry. Long-message limits and repeated real-backend submissions are covered by the live browser evidence; the remaining cases need controlled browser/network evidence.
 
 ## Phase 3 — Browser, device, and performance quality
 
