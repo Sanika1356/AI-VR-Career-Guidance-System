@@ -58,13 +58,11 @@ The authenticated assessment route was captured at narrow, tablet, and wide widt
 
 ## Remaining Phase 2 limitations
 
-The following items remain open because the sandbox does not provide a safe, controlled way to generate the required evidence. They are intentionally not marked complete in the frontend TODO.
+The only remaining Phase 2 limitation is the lack of a safe fixture-injection harness for long career names, missing optional fields, and empty-array fixtures without altering the approved production contract or database fixtures. Empty optional profile arrays themselves were verified in the smoke run.
 
-| Pending check | Reason it remains open |
-|---|---|
-| Long career names, missing optional fields, and empty-array fixtures under controlled data | No safe fixture-injection harness is available without altering the approved production contract or database fixtures. Empty optional profile arrays themselves were verified in the smoke run. |
-| Controlled HTTP 500 responses for skill-gap and roadmap routes | No controlled failure-injection endpoint or test harness is available. Unauthorized HTTP 401 behavior and missing-step HTTP 404 behavior were verified, but they do not substitute for a server-failure test. |
-| Advisor long-message, repeated-submission, slow-network, and cross-page session-expiry cases | Basic validation, response rendering, refresh, and invalid-token redirect are covered; controlled browser/network evidence for these remaining cases was not captured. |
+A browser-only fault-injection check returned controlled HTTP 500 responses for the real skill-gap and roadmap requests. The skill-gap page rendered `We could not map this skill gap` with a `Try again` control, and the roadmap page rendered `We could not load this roadmap` with a `Try again` control. These checks did not alter backend code or production behavior.
+
+A browser-only 1.2-second delay was applied to the real advisor request. During the delay, the submit control was disabled and the page displayed `Thinking`; after the delayed real response completed, the advisor answer rendered successfully. A controlled 401 response during the advisor flow cleared `pathfinder.auth.session` and redirected to `/login?reason=session-expired&returnTo=%2Fadvisor`. The advisor 2,000-character boundary and rapid duplicate-submission guard are documented separately in [`frontend-advisor-resilience.md`](frontend-advisor-resilience.md).
 
 ## External Phase 3–4 gates
 
