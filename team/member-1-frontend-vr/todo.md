@@ -31,15 +31,15 @@ The current API already exposes the approved contracts. Do not add mock services
 
 Authenticated assessment, profile, advisor, and AI Engineer roadmap responsive checks are documented in `docs/frontend-phase3-responsive.md`, with committed captures under `docs/assets/`, covering 375px, 768px, and 1440px staging viewports.
 
-- [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented.
-- [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is complete; target-device evidence remains pending.
-- [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available.
+- [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented; the final capability probe found Firefox, Edge, WebKit tooling, and other alternate engines unavailable in the sandbox.
+- [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is complete; target-device evidence remains pending, and the sandbox exposes no supported hardware inventory.
+- [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available. The capability probe found no touch-device tools or `/dev/input` devices in the sandbox.
 
 ## Phase 4 — WebXR and headset validation
 
 WebXR implementation is deferred beyond the approved MVP and must not be added without explicit scope approval from both members.
 
-- [ ] Test entering and exiting a headset session with a compatible WebXR device. The deployed VR route loaded in Chromium, but the current browser reported `navigator.xr` present with `isSessionSupported('immersive-vr') === false`; no compatible headset was attached, so no session entry or exit was claimed.
+- [ ] Test entering and exiting a headset session with a compatible WebXR device. The deployed VR route loaded in Chromium, but the current browser reported `navigator.xr` present with `isSessionSupported('immersive-vr') === false`; no compatible headset was attached, and the sandbox exposed no input-device inventory, so no session entry or exit was claimed.
 **Hardware gate:** Do not mark WebXR or headset validation complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
 
 ## Phase 5 — Release and approval gates
@@ -56,9 +56,9 @@ WebXR implementation is deferred beyond the approved MVP and must not be added w
 | Skill-gap and roadmap server-failure states | Controlled backend failure injection or a temporary test-only failure mode | Pending by explicit scope; unauthorized and missing-step responses are already covered |
 | Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; invalid-token cross-page expiry redirect is verified in staging, but long-message, repeated-submit, and slow-network evidence still requires controlled browser/network testing |
 | Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Complete for staging assessment, profile, advisor, and AI Engineer roadmap at 375px, 768px, and 1440px; evidence is committed in `docs/frontend-phase3-responsive.md` |
-| Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
-| Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
-| WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; staging VR route loaded, but Chromium reported immersive WebXR unsupported and no compatible headset was attached; WebXR remains outside the approved desktop MVP |
+| Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; capability probe confirmed Firefox, Edge, WebKit tooling, and other alternate engines are unavailable in the current sandbox |
+| Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete, but no supported hardware inventory or `/dev/input` devices are available in the sandbox |
+| WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; staging VR route loaded, Chromium reported immersive WebXR unsupported, and no compatible headset or input-device inventory was available; WebXR remains outside the approved desktop MVP |
 | Production promotion and final release tag | User’s explicit approval after both members’ release review | Pending; the release handoff package is documented above, but production promotion, redeployment, and final tagging require explicit user approval |
 
 ## Completion rule
