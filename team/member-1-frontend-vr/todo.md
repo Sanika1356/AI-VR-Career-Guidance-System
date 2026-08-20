@@ -17,34 +17,15 @@
 | Handoff | Before requesting a backend change, send the endpoint, method, request body, response fields, auth requirement, error behavior, and observed reproduction. |
 | Evidence | Close a remaining item only after a real test, browser check, screenshot, or documented manual result. |
 
-## Verified baseline — completed work removed from this TODO
-
-The client implementation is complete for authentication, profile, assessment, career catalog and details, recommendations, skill gap, roadmap, advisor, VR metadata, and the dependency-free desktop VR fallback. The supported profile fields are `name`, `interests`, `currentSkills`, `experience`, and `learningPreferences`; `goals` remains deferred because it is not in the approved backend contract. Skill-gap status is limited to `matched` and `missing`; roadmap completion may be zero, partial, or complete.
-
-The approved staging deployment was exercised with a synthetic account. Registration, login, profile persistence after refresh, assessment submission, recommendations, career details, skill-gap rendering, roadmap mutation, advisor fallback conversation, VR metadata selection, and switching between the AI Engineer and Data Analyst desktop environments passed. The verified staging API base is `https://ai-vr-career-guidance-system.onrender.com/api`, and the active frontend origin is `https://ai-vr-career-guidance-system-40ti.onrender.com` with matching CORS. The unavailable-career test returned HTTP 404 and rendered the existing retry and back-navigation error state after the initial Render cold start.
-
-Assessment drafts persist in `sessionStorage` by assessment ID, restore the stage, answers, and current question after refresh, and clear after successful submission. Storage failures are non-blocking. Public home and career-catalog responsive spot checks, including the tablet navigation-wrap fix, passed at 375px, 768px, and 1440px. The manual accessibility matrix and Chromium quality audit are documented in `docs/frontend-quality-audit.md`; the local desktop VR performance baseline is documented there as well. The client quality gate passes formatting, TypeScript, and production build checks.
-
-Frontend evidence PRs #61 and #67 are merged into `main`. Their missing-career staging and public responsive viewport evidence is part of this verified baseline. Sorting, filtering, saved-career state, profile goals, partial skill-gap status, and WebXR-dependent behavior remain outside the approved desktop MVP unless separately approved. The desktop canvas is the supported MVP VR path; headset validation requires compatible hardware.
-
-## Phase 1 — Local backend integration checks
-
-These checks are specific to the local backend environment and must not be marked complete based only on the deployed staging run.
-
-- [x] Verify local invalid-token and missing-auth behavior against the real backend with a synthetic bearer token. The attached smoke run received HTTP 401 for unauthenticated `/profile`; browser-session redirect behavior is not inferred because the browser and backend attached contexts do not share a network namespace.
-- [x] Coordinate one authentication integration session with Member 2 using a clean synthetic local account in the attached backend context. Registration returned HTTP 201 and the token was received without being printed.
-- [x] Test empty optional profile fields and a direct unauthorized profile API response against the local backend. The attached smoke run accepted empty optional profile fields, persisted the profile, and returned HTTP 401 for unauthenticated `/profile`.
-
-**Local integration evidence:** The attached `backend-smoke-attached` run used `http://127.0.0.1:4000/api` with origin `http://localhost:5173`, a synthetic account, and sanitized output. Health and dependency checks returned 200; registration returned 201; profile, assessment, recommendations, career detail, skill-gap, roadmap, advisor, and VR requests returned the expected successful statuses; unauthenticated profile returned 401. No token value or credential was recorded.
-
 ## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test assessment completion on narrow and wide screens against a real development database. The authenticated staging assessment completed at 896×768; narrow and wide viewport evidence remains pending.
-- [ ] Test long career names, missing optional fields, and empty-array fixtures. The unavailable-career HTTP 404 and rendered error state are verified locally and in staging.
+- [ ] Test long career names, missing optional fields, and empty-array fixtures. The unavailable-career HTTP 404 and rendered error state are verified locally and in staging; controlled fixture data remains pending.
 - [ ] Test server-failure responses for skill-gap and roadmap routes. Unauthorized access and a missing roadmap step are verified locally and in the attached smoke evidence; controlled server-failure injection remains open.
-- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry. Page refresh, minimum-length validation, a non-empty advisor response, and invalid-token cross-page expiry redirect are verified; long-message, repeated-submit, and slow-network evidence remains open.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, and slow-network behavior. Page refresh, minimum-length validation, a non-empty advisor response, and invalid-token cross-page expiry redirect are verified; long-message, repeated-submit, and slow-network evidence remains open.
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
+
 
 ## Phase 3 — Accessibility, responsive, browser, and performance quality
 
@@ -84,4 +65,4 @@ The final release handoff must include the tested client branch and commit, pull
 
 ## Completion rule
 
-Member 1’s frontend work is complete only when the remaining local integration checks, resilience checks, authenticated responsive and browser checks, target-device checks, applicable hardware checks, and release approval have real evidence. External approval, backend coordination, unavailable browser engines, staging deployment, and WebXR hardware must not be inferred or self-approved.
+Member 1’s frontend work is complete only when the remaining resilience checks, authenticated responsive and browser checks, target-device checks, applicable hardware checks, and release approval have real evidence. External approval, backend coordination, unavailable browser engines, staging deployment, and WebXR hardware must not be inferred or self-approved.
