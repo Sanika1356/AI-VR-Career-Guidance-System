@@ -43,10 +43,9 @@ WebXR implementation is deferred beyond the approved MVP and must not be added w
 **Hardware gate:** Do not mark WebXR or headset validation complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
 
 ## Phase 5 — Release and approval gates
-
 - [ ] Obtain the user’s explicit approval before production promotion and final release tagging.
 
-The final release handoff must include the tested client branch and commit, pull request, environment-variable names without secret values, supported browser and device notes, staging evidence, and a concise list of unresolved limitations.
+**Release handoff package prepared, but not approved:** the latest frontend baseline is `origin/main` at `bc221da` after merged PR #80; the approved staging frontend is `https://ai-vr-career-guidance-system-40ti.onrender.com`; the approved API base is `https://ai-vr-career-guidance-system.onrender.com/api`; the client environment variable name is `VITE_API_BASE_URL` and no secret value is recorded. Supported evidence covers Chromium desktop, the desktop canvas VR fallback, authenticated staging learning flows, public responsive checks, and the local desktop baseline. Unresolved limitations include narrow/wide authenticated viewport coverage, controlled fixture and server-failure injection, advisor resilience testing, non-Chromium engines, target-device/touch evidence, WebXR headset validation, and the explicit user approval itself. Production promotion, redeployment, and final release tagging must remain pending until the user approves them.
 
 ## Dependency matrix for remaining work
 
@@ -60,7 +59,7 @@ The final release handoff must include the tested client branch and commit, pull
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
 | WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; staging VR route loaded, but Chromium reported immersive WebXR unsupported and no compatible headset was attached; WebXR remains outside the approved desktop MVP |
-| Production promotion and final release tag | User’s explicit approval after both members’ release review | Pending; approval must never be inferred |
+| Production promotion and final release tag | User’s explicit approval after both members’ release review | Pending; the release handoff package is documented above, but production promotion, redeployment, and final tagging require explicit user approval |
 
 ## Completion rule
 
