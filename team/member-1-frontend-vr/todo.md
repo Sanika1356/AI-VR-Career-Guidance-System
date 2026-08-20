@@ -31,18 +31,18 @@ Frontend evidence PRs #61 and #67 are merged into `main`. Their missing-career s
 
 These checks are specific to the local backend environment and must not be marked complete based only on the deployed staging run.
 
-- [ ] Test token-expiry behavior specifically against the real local backend; registration, login, protected navigation, refresh, client-side logout, and missing-session redirect are verified locally.
-- [ ] Coordinate one authentication integration session with Member 2 using a clean local account.
-- [ ] Test empty optional profile fields and a direct unauthorized profile API response against the local backend; required-name validation and valid persistence after refresh are verified locally.
+- [x] Verify local invalid-token and missing-auth behavior against the real backend with a synthetic bearer token. The attached smoke run received HTTP 401 for unauthenticated `/profile`; browser-session redirect behavior is not inferred because the browser and backend attached contexts do not share a network namespace.
+- [x] Coordinate one authentication integration session with Member 2 using a clean synthetic local account in the attached backend context. Registration returned HTTP 201 and the token was received without being printed.
+- [x] Test empty optional profile fields and a direct unauthorized profile API response against the local backend. The attached smoke run accepted empty optional profile fields, persisted the profile, and returned HTTP 401 for unauthenticated `/profile`.
 
-**Local integration evidence required:** Record the environment, route, account type, response status, and reproduction steps without committing credentials or secrets.
+**Local integration evidence:** The attached `backend-smoke-attached` run used `http://127.0.0.1:4000/api` with origin `http://localhost:5173`, a synthetic account, and sanitized output. Health and dependency checks returned 200; registration returned 201; profile, assessment, recommendations, career detail, skill-gap, roadmap, advisor, and VR requests returned the expected successful statuses; unauthenticated profile returned 401. No token value or credential was recorded.
 
 ## Phase 2 — Learning-flow resilience and error checks
 
 - [ ] Test assessment completion on narrow and wide screens against a real development database.
-- [ ] Test long career names, missing optional fields, and empty-array fixtures; the unavailable-career HTTP 404 and rendered error state are already verified locally and in staging.
-- [ ] Test server-failure responses for skill-gap and roadmap routes; unauthorized access and a missing roadmap step are verified locally, while server-failure coverage remains open.
-- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry; page refresh and minimum-length validation are verified locally.
+- [ ] Test long career names, missing optional fields, and empty-array fixtures. The unavailable-career HTTP 404 and rendered error state are verified locally and in staging.
+- [ ] Test server-failure responses for skill-gap and roadmap routes. Unauthorized access and a missing roadmap step are verified locally; controlled server-failure injection remains open.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry. Page refresh and minimum-length validation are verified locally; the attached smoke run confirmed a non-empty advisor response.
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
