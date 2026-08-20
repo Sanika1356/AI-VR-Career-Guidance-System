@@ -48,7 +48,8 @@ The current API already exposes the approved contracts. Do not add mock services
 
 ## Phase 3 — Accessibility, responsive, browser, and performance quality
 
-- [ ] Verify authenticated assessment and learning-flow behavior across supported desktop, tablet, and mobile viewport sizes. Public home and career-catalog spot checks are complete.
+Authenticated assessment, profile, advisor, and AI Engineer roadmap responsive checks are documented in `docs/frontend-phase3-responsive.md`, with committed captures under `docs/assets/`, covering 375px, 768px, and 1440px staging viewports.
+
 - [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented.
 - [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is complete; target-device evidence remains pending.
 - [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available.
@@ -75,7 +76,7 @@ The final release handoff must include the tested client branch and commit, pull
 | Long names, empty arrays, and optional-field fixtures | Controlled fixture data or a dedicated test endpoint that does not alter the approved production contract | Pending; no safe fixture injection is available |
 | Skill-gap and roadmap server-failure states | Controlled backend failure injection or a temporary test-only failure mode | Pending by explicit scope; unauthorized and missing-step responses are already covered |
 | Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; invalid-token cross-page expiry redirect is verified in staging, but long-message, repeated-submit, and slow-network evidence still requires controlled browser/network testing |
-| Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Pending; staging authenticated assessment, recommendations, career detail, roadmap, advisor page, and VR catalog checks passed at 896×768, while tablet and mobile authenticated evidence is still missing |
+| Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Complete for staging assessment, profile, advisor, and AI Engineer roadmap at 375px, 768px, and 1440px; evidence is committed in `docs/frontend-phase3-responsive.md` |
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
 | WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; hardware is unavailable and WebXR remains outside the approved desktop MVP |
