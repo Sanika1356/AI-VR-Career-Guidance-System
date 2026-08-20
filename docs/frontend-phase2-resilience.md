@@ -56,9 +56,9 @@ The mobile review found vertical stacking without horizontal clipping. The profi
 
 The authenticated assessment route was captured at narrow, tablet, and wide widths against the real local backend. The route loaded the real question state and presented the completion entry point at each viewport. The API smoke run separately completed an authenticated assessment submission and result retrieval. The capture set therefore confirms route rendering and real API connectivity at all three widths; a full answer-by-answer completion recording is not claimed beyond the successful API submission because the current evidence run did not retain a screen recording of every question interaction.
 
-## Remaining Phase 2 limitations
+## Phase 2 resilience closure
 
-The only remaining Phase 2 limitation is the lack of a safe fixture-injection harness for long career names, missing optional fields, and empty-array fixtures without altering the approved production contract or database fixtures. Empty optional profile arrays themselves were verified in the smoke run.
+All feasible Phase 2 resilience checks are now supported by evidence. A browser-only profile fixture removed optional fields from the real profile response; the profile route remained usable with empty optional inputs and no alert. A browser-only career fixture prefixed every career name with a long repeated label; the catalog route rendered the long names without an alert. These fixtures changed only the browser response and did not alter the approved API contract or database fixtures.
 
 A browser-only fault-injection check returned controlled HTTP 500 responses for the real skill-gap and roadmap requests. The skill-gap page rendered `We could not map this skill gap` with a `Try again` control, and the roadmap page rendered `We could not load this roadmap` with a `Try again` control. These checks did not alter backend code or production behavior.
 

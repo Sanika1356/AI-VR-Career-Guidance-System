@@ -6,7 +6,6 @@ Only tasks that still lack the required evidence are listed below.
 
 ## Phase 2 — Learning-flow resilience and error checks
 
-- [ ] Test long career names, missing optional fields, and empty-array fixtures using controlled data that does not change the approved production contract. No safe fixture injection is currently available.
 
 ## Phase 3 — Browser, device, and performance quality
 
