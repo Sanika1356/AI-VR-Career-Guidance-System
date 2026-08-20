@@ -71,11 +71,11 @@ The final release handoff must include the tested client branch and commit, pull
 
 | Remaining item | Required evidence or dependency | Current status |
 |---|---|---|
-| Assessment completion on narrow and wide screens | Authenticated browser session that can reach the local backend from the same network context | Pending; the 2026-08-20 browser retry loaded the frontend but showed `API OFFLINE`, and a direct browser fetch to `/api/health` failed |
+| Assessment completion on narrow and wide screens | Authenticated browser session that can reach the local backend from the same network context | Pending; staging authenticated assessment completed at 896×768, but narrow and wide viewport evidence is still missing; the separate local browser retry showed `API OFFLINE` |
 | Long names, empty arrays, and optional-field fixtures | Controlled fixture data or a dedicated test endpoint that does not alter the approved production contract | Pending; no safe fixture injection is available |
 | Skill-gap and roadmap server-failure states | Controlled backend failure injection or a temporary test-only failure mode | Pending by explicit scope; unauthorized and missing-step responses are already covered |
 | Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; only local API happy-path and client-side validation evidence is available |
-| Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Pending; the 2026-08-20 browser retry could not reach the attached backend, while public responsive smoke evidence is complete |
+| Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Pending; staging authenticated assessment, recommendations, career detail, roadmap, advisor page, and VR catalog checks passed at 896×768, while tablet and mobile authenticated evidence is still missing |
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
 | WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; hardware is unavailable and WebXR remains outside the approved desktop MVP |
