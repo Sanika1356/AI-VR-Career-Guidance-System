@@ -2,7 +2,7 @@
 
 **Owner:** Member 1 — frontend and VR client
 
-**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO. This file intentionally contains only unfinished frontend work; completed phases and completed task headlines are recorded in the verified baseline instead of appearing as open items.
+**Coordinates with:** Member 2 through `docs/api.md`, pull requests, shared test accounts, deployed service URLs, and the handoff rules in this file and the server TODO. This file intentionally contains only unfinished frontend work; completed phases and task headlines are removed from the active checklist.
 
 ## Working agreement
 
@@ -29,8 +29,6 @@ The current API already exposes the approved contracts. Do not add mock services
 
 ## Phase 3 — Accessibility, responsive, browser, and performance quality
 
-Authenticated assessment, profile, advisor, and AI Engineer roadmap responsive checks are documented in `docs/frontend-phase3-responsive.md`, with committed captures under `docs/assets/`, covering 375px, 768px, and 1440px staging viewports.
-
 - [ ] Run browser compatibility checks on Firefox, Safari/WebKit, and Edge when those browser engines are available. Chromium local coverage and the manual accessibility matrix are documented; the final capability probe found Firefox, Edge, WebKit tooling, and other alternate engines unavailable in the sandbox.
 - [ ] Measure desktop VR fallback performance on supported target hardware. A local Chromium baseline is complete; target-device evidence remains pending, and the sandbox exposes no supported hardware inventory.
 - [ ] Test touch interaction for the desktop VR fallback where a supported touch device is available. The capability probe found no touch-device tools or `/dev/input` devices in the sandbox.
@@ -55,7 +53,6 @@ WebXR implementation is deferred beyond the approved MVP and must not be added w
 | Long names, empty arrays, and optional-field fixtures | Controlled fixture data or a dedicated test endpoint that does not alter the approved production contract | Pending; no safe fixture injection is available |
 | Skill-gap and roadmap server-failure states | Controlled backend failure injection or a temporary test-only failure mode | Pending by explicit scope; unauthorized and missing-step responses are already covered |
 | Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; invalid-token cross-page expiry redirect is verified in staging, but long-message, repeated-submit, and slow-network evidence still requires controlled browser/network testing |
-| Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Complete for staging assessment, profile, advisor, and AI Engineer roadmap at 375px, 768px, and 1440px; evidence is committed in `docs/frontend-phase3-responsive.md` |
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; capability probe confirmed Firefox, Edge, WebKit tooling, and other alternate engines are unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete, but no supported hardware inventory or `/dev/input` devices are available in the sandbox |
 | WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; staging VR route loaded, Chromium reported immersive WebXR unsupported, and no compatible headset or input-device inventory was available; WebXR remains outside the approved desktop MVP |
