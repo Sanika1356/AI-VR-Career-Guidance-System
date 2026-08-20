@@ -39,10 +39,10 @@ These checks are specific to the local backend environment and must not be marke
 
 ## Phase 2 — Learning-flow resilience and error checks
 
-- [ ] Test assessment completion on narrow and wide screens against a real development database.
+- [ ] Test assessment completion on narrow and wide screens against a real development database. The authenticated staging assessment completed at 896×768; narrow and wide viewport evidence remains pending.
 - [ ] Test long career names, missing optional fields, and empty-array fixtures. The unavailable-career HTTP 404 and rendered error state are verified locally and in staging.
-- [ ] Test server-failure responses for skill-gap and roadmap routes. Unauthorized access and a missing roadmap step are verified locally; controlled server-failure injection remains open.
-- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry. Page refresh and minimum-length validation are verified locally; the attached smoke run confirmed a non-empty advisor response.
+- [ ] Test server-failure responses for skill-gap and roadmap routes. Unauthorized access and a missing roadmap step are verified locally and in the attached smoke evidence; controlled server-failure injection remains open.
+- [ ] Test advisor long-message limits, real-backend repeated submissions, slow-network behavior, and cross-page session expiry. Page refresh, minimum-length validation, a non-empty advisor response, and invalid-token cross-page expiry redirect are verified; long-message, repeated-submit, and slow-network evidence remains open.
 
 The current API already exposes the approved contracts. Do not add mock services, client-only goals, a `partial` skill-gap status, or saved-career state to close these checks.
 
@@ -74,7 +74,7 @@ The final release handoff must include the tested client branch and commit, pull
 | Assessment completion on narrow and wide screens | Authenticated browser session that can reach the local backend from the same network context | Pending; staging authenticated assessment completed at 896×768, but narrow and wide viewport evidence is still missing; the separate local browser retry showed `API OFFLINE` |
 | Long names, empty arrays, and optional-field fixtures | Controlled fixture data or a dedicated test endpoint that does not alter the approved production contract | Pending; no safe fixture injection is available |
 | Skill-gap and roadmap server-failure states | Controlled backend failure injection or a temporary test-only failure mode | Pending by explicit scope; unauthorized and missing-step responses are already covered |
-| Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; only local API happy-path and client-side validation evidence is available |
+| Advisor long-message, repeated-submit, slow-network, and cross-page expiry behavior | Authenticated browser session plus controlled network throttling or failure injection | Pending; invalid-token cross-page expiry redirect is verified in staging, but long-message, repeated-submit, and slow-network evidence still requires controlled browser/network testing |
 | Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Pending; staging authenticated assessment, recommendations, career detail, roadmap, advisor page, and VR catalog checks passed at 896×768, while tablet and mobile authenticated evidence is still missing |
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
