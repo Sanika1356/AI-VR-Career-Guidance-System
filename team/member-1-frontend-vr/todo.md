@@ -39,8 +39,7 @@ Authenticated assessment, profile, advisor, and AI Engineer roadmap responsive c
 
 WebXR implementation is deferred beyond the approved MVP and must not be added without explicit scope approval from both members.
 
-- [ ] Test entering and exiting a headset session with a compatible WebXR device.
-
+- [ ] Test entering and exiting a headset session with a compatible WebXR device. The deployed VR route loaded in Chromium, but the current browser reported `navigator.xr` present with `isSessionSupported('immersive-vr') === false`; no compatible headset was attached, so no session entry or exit was claimed.
 **Hardware gate:** Do not mark WebXR or headset validation complete based on the desktop fallback. The supported MVP path remains the desktop canvas experience.
 
 ## Phase 5 — Release and approval gates
@@ -60,7 +59,7 @@ The final release handoff must include the tested client branch and commit, pull
 | Authenticated responsive learning-flow checks | Browser session connected to the same backend context at desktop, tablet, and mobile sizes | Complete for staging assessment, profile, advisor, and AI Engineer roadmap at 375px, 768px, and 1440px; evidence is committed in `docs/frontend-phase3-responsive.md` |
 | Firefox, Safari/WebKit, and Edge compatibility | Access to those browser engines | Pending; unavailable in the current sandbox |
 | Target-device VR performance and touch interaction | Supported physical desktop/touch device | Pending; local Chromium baseline is complete |
-| WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; hardware is unavailable and WebXR remains outside the approved desktop MVP |
+| WebXR/headset entry and exit | Compatible WebXR headset and browser | Pending; staging VR route loaded, but Chromium reported immersive WebXR unsupported and no compatible headset was attached; WebXR remains outside the approved desktop MVP |
 | Production promotion and final release tag | User’s explicit approval after both members’ release review | Pending; approval must never be inferred |
 
 ## Completion rule
