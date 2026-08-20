@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -48,11 +48,14 @@ export function AdvisorPage() {
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showValidation, setShowValidation] = useState(false);
+  const sendingRef = useRef(false);
 
   const validationMessage = useMemo(() => getValidationMessage(draft), [draft]);
   const canSubmit = validationMessage === '' && !isSending;
 
   async function sendMessage(message: string, appendUserMessage: boolean) {
+    if (sendingRef.current) return;
+    sendingRef.current = true;
     setErrorMessage('');
     setRetryMessage(undefined);
     if (appendUserMessage) {
@@ -89,6 +92,7 @@ export function AdvisorPage() {
             : 'The advisor could not respond right now.',
       );
     } finally {
+      sendingRef.current = false;
       setIsSending(false);
     }
   }
