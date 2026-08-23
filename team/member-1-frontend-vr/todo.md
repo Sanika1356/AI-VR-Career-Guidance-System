@@ -4,9 +4,6 @@
 
 Only tasks that still lack the required evidence are listed below.
 
-## Phase 2 — Learning-flow resilience and error checks
-
-
 ## Phase 3 — Browser, device, and performance quality
 
 - [ ] Run compatibility checks on Firefox, Safari/WebKit, and Edge.
