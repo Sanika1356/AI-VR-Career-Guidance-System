@@ -446,7 +446,7 @@ Response:
 }
 ```
 
-The backend must protect provider credentials, apply input limits, handle provider failures, and avoid presenting unsupported claims as certain career advice.
+The backend must protect provider credentials, apply input limits, handle provider failures, and avoid presenting unsupported claims as certain career advice. If the configured local provider is unavailable, returns an empty or malformed response, or exhausts its bounded retries, the endpoint returns a deterministic fallback that explains the limitation and still suggests a small next learning activity from the available skill-gap context. The fallback is general guidance, not a diagnosis, employment guarantee, or external labor-market claim.
 
 ## VR support
 
