@@ -369,11 +369,31 @@ Compares the user's known skills with the selected career's required skills.
 {
   "careerId": "career_ai_engineer",
   "skills": [
-    { "name": "Python", "status": "matched", "level": "intermediate" },
-    { "name": "Deep Learning", "status": "missing", "level": "beginner" }
+    {
+      "name": "Python",
+      "status": "matched",
+      "level": "intermediate",
+      "priority": "low",
+      "prerequisites": [],
+      "blockedBy": [],
+      "transferableTo": [],
+      "priorityReason": "Already present in your profile; maintain and apply it."
+    },
+    {
+      "name": "Deep Learning",
+      "status": "missing",
+      "level": "beginner",
+      "priority": "medium",
+      "prerequisites": ["Python"],
+      "blockedBy": ["Python"],
+      "transferableTo": [],
+      "priorityReason": "Build Python first."
+    }
   ]
 }
 ```
+
+`status` remains limited to `matched` and `missing`. `priority` is deterministic: missing foundational prerequisites are `high`, other missing skills are `medium`, and matched skills are `low`. `prerequisites` and `blockedBy` are readable ontology skill names; `transferableTo` lists readable local relationships when present. `priorityReason` explains the ordering without estimating a learner’s time or guaranteeing an outcome.
 
 ### `GET /api/careers/:careerId/roadmap`
 

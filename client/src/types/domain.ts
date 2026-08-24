@@ -144,10 +144,17 @@ export interface RecommendationResponse {
 export type SkillGapStatus = 'matched' | 'missing';
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
 
+export type SkillGapPriority = 'high' | 'medium' | 'low';
+
 export interface SkillGapItem {
   name: string;
   status: SkillGapStatus;
   level: SkillLevel;
+  priority: SkillGapPriority;
+  prerequisites: string[];
+  blockedBy: string[];
+  transferableTo: string[];
+  priorityReason: string;
 }
 
 export interface SkillGapResponse {
