@@ -5,6 +5,7 @@ import {
   getCareerController,
   listCareersController,
 } from "../controllers/career.controller.js";
+import { listLearningResourcesController } from "../controllers/learning-resource.controller.js";
 import { createRateLimiter } from "../middleware/rate-limit.js";
 
 export const careerRouter = Router();
@@ -16,4 +17,9 @@ const catalogRateLimiter = createRateLimiter({
 
 careerRouter.get("/", catalogRateLimiter, listCareersController);
 careerRouter.get("/comparison", catalogRateLimiter, compareCareersController);
+careerRouter.get(
+  "/:careerId/resources",
+  catalogRateLimiter,
+  listLearningResourcesController,
+);
 careerRouter.get("/:careerId", catalogRateLimiter, getCareerController);

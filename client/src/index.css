@@ -1740,6 +1740,9 @@ em {
   color: #777b73;
   font-size: 11px;
 }
+.resource-item__meta {
+  letter-spacing: 0.01em;
+}
 .roadmap-preview {
   list-style: none;
 }

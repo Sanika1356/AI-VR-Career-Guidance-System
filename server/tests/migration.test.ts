@@ -127,3 +127,33 @@ test("assessment metadata migration is versioned and reviewable without exposing
     /CREATE INDEX IF NOT EXISTS idx_assessment_questions_domain/,
   );
 });
+
+const learningResourcesMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/016_learning_resources.sql",
+);
+
+test("learning-resource migration stores provenance metadata and idempotent authored seeds", async () => {
+  const sql = await readFile(learningResourcesMigrationPath, "utf8");
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS learning_resources/);
+  for (const column of [
+    "career_id",
+    "skill_id",
+    "source_type",
+    "cost_model",
+    "duration_minutes",
+    "language_code",
+    "accessibility",
+    "freshness_date",
+    "license_name",
+    "verified",
+  ]) {
+    assert.match(sql, new RegExp(column));
+  }
+  assert.match(sql, /source_type IN \('catalog', 'ai-suggestion'\)/);
+  assert.match(sql, /UNIQUE \(career_id, url\)/);
+  assert.match(sql, /ON CONFLICT \(id\) DO UPDATE SET/);
+  assert.match(sql, /'resource_ai_python_docs'/);
+  assert.match(sql, /'resource_data_postgres_docs'/);
+  assert.match(sql, /'catalog'/);
+});
