@@ -4,45 +4,46 @@ This document describes the implemented PostgreSQL schema for the AI-VR Career G
 
 ## Core tables
 
-| Table | Purpose | Ownership and relationships |
-|---|---|---|
-| `users` | Login identity, password hash, account status, and timestamps | One user owns one `profiles` row and many assessments and conversations |
-| `profiles` | Interests, current skills, experience, and learning preferences stored as JSON/text fields | One-to-one with `users`; profile writes are authenticated and transactional |
-| `skills` | Canonical skill names | Referenced by `career_skills` |
-| `careers` | Broader career catalog, descriptions, and optional `environment_key` | Independent of VR availability; related to skills, roadmap steps, recommendations, and optional conversations/environments |
-| `career_skills` | Required skill and level for each career | Composite primary key on career and skill |
-| `assessment_questions` | Published assessment questions and ordering | Parent of `assessment_options` |
-| `assessment_options` | Public answer labels plus server-only scoring metadata | Belongs to one question; scoring data is never returned by the questions endpoint |
-| `assessments` | Authenticated assessment sessions and status | Belongs to one user; has answers and at most one result |
-| `assessment_answers` | Submitted question-option pairs | Composite primary key prevents duplicate answers for one assessment question |
-| `assessment_results` | Completed assessment category scores and top career IDs | Belongs to both the assessment session and its user |
-| `recommendations` | Ranked career recommendations with scores and skill explanations | Belongs to one result and one career; result/career and result/rank pairs are unique |
-| `roadmap_steps` | Ordered learning steps for each career | Composite uniqueness on career and display order |
-| `roadmap_progress` | Per-user completion state for roadmap steps | Composite primary key on user and step enforces ownership-scoped upsert behavior |
-| `conversations` | AI advisor conversation metadata | Belongs to one user and may reference a career |
-| `messages` | User and assistant messages | Belongs to one conversation and is deleted with that conversation |
-| `vr_environments` | Safe metadata for client-side 3D/VR scenes | Belongs to a career; a career may have zero, one, or multiple future environments |
-| `privacy_consents` | Per-user opt-in choices for analytics, personalized AI context, and coarse VR telemetry | One-to-one with `users`; cascades on account deletion |
-| `audit_events` | Redacted server-side security and product-operation event records | Optional user reference is set to null on account deletion; request ID and primitive metadata only |
-| `schema_migrations` | Applied migration versions and timestamps | Used by the idempotent migration runner |
+| Table                  | Purpose                                                                                    | Ownership and relationships                                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `users`                | Login identity, password hash, account status, and timestamps                              | One user owns one `profiles` row and many assessments and conversations                                                    |
+| `profiles`             | Interests, current skills, experience, and learning preferences stored as JSON/text fields | One-to-one with `users`; profile writes are authenticated and transactional                                                |
+| `skills`               | Canonical skill names                                                                      | Referenced by `career_skills`                                                                                              |
+| `careers`              | Broader career catalog, descriptions, and optional `environment_key`                       | Independent of VR availability; related to skills, roadmap steps, recommendations, and optional conversations/environments |
+| `career_skills`        | Required skill and level for each career                                                   | Composite primary key on career and skill                                                                                  |
+| `assessment_questions` | Published assessment questions and ordering                                                | Parent of `assessment_options`                                                                                             |
+| `assessment_options`   | Public answer labels plus server-only scoring metadata                                     | Belongs to one question; scoring data is never returned by the questions endpoint                                          |
+| `assessments`          | Authenticated assessment sessions and status                                               | Belongs to one user; has answers and at most one result                                                                    |
+| `assessment_answers`   | Submitted question-option pairs                                                            | Composite primary key prevents duplicate answers for one assessment question                                               |
+| `assessment_results`   | Completed assessment category scores, top career IDs, and pinned question-bank version     | Belongs to both the assessment session and its user; immutable result records support owned retake comparison              |
+| `recommendations`      | Ranked career recommendations with scores and skill explanations                           | Belongs to one result and one career; result/career and result/rank pairs are unique                                       |
+| `roadmap_steps`        | Ordered learning steps for each career                                                     | Composite uniqueness on career and display order                                                                           |
+| `roadmap_progress`     | Per-user completion state for roadmap steps                                                | Composite primary key on user and step enforces ownership-scoped upsert behavior                                           |
+| `conversations`        | AI advisor conversation metadata                                                           | Belongs to one user and may reference a career                                                                             |
+| `messages`             | User and assistant messages                                                                | Belongs to one conversation and is deleted with that conversation                                                          |
+| `vr_environments`      | Safe metadata for client-side 3D/VR scenes                                                 | Belongs to a career; a career may have zero, one, or multiple future environments                                          |
+| `privacy_consents`     | Per-user opt-in choices for analytics, personalized AI context, and coarse VR telemetry    | One-to-one with `users`; cascades on account deletion                                                                      |
+| `audit_events`         | Redacted server-side security and product-operation event records                          | Optional user reference is set to null on account deletion; request ID and primitive metadata only                         |
+| `schema_migrations`    | Applied migration versions and timestamps                                                  | Used by the idempotent migration runner                                                                                    |
 
 ## Migration sequence and seed policy
 
 The migration runner applies SQL files in lexical version order and records each successful version in `schema_migrations`. Each migration runs transactionally, and already-recorded versions are skipped. The current sequence is:
 
-| Migration | Content | Seed behavior |
-|---|---|---|
-| `001_initial_schema.sql` | Core tables, foreign keys, checks, unique constraints, and indexes | Always applied |
-| `002_career_catalog.sql` | Broader career, skill, career-skill, and roadmap catalog | Applied when `RUN_SEED_DATA=true` |
-| `003_assessment_seed.sql` | Published assessment questions, options, and deterministic scoring metadata | Applied when `RUN_SEED_DATA=true` |
-| `004_vr_mvp_catalog.sql` | MVP VR environments for AI Engineer and Data Analyst | Applied when `RUN_SEED_DATA=true` |
-| `005_privacy_controls.sql` | Opt-in consent row for existing and new users | Always applied; defaults all optional purposes to false |
-| `006_audit_events.sql` | Redacted audit event table and indexes | Always applied |
-| `007_catalog_ontology.sql` | Additive domains, aliases, prerequisites, transferable skills, provenance, and ontology version metadata | Always applied; current local catalog values are project-authored |
-| `008_catalog_metadata.sql` | Education pathways, proficiency levels, and related-skill metadata | Always applied |
-| `009_assessment_question_metadata.sql` | Versioned question-bank metadata, accessibility text, rationales, and review status | Always applied; published question payload remains unchanged |
+| Migration                              | Content                                                                                                   | Seed behavior                                                     |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `001_initial_schema.sql`               | Core tables, foreign keys, checks, unique constraints, and indexes                                        | Always applied                                                    |
+| `002_career_catalog.sql`               | Broader career, skill, career-skill, and roadmap catalog                                                  | Applied when `RUN_SEED_DATA=true`                                 |
+| `003_assessment_seed.sql`              | Published assessment questions, options, and deterministic scoring metadata                               | Applied when `RUN_SEED_DATA=true`                                 |
+| `004_vr_mvp_catalog.sql`               | MVP VR environments for AI Engineer and Data Analyst                                                      | Applied when `RUN_SEED_DATA=true`                                 |
+| `005_privacy_controls.sql`             | Opt-in consent row for existing and new users                                                             | Always applied; defaults all optional purposes to false           |
+| `006_audit_events.sql`                 | Redacted audit event table and indexes                                                                    | Always applied                                                    |
+| `007_catalog_ontology.sql`             | Additive domains, aliases, prerequisites, transferable skills, provenance, and ontology version metadata  | Always applied; current local catalog values are project-authored |
+| `008_catalog_metadata.sql`             | Education pathways, proficiency levels, and related-skill metadata                                        | Always applied                                                    |
+| `009_assessment_question_metadata.sql` | Versioned question-bank metadata, accessibility text, rationales, and review status                       | Always applied; published question payload remains unchanged      |
+| `010_assessment_result_versioning.sql` | Pins the question-bank version to assessment sessions and immutable results; adds completion-time indexes | Always applied; no user response fields are removed               |
 
-The ontology metadata is consumed by a provider-neutral local adapter for validation and future import work. Assessment question metadata is stored separately from the public question payload so future versions can support domain, competency, difficulty, rationale, accessibility, and review workflows without changing the current assessment submission contract. It does not alter the existing career list/detail, recommendation, skill-gap, or roadmap response shapes. Seed migrations use idempotent inserts and are safe to rerun through the migration runner. The MVP VR catalog is intentionally narrower than the career catalog: `ai-engineer-lab` belongs to `career_ai_engineer`, and `data-insights-studio` belongs to `career_data_analyst`. Additional careers do not require VR environments, and additional environments can be added as rows without changing core recommendation, skill-gap, or roadmap contracts.
+The ontology metadata is consumed by a provider-neutral local adapter for validation and future import work. Assessment question metadata is stored separately from the public question payload so future versions can support domain, competency, difficulty, rationale, accessibility, and review workflows without changing the current assessment submission contract. Each assessment and immutable result now pins the maximum published question version at creation time. The authenticated comparison endpoint derives changed answers and score deltas from two owned results without storing duplicate comparison records or exposing option scoring weights. It does not alter the existing career list/detail, recommendation, skill-gap, or roadmap response shapes. Seed migrations use idempotent inserts and are safe to rerun through the migration runner. The MVP VR catalog is intentionally narrower than the career catalog: `ai-engineer-lab` belongs to `career_ai_engineer`, and `data-insights-studio` belongs to `career_data_analyst`. Additional careers do not require VR environments, and additional environments can be added as rows without changing core recommendation, skill-gap, or roadmap contracts.
 
 ## Integrity and security rules
 
