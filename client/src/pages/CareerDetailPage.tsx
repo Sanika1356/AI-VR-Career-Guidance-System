@@ -4,8 +4,8 @@ import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
-import { getCareer } from '../services/careers';
-import type { CareerDetail } from '../types/domain';
+import { getCareer, getLearningResources } from '../services/careers';
+import type { CareerDetail, LearningResource } from '../types/domain';
 
 interface CareerDetailPageProps {
   careerId?: string;
@@ -14,6 +14,7 @@ interface CareerDetailPageProps {
 
 export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps) {
   const [career, setCareer] = useState<CareerDetail | null>(null);
+  const [resources, setResources] = useState<LearningResource[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -27,8 +28,18 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
 
     setIsLoading(true);
     setErrorMessage(null);
+    setResources(null);
     getCareer(careerId)
-      .then(setCareer)
+      .then(async (loadedCareer) => {
+        setCareer(loadedCareer);
+        setResources(loadedCareer.learningResources);
+        try {
+          const rankedResources = await getLearningResources(careerId, { limit: 20 });
+          setResources(rankedResources.resources);
+        } catch {
+          // Keep the embedded, backward-compatible catalog if migration 016 is not deployed yet.
+        }
+      })
       .catch((error: unknown) => {
         setErrorMessage(
           error instanceof Error
@@ -85,6 +96,8 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
       </div>
     );
   }
+
+  const displayedResources = resources ?? career.learningResources;
 
   return (
     <div className="page-frame career-page career-detail-page">
@@ -172,11 +185,11 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
           title="Learning resources"
           description="Curated starting points for exploring this direction."
         >
-          {career.learningResources.length > 0 ? (
+          {displayedResources.length > 0 ? (
             <div className="resource-list">
-              {career.learningResources.map((resource) => (
+              {displayedResources.map((resource) => (
                 <a
-                  key={`${resource.title}-${resource.url ?? 'resource'}`}
+                  key={`${resource.id ?? resource.title}-${resource.url ?? 'resource'}`}
                   className="resource-item"
                   href={resource.url}
                   target="_blank"
@@ -185,6 +198,15 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
                   <span>
                     <strong>{resource.title}</strong>
                     {resource.description && <small>{resource.description}</small>}
+                    <small className="resource-item__meta">
+                      {resource.provider ?? 'Catalog source'}
+                      {resource.sourceType === 'ai-suggestion'
+                        ? ' · AI suggestion'
+                        : ' · Catalog link'}
+                      {resource.costModel === 'free' ? ' · Free' : ''}
+                      {resource.durationMinutes ? ` · ${resource.durationMinutes} min` : ''}
+                      {resource.verification === 'verified' ? ' · Verified source' : ''}
+                    </small>
                   </span>
                   <span aria-hidden="true">↗</span>
                 </a>

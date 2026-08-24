@@ -6,18 +6,18 @@
 
 ## Priority and ownership model
 
-| Priority | Meaning | Delivery rule |
-|---|---|---|
-| P0 | Trust, safety, release, or blocker removal | Must be completed before expanding user-facing scope |
-| P1 | High-value differentiator for the next major release | Complete after the contract and evaluation plan are approved |
-| P2 | Valuable expansion | Implement after P1 stability and measurable user benefit |
-| P3 | Optional enhancement | Consider only after cost, privacy, and maintenance review |
+| Priority | Meaning                                              | Delivery rule                                                |
+| -------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| P0       | Trust, safety, release, or blocker removal           | Must be completed before expanding user-facing scope         |
+| P1       | High-value differentiator for the next major release | Complete after the contract and evaluation plan are approved |
+| P2       | Valuable expansion                                   | Implement after P1 stability and measurable user benefit     |
+| P3       | Optional enhancement                                 | Consider only after cost, privacy, and maintenance review    |
 
-| Owner | Primary responsibility | Coordination requirement |
-|---|---|---|
-| Frontend/VR workstream | React client, accessibility, interaction design, VR/WebXR, device testing | Maintain the client against documented contracts and provide screenshots, device logs, and browser evidence |
-| Backend/AI workstream | Express API, PostgreSQL, migrations, scoring, AI boundaries, observability, security | Publish request/response/error contracts, tests, migrations, seed updates, and safe configuration guidance |
-| Project owner | Product decisions, contract changes, evaluation, privacy, release demonstrations | Approve shared types, profile fields, statuses, authentication, and release scope |
+| Owner                  | Primary responsibility                                                               | Coordination requirement                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| Frontend/VR workstream | React client, accessibility, interaction design, VR/WebXR, device testing            | Maintain the client against documented contracts and provide screenshots, device logs, and browser evidence |
+| Backend/AI workstream  | Express API, PostgreSQL, migrations, scoring, AI boundaries, observability, security | Publish request/response/error contracts, tests, migrations, seed updates, and safe configuration guidance  |
+| Project owner          | Product decisions, contract changes, evaluation, privacy, release demonstrations     | Approve shared types, profile fields, statuses, authentication, and release scope                           |
 
 ## Phase 0 — Product governance and measurement (P0) — completed
 
@@ -50,8 +50,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 - [ ] Add prerequisite-aware skill-gap prioritization based on career value, dependency order, learner time budget, confidence, and transferable skills.
 - [ ] Add roadmap milestones with target dates, estimated effort, status, notes, evidence links, and user-controlled reordering.
-- [ ] Add learning-resource records with source, cost, duration, level, format, language, accessibility, freshness, and license metadata.
-- [ ] Add a resource-ranking layer that avoids fabricated courses and clearly distinguishes verified links from AI suggestions.
 - [ ] Add progress dashboards for completed skills, active milestones, streaks, reflection notes, and recommendation changes.
 - [ ] Add reminders and notification preferences with quiet hours and an opt-out path; keep email or messaging integrations optional and zero-cost by default.
 - [ ] Add portfolio evidence attachments through a private storage design with file type limits, malware scanning plan, ownership checks, deletion, and no public exposure by default.
@@ -141,9 +139,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 The roadmap’s career-intelligence direction is compatible with the official O*NET database, which provides occupational, worker, skill, interest, software, and work-activity information in multiple formats and under a Creative Commons license [1]. The European Commission’s ESCO services provide web and local APIs for skills and occupations used in job matching, skills intelligence, and career guidance [2]. WebXR requirements and session lifecycle terminology follow the WebXR API documentation and specification [3] [4].
 
 [1]: https://www.onetcenter.org/database.html "O*NET Database at O*NET Resource Center"
-
 [2]: https://esco.ec.europa.eu/en/use-esco/use-esco-services-api "Use ESCO Services (API)"
-
 [3]: https://developer.mozilla.org/en-US/docs/Web/API/XRSystem/requestSession "MDN XRSystem.requestSession()"
-
 [4]: https://www.w3.org/TR/webxr/ "W3C WebXR Device API Specification"

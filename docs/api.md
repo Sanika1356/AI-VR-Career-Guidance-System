@@ -198,6 +198,47 @@ Returns a read-only comparison for two to five distinct careers from the local c
 
 The route is rate-limited with the catalog limiter. It returns `400` for fewer than two, more than five, malformed, or duplicate IDs and `404` when any requested career is not in the catalog.
 
+### `GET /api/careers/:careerId/resources?skill=<name>&language=<code>&limit=<n>`
+
+Returns normalized learning resources for a career. This endpoint is public and read-only, uses the catalog rate limiter, defaults to English and a maximum of 20 records, and accepts at most 50 records per request. The optional `skill` parameter raises resources linked to the requested canonical skill; it does not infer or mutate the learner profile. Ranking prefers an exact skill match, authored source verification, free cost, and the requested language. Ties retain catalog order.
+
+The endpoint deliberately distinguishes **verified** authored catalog links from unverified records. It does not label a resource as an AI recommendation, does not fabricate courses, and does not ingest external sources at request time. `freshnessDate` and `licenseName` describe the catalog record and are not a guarantee that a third-party page remains available.
+
+```json
+{
+  "careerId": "career_ai_engineer",
+  "targetSkill": "Python",
+  "languageCode": "en",
+  "resources": [
+    {
+      "id": "resource_ai_python_docs",
+      "careerId": "career_ai_engineer",
+      "skillId": "skill_python",
+      "skillName": "Python",
+      "title": "Python Documentation",
+      "description": "Official language reference and tutorial.",
+      "url": "https://docs.python.org/3/",
+      "provider": "Python Software Foundation",
+      "sourceType": "catalog",
+      "resourceType": "documentation",
+      "costModel": "free",
+      "durationMinutes": 240,
+      "level": "all",
+      "format": "reference",
+      "languageCode": "en",
+      "accessibility": { "textAlternative": true },
+      "freshnessDate": "2026-01-15",
+      "licenseName": "PSF License",
+      "verification": "verified",
+      "rank": 1,
+      "rankingReason": "matches the selected skill, has an authored source verification record, is marked free, matches the requested language."
+    }
+  ]
+}
+```
+
+The existing `learningResources` array in `GET /api/careers/:careerId` remains unchanged for backward compatibility. Migration `016_learning_resources.sql` adds the normalized record source; the client falls back to the embedded array when that migration is not yet present.
+
 ## Assessment
 
 ### `GET /api/assessment/questions`

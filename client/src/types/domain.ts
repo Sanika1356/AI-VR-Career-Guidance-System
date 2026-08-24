@@ -20,14 +20,51 @@ export interface Career {
   vrAvailable?: boolean;
 }
 
+export type LearningResourceCost = 'free' | 'freemium' | 'paid' | 'unknown';
+export type LearningResourceLevel = 'beginner' | 'intermediate' | 'advanced' | 'all';
+export type LearningResourceFormat = 'reading' | 'video' | 'interactive' | 'project' | 'reference';
+export type LearningResourceVerification = 'verified' | 'unverified';
+export type LearningResourceSourceType = 'catalog' | 'ai-suggestion';
+
+export interface LearningResourceAccessibility {
+  captions?: boolean;
+  transcript?: boolean;
+  textAlternative?: boolean;
+  keyboardFriendly?: boolean;
+  screenReaderFriendly?: boolean;
+}
+
 export interface LearningResource {
   id?: string;
+  careerId?: string;
+  skillId?: string | null;
+  skillName?: string | null;
   title: string;
   description?: string;
   url?: string;
   provider?: string;
+  sourceType?: LearningResourceSourceType;
   type?: string;
+  resourceType?: string;
   free?: boolean;
+  costModel?: LearningResourceCost;
+  durationMinutes?: number | null;
+  level?: LearningResourceLevel;
+  format?: LearningResourceFormat;
+  languageCode?: string;
+  accessibility?: LearningResourceAccessibility;
+  freshnessDate?: string | null;
+  licenseName?: string;
+  verification?: LearningResourceVerification;
+  rank?: number;
+  rankingReason?: string;
+}
+
+export interface LearningResourceResponse {
+  careerId: string;
+  targetSkill: string | null;
+  languageCode: string;
+  resources: LearningResource[];
 }
 
 export interface CareerSummary {
