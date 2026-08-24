@@ -22,6 +22,8 @@ This document describes the implemented PostgreSQL schema for the AI-VR Career G
 | `conversations` | AI advisor conversation metadata | Belongs to one user and may reference a career |
 | `messages` | User and assistant messages | Belongs to one conversation and is deleted with that conversation |
 | `vr_environments` | Safe metadata for client-side 3D/VR scenes | Belongs to a career; a career may have zero, one, or multiple future environments |
+| `privacy_consents` | Per-user opt-in choices for analytics, personalized AI context, and coarse VR telemetry | One-to-one with `users`; cascades on account deletion |
+| `audit_events` | Redacted server-side security and product-operation event records | Optional user reference is set to null on account deletion; request ID and primitive metadata only |
 | `schema_migrations` | Applied migration versions and timestamps | Used by the idempotent migration runner |
 
 ## Migration sequence and seed policy
@@ -34,8 +36,11 @@ The migration runner applies SQL files in lexical version order and records each
 | `002_career_catalog.sql` | Broader career, skill, career-skill, and roadmap catalog | Applied when `RUN_SEED_DATA=true` |
 | `003_assessment_seed.sql` | Published assessment questions, options, and deterministic scoring metadata | Applied when `RUN_SEED_DATA=true` |
 | `004_vr_mvp_catalog.sql` | MVP VR environments for AI Engineer and Data Analyst | Applied when `RUN_SEED_DATA=true` |
+| `005_privacy_controls.sql` | Opt-in consent row for existing and new users | Always applied; defaults all optional purposes to false |
+| `006_audit_events.sql` | Redacted audit event table and indexes | Always applied |
+| `007_catalog_ontology.sql` | Additive domains, aliases, prerequisites, transferable skills, provenance, and ontology version metadata | Always applied; current local catalog values are project-authored |
 
-Seed migrations use idempotent inserts and are safe to rerun through the migration runner. The MVP VR catalog is intentionally narrower than the career catalog: `ai-engineer-lab` belongs to `career_ai_engineer`, and `data-insights-studio` belongs to `career_data_analyst`. Additional careers do not require VR environments, and additional environments can be added as rows without changing core recommendation, skill-gap, or roadmap contracts.
+The ontology metadata is consumed by a provider-neutral local adapter for validation and future import work. It does not alter the existing career list/detail, recommendation, skill-gap, or roadmap response shapes. Seed migrations use idempotent inserts and are safe to rerun through the migration runner. The MVP VR catalog is intentionally narrower than the career catalog: `ai-engineer-lab` belongs to `career_ai_engineer`, and `data-insights-studio` belongs to `career_data_analyst`. Additional careers do not require VR environments, and additional environments can be added as rows without changing core recommendation, skill-gap, or roadmap contracts.
 
 ## Integrity and security rules
 
