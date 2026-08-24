@@ -9,6 +9,8 @@ interface QuestionRow {
   question_text: string;
   question_type: "single-choice" | "multiple-choice";
   question_order: number;
+  question_domain?: string;
+  question_difficulty?: "introductory" | "intermediate" | "advanced";
   option_id: string;
   option_label: string;
   option_order: number;
@@ -48,6 +50,16 @@ export interface AssessmentQuestionsResponse {
     type: "single-choice" | "multiple-choice";
     options: Array<{ id: string; label: string }>;
   }>;
+}
+
+export interface NextAssessmentQuestionResponse {
+  assessmentId: string;
+  done: boolean;
+  question: AssessmentQuestionsResponse["questions"][number] | null;
+  selection: {
+    strategy: "coverage-first-deterministic";
+    reason: string;
+  };
 }
 
 export interface AssessmentExplanation {
@@ -112,6 +124,114 @@ function mapQuestions(
     questions.set(row.question_id, question);
   }
   return [...questions.values()];
+}
+
+function selectNextQuestion(
+  rows: QuestionRow[],
+  answeredQuestionIds: Set<string>,
+): AssessmentQuestionsResponse["questions"][number] | null {
+  const grouped = new Map<string, QuestionRow[]>();
+  for (const row of rows) {
+    if (!grouped.has(row.question_id)) grouped.set(row.question_id, []);
+    grouped.get(row.question_id)!.push(row);
+  }
+  const domainCounts = new Map<string, number>();
+  for (const row of rows) {
+    if (answeredQuestionIds.has(row.question_id)) {
+      const domain = row.question_domain ?? "general";
+      domainCounts.set(domain, (domainCounts.get(domain) ?? 0) + 1);
+    }
+  }
+  const difficultyRank: Record<string, number> = {
+    introductory: 0,
+    intermediate: 1,
+    advanced: 2,
+  };
+  const candidates = [...grouped.values()]
+    .filter(
+      (questionRows) => !answeredQuestionIds.has(questionRows[0]!.question_id),
+    )
+    .sort((left, right) => {
+      const leftRow = left[0]!;
+      const rightRow = right[0]!;
+      const leftDomain = leftRow.question_domain ?? "general";
+      const rightDomain = rightRow.question_domain ?? "general";
+      return (
+        (domainCounts.get(leftDomain) ?? 0) -
+          (domainCounts.get(rightDomain) ?? 0) ||
+        (difficultyRank[leftRow.question_difficulty ?? "introductory"] ?? 0) -
+          (difficultyRank[rightRow.question_difficulty ?? "introductory"] ??
+            0) ||
+        leftRow.question_order - rightRow.question_order ||
+        leftRow.question_id.localeCompare(rightRow.question_id)
+      );
+    });
+  const selected = candidates[0];
+  if (!selected) return null;
+  return {
+    id: selected[0]!.question_id,
+    text: selected[0]!.question_text,
+    type: selected[0]!.question_type,
+    options: selected.map((row) => ({
+      id: row.option_id,
+      label: row.option_label,
+    })),
+  };
+}
+
+export async function getNextAssessmentQuestion(
+  userId: string,
+  assessmentId: string,
+  answeredQuestionIds: string[],
+  database: DatabasePool = requirePool(),
+): Promise<NextAssessmentQuestionResponse> {
+  const client = await database.connect();
+  try {
+    const assessment = await client.query<AssessmentRow>(
+      "SELECT id, status FROM assessments WHERE id = $1 AND user_id = $2",
+      [assessmentId, userId],
+    );
+    if (!assessment.rows[0]) {
+      throw new AppError(
+        404,
+        "assessment_not_found",
+        "The requested assessment was not found.",
+      );
+    }
+    const result = await client.query<QuestionRow>(`
+      SELECT
+        aq.id AS question_id,
+        aq.text AS question_text,
+        aq.question_type,
+        aq.display_order AS question_order,
+        aq.domain AS question_domain,
+        aq.difficulty AS question_difficulty,
+        ao.id AS option_id,
+        ao.label AS option_label,
+        ao.display_order AS option_order
+      FROM assessment_questions aq
+      JOIN assessment_options ao ON ao.question_id = aq.id
+      WHERE aq.published = TRUE
+      ORDER BY aq.display_order, ao.display_order
+    `);
+    const question = selectNextQuestion(
+      result.rows,
+      new Set(answeredQuestionIds),
+    );
+    return {
+      assessmentId,
+      done: question === null,
+      question,
+      selection: {
+        strategy: "coverage-first-deterministic",
+        reason: question
+          ? "Selects the least-covered domain, then the lowest difficulty and stable display order."
+          : "All published questions have been answered.",
+      },
+    };
+  } finally {
+    client.release();
+  }
 }
 
 export async function getAssessmentQuestions(

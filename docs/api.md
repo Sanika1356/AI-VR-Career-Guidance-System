@@ -184,6 +184,29 @@ Returns ordered assessment questions without exposing answer keys or internal sc
 }
 ```
 
+### `GET /api/assessment/next?assessmentId=<id>&answeredQuestionIds=<id1,id2>`
+
+Returns the next published question for an in-progress assessment. The selector is deterministic: it prioritizes the least-covered question domain, then the lowest difficulty, then stable display order. The `answeredQuestionIds` query value is optional and is a bounded comma-separated list. When all published questions are answered, the response returns `done: true` and `question: null`.
+
+```json
+{
+  "assessmentId": "assessment_123",
+  "done": false,
+  "question": {
+    "id": "question_2",
+    "text": "Which project sounds useful?",
+    "type": "single-choice",
+    "options": [{"id": "option_a", "label": "Automating a workflow"}]
+  },
+  "selection": {
+    "strategy": "coverage-first-deterministic",
+    "reason": "Selects the least-covered domain, then the lowest difficulty and stable display order."
+  }
+}
+```
+
+The client keeps this route opt-in behind `VITE_ENABLE_ADAPTIVE_ASSESSMENT=false` by default; the existing complete-question-set flow remains the safe fallback until adaptive sequencing is enabled and browser-tested.
+
 ### `POST /api/assessment/submit`
 
 Request:

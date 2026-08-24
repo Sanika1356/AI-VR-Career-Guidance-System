@@ -72,6 +72,16 @@ export interface AssessmentQuestionSet {
   questions: AssessmentQuestion[];
 }
 
+export interface NextAssessmentQuestionResponse {
+  assessmentId: string;
+  done: boolean;
+  question: AssessmentQuestion | null;
+  selection: {
+    strategy: 'coverage-first-deterministic';
+    reason: string;
+  };
+}
+
 export interface AssessmentAnswer {
   questionId: string;
   optionId?: string;
