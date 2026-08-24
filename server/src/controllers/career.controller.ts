@@ -4,7 +4,10 @@ import {
   getCareer,
   listCareers,
 } from "../services/career.service.js";
-import { validateCompareCareersQuery } from "../validators/career.js";
+import {
+  validateCatalogLanguageQuery,
+  validateCompareCareersQuery,
+} from "../validators/career.js";
 import { AppError } from "../utils/app-error.js";
 
 export async function listCareersController(
@@ -13,7 +16,8 @@ export async function listCareersController(
   next: NextFunction,
 ): Promise<void> {
   try {
-    response.status(200).json(await listCareers());
+    const { languageCode } = validateCatalogLanguageQuery(_request.query);
+    response.status(200).json(await listCareers(undefined, languageCode));
   } catch (error) {
     next(error);
   }
@@ -26,7 +30,11 @@ export async function compareCareersController(
 ): Promise<void> {
   try {
     const input = validateCompareCareersQuery(request.query);
-    response.status(200).json(await compareCareers(input.careerIds));
+    response
+      .status(200)
+      .json(
+        await compareCareers(input.careerIds, undefined, input.languageCode),
+      );
   } catch (error) {
     next(error);
   }
@@ -42,7 +50,10 @@ export async function getCareerController(
     if (typeof careerId !== "string" || careerId.length === 0) {
       throw new AppError(400, "validation_error", "careerId is required.");
     }
-    response.status(200).json(await getCareer(careerId));
+    const { languageCode } = validateCatalogLanguageQuery(request.query);
+    response
+      .status(200)
+      .json(await getCareer(careerId, undefined, languageCode));
   } catch (error) {
     next(error);
   }

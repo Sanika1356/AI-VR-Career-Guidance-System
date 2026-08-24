@@ -7,7 +7,10 @@ import {
   getCareer,
   listCareers,
 } from "../src/services/career.service.js";
-import { validateCompareCareersQuery } from "../src/validators/career.js";
+import {
+  validateCatalogLanguageQuery,
+  validateCompareCareersQuery,
+} from "../src/validators/career.js";
 
 function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
   return { rows, rowCount: rows.length, command: "SELECT", oid: 0, fields: [] };
@@ -156,7 +159,15 @@ test("compare career query validation requires two to five unique IDs", () => {
     }),
     {
       careerIds: ["career_ai_engineer", "career_data_analyst"],
+      languageCode: "en",
     },
+  );
+  assert.deepEqual(validateCatalogLanguageQuery({ language: "es" }), {
+    languageCode: "es",
+  });
+  assert.throws(
+    () => validateCatalogLanguageQuery({ language: "spanish" }),
+    /two-letter code/,
   );
   assert.throws(
     () => validateCompareCareersQuery({ careerIds: "career_ai_engineer" }),

@@ -1,7 +1,25 @@
 import { AppError } from "../utils/app-error.js";
 
-export interface CompareCareersInput {
+export type CatalogLanguage = string;
+
+export interface CatalogLanguageInput {
+  languageCode: CatalogLanguage;
+}
+
+export interface CompareCareersInput extends CatalogLanguageInput {
   careerIds: string[];
+}
+
+function languageCode(value: unknown): CatalogLanguage {
+  if (value === undefined) return "en";
+  if (typeof value !== "string" || !/^[a-z]{2}(?:-[A-Z]{2})?$/.test(value)) {
+    throw new AppError(
+      400,
+      "validation_error",
+      "language must be a two-letter code such as en or es.",
+    );
+  }
+  return value;
 }
 
 function requiredId(value: unknown): string {
@@ -17,6 +35,21 @@ function requiredId(value: unknown): string {
     );
   }
   return value.trim();
+}
+
+export function validateCatalogLanguageQuery(
+  query: unknown,
+): CatalogLanguageInput {
+  if (typeof query !== "object" || query === null || Array.isArray(query)) {
+    throw new AppError(
+      400,
+      "validation_error",
+      "Query parameters must be an object.",
+    );
+  }
+  return {
+    languageCode: languageCode((query as Record<string, unknown>).language),
+  };
 }
 
 export function validateCompareCareersQuery(
@@ -52,5 +85,8 @@ export function validateCompareCareersQuery(
       "careerIds must not contain duplicates.",
     );
   }
-  return { careerIds };
+  return {
+    careerIds,
+    languageCode: languageCode((query as Record<string, unknown>).language),
+  };
 }

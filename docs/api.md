@@ -141,9 +141,9 @@ Permanently deletes the authenticated user and all account-owned records covered
 
 ## Careers
 
-### `GET /api/careers`
+### `GET /api/careers?language=<code>`
 
-Returns available career paths.
+Returns available career paths. `language` is optional and defaults to `en`; the current local label seed includes `en` and `es`. A regional code such as `es-MX` first tries the regional label, then `es`, then `en`.
 
 ```json
 [
@@ -157,11 +157,11 @@ Returns available career paths.
 ]
 ```
 
-### `GET /api/careers/:careerId`
+### `GET /api/careers/:careerId?language=<code>`
 
-Returns full information for one career, including required skills, recommended learning resources, and the VR environment key when available.
+Returns full information for one career, including required skills, recommended learning resources, and the VR environment key when available. Career and skill labels use the same requested-language, base-language, then English fallback.
 
-### `GET /api/careers/comparison?careerIds=<id1>,<id2>[,<id3>...]`
+### `GET /api/careers/comparison?careerIds=<id1>,<id2>[,<id3>...]&language=<code>`
 
 Returns a read-only comparison for two to five distinct careers from the local catalog. The response preserves the requested order and includes skills, project-authored work activities, a directional learning-effort label with roadmap/resource counts, transferable skills available in the ontology, optional VR environment metadata, and explicit uncertainty notes. It does not claim salary, employment probability, licensing status, or other external labor-market facts.
 
