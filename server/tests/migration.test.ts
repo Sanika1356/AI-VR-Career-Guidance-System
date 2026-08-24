@@ -12,6 +12,14 @@ const auditMigrationPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../src/db/migrations/006_audit_events.sql",
 );
+const ontologyMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/007_catalog_ontology.sql",
+);
+const metadataMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/008_catalog_metadata.sql",
+);
 
 const requiredTables = [
   "users",
@@ -73,4 +81,25 @@ test("audit migration stores redacted event metadata and retains deletion eviden
     assert.match(sql, new RegExp(`'${eventType}'`));
   }
   assert.doesNotMatch(sql, /password_hash|bearer|raw_prompt|raw_answer/);
+});
+
+test("catalog migrations add versioned ontology metadata without changing core entities", async () => {
+  const ontologySql = await readFile(ontologyMigrationPath, "utf8");
+  const metadataSql = await readFile(metadataMigrationPath, "utf8");
+  for (const column of [
+    "domain",
+    "aliases",
+    "source_references",
+    "ontology_version",
+  ]) {
+    assert.match(ontologySql, new RegExp(column));
+  }
+  for (const column of [
+    "education_pathways",
+    "proficiency_levels",
+    "related_skills",
+  ]) {
+    assert.match(metadataSql, new RegExp(column));
+  }
+  assert.match(ontologySql, /local-mvp-v1/);
 });
