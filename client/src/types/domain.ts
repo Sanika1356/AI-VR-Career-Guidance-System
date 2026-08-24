@@ -235,8 +235,9 @@ export interface ChatMessage {
   content: string;
   createdAt: string;
   sources?: string[];
+  confidence?: 'low' | 'medium' | 'high';
+  caveat?: string;
 }
-
 export interface AdvisorChatRequest {
   message: string;
   careerId?: string;
@@ -247,6 +248,8 @@ export interface AdvisorChatResponse {
   conversationId: string;
   answer: string;
   sources: string[];
+  confidence?: 'low' | 'medium' | 'high';
+  caveat?: string;
   createdAt: string;
 }
 

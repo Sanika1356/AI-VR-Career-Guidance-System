@@ -80,6 +80,8 @@ export function AdvisorPage() {
           content: response.answer,
           createdAt: response.createdAt,
           sources: response.sources,
+          confidence: response.confidence,
+          caveat: response.caveat,
         },
       ]);
     } catch (error: unknown) {
@@ -150,6 +152,14 @@ export function AdvisorPage() {
                   <time className="advisor-message__time" dateTime={item.createdAt}>
                     {formatTimestamp(item.createdAt)}
                   </time>
+                )}
+                {isEndOfSenderGroup && item.confidence && (
+                  <small className="advisor-message__confidence">
+                    {item.confidence} context confidence
+                  </small>
+                )}
+                {isEndOfSenderGroup && item.caveat && (
+                  <small className="advisor-message__caveat">{item.caveat}</small>
                 )}
                 {isEndOfSenderGroup && item.sources && item.sources.length > 0 && (
                   <small className="advisor-message__sources">
