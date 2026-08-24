@@ -14,6 +14,8 @@ function parseAdvisorResponse(value: unknown): AdvisorChatResponse {
   const answer = value.answer;
   const createdAt = value.createdAt;
   const sources = value.sources;
+  const confidence = value.confidence;
+  const caveat = value.caveat;
 
   if (
     typeof conversationId !== 'string' ||
@@ -22,7 +24,9 @@ function parseAdvisorResponse(value: unknown): AdvisorChatResponse {
     answer.trim().length === 0 ||
     typeof createdAt !== 'string' ||
     !Array.isArray(sources) ||
-    sources.some((source) => typeof source !== 'string')
+    sources.some((source) => typeof source !== 'string') ||
+    (confidence !== undefined && !['low', 'medium', 'high'].includes(confidence as string)) ||
+    (caveat !== undefined && typeof caveat !== 'string')
   ) {
     throw new Error('The advisor returned an incomplete response.');
   }
@@ -32,6 +36,8 @@ function parseAdvisorResponse(value: unknown): AdvisorChatResponse {
     answer,
     createdAt,
     sources,
+    confidence: confidence as AdvisorChatResponse['confidence'],
+    caveat: typeof caveat === 'string' ? caveat : undefined,
   };
 }
 

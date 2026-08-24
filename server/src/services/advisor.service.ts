@@ -37,10 +37,14 @@ interface ConversationRow {
   id: string;
 }
 
+export type AdvisorConfidence = "low" | "medium" | "high";
+
 export interface AdvisorResponse {
   conversationId: string;
   answer: string;
   sources: string[];
+  confidence: AdvisorConfidence;
+  caveat: string;
   createdAt: string;
 }
 
@@ -121,6 +125,23 @@ function groupCareerRows(rows: CareerRow[]): {
       parseArray(first.source_references ?? []),
     ),
   };
+}
+
+function advisorConfidence(
+  allowPersonalization: boolean,
+  hasProfile: boolean,
+  hasAssessment: boolean,
+  hasCareer: boolean,
+  hasRoadmap: boolean,
+): AdvisorConfidence {
+  if (!allowPersonalization) return "low";
+  const evidenceCount = [
+    hasProfile,
+    hasAssessment,
+    hasCareer,
+    hasRoadmap,
+  ].filter(Boolean).length;
+  return evidenceCount >= 4 ? "high" : evidenceCount >= 2 ? "medium" : "low";
 }
 
 function fallbackAnswer(
@@ -387,6 +408,15 @@ export async function chatAdvisor(
       ) ?? [];
     const allowPersonalization =
       consentResult.rows[0]?.personalized_ai === true;
+    const confidence = advisorConfidence(
+      allowPersonalization,
+      Boolean(profileResult.rows[0]),
+      Boolean(assessmentResult.rows[0]),
+      Boolean(career),
+      roadmap.length > 0,
+    );
+    const caveat =
+      "Confidence reflects the amount of approved context available, not the truth or outcome of the advice. Verify consequential decisions with authoritative sources and trusted people.";
     const prompt = buildPrompt(
       input,
       profileResult.rows[0],
@@ -456,6 +486,8 @@ export async function chatAdvisor(
       conversationId,
       answer,
       sources: career?.sourceReferences ?? [],
+      confidence,
+      caveat,
       createdAt,
     };
   } catch (error) {
