@@ -7,7 +7,12 @@ import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ProgressBar } from '../components/ProgressBar';
 import { getRoadmap, updateRoadmapStep } from '../services/roadmap';
-import type { RoadmapResponse, RoadmapStep } from '../types/domain';
+import type {
+  RoadmapResponse,
+  RoadmapStep,
+  RoadmapStepStatus,
+  RoadmapStepUpdate,
+} from '../types/domain';
 
 interface RoadmapPageProps {
   careerId?: string;
@@ -18,10 +23,14 @@ function RoadmapStepCard({
   step,
   isUpdating,
   onToggle,
+  onUpdate,
+  onMove,
 }: {
   step: RoadmapStep;
   isUpdating: boolean;
   onToggle: (step: RoadmapStep) => void;
+  onUpdate: (step: RoadmapStep, update: RoadmapStepUpdate) => void;
+  onMove: (step: RoadmapStep, delta: number) => void;
 }) {
   const descriptionId = `roadmap-step-description-${step.id}`;
 
@@ -43,8 +52,76 @@ function RoadmapStepCard({
         <p id={descriptionId} className="roadmap-step__description">
           {step.description}
         </p>
+        <p className="roadmap-step__meta">
+          Estimated effort: {Math.ceil(step.estimatedEffortMinutes / 60)} hour(s)
+        </p>
+        <p className="roadmap-step__accessibility">{step.accessibilityNote}</p>
+        <div className="roadmap-step__controls">
+          <label>
+            <span>Status</span>
+            <select
+              value={step.status}
+              disabled={isUpdating}
+              onChange={(event) =>
+                onUpdate(step, {
+                  completed: step.completed,
+                  status: event.target.value as RoadmapStepStatus,
+                })
+              }
+            >
+              <option value="not_started">Not started</option>
+              <option value="in_progress">In progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </label>
+          <label>
+            <span>Target date</span>
+            <input
+              type="date"
+              value={step.targetDate ?? ''}
+              disabled={isUpdating}
+              onChange={(event) =>
+                onUpdate(step, {
+                  completed: step.completed,
+                  targetDate: event.target.value || null,
+                })
+              }
+            />
+          </label>
+          <label className="roadmap-step__notes">
+            <span>Notes</span>
+            <textarea
+              defaultValue={step.notes}
+              disabled={isUpdating}
+              maxLength={2000}
+              rows={2}
+              onBlur={(event) =>
+                event.target.value !== step.notes &&
+                onUpdate(step, { completed: step.completed, notes: event.target.value })
+              }
+            />
+          </label>
+        </div>
         <div className="roadmap-step__footer">
           <span className="roadmap-step__skill">Focus skill: {step.skill}</span>
+          <div className="roadmap-step__order-controls" aria-label="Reorder roadmap step">
+            <Button
+              variant="outline"
+              type="button"
+              disabled={isUpdating || step.position <= 1}
+              onClick={() => onMove(step, -1)}
+            >
+              Move up
+            </Button>
+            <Button
+              variant="outline"
+              type="button"
+              disabled={isUpdating}
+              onClick={() => onMove(step, 1)}
+            >
+              Move down
+            </Button>
+          </div>
           <label className="roadmap-step__toggle">
             <input
               type="checkbox"
@@ -104,13 +181,11 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
   const totalSteps = roadmap?.steps.length ?? 0;
   const progress = totalSteps === 0 ? 0 : Math.round((completedCount / totalSteps) * 100);
 
-  const handleToggle = (step: RoadmapStep) => {
+  const handleUpdate = (step: RoadmapStep, update: RoadmapStepUpdate) => {
     if (updatingStepId) return;
-
-    const completed = !step.completed;
     setUpdatingStepId(step.id);
     setActionError('');
-    updateRoadmapStep(step.id, { completed })
+    updateRoadmapStep(step.id, { ...update, completed: update.completed ?? step.completed })
       .then((response) => {
         setRoadmap((current) =>
           current
@@ -118,7 +193,14 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
                 ...current,
                 steps: current.steps.map((currentStep) =>
                   currentStep.id === response.stepId
-                    ? { ...currentStep, completed: response.completed }
+                    ? {
+                        ...currentStep,
+                        completed: response.completed,
+                        targetDate: response.targetDate,
+                        status: response.status,
+                        notes: response.notes,
+                        position: response.position ?? currentStep.position,
+                      }
                     : currentStep,
                 ),
               }
@@ -130,6 +212,50 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
           error instanceof Error
             ? error.message
             : 'This progress update could not be saved. Please try again.',
+        );
+      })
+      .finally(() => setUpdatingStepId(null));
+  };
+
+  const handleToggle = (step: RoadmapStep) => {
+    handleUpdate(step, { completed: !step.completed });
+  };
+
+  const handleMove = (step: RoadmapStep, delta: number) => {
+    if (updatingStepId || !roadmap) return;
+    const ordered = [...roadmap.steps].sort((left, right) => left.position - right.position);
+    const index = ordered.findIndex((candidate) => candidate.id === step.id);
+    const neighbor = ordered[index + delta];
+    if (!neighbor) return;
+    const firstPosition = step.position;
+    const secondPosition = neighbor.position;
+    setUpdatingStepId(step.id);
+    setActionError('');
+    Promise.all([
+      updateRoadmapStep(step.id, { completed: step.completed, position: secondPosition }),
+      updateRoadmapStep(neighbor.id, { completed: neighbor.completed, position: firstPosition }),
+    ])
+      .then(() => {
+        setRoadmap((current) =>
+          current
+            ? {
+                ...current,
+                steps: current.steps.map((currentStep) =>
+                  currentStep.id === step.id
+                    ? { ...currentStep, position: secondPosition }
+                    : currentStep.id === neighbor.id
+                      ? { ...currentStep, position: firstPosition }
+                      : currentStep,
+                ),
+              }
+            : current,
+        );
+      })
+      .catch((error: unknown) => {
+        setActionError(
+          error instanceof Error
+            ? error.message
+            : 'This reorder could not be saved. Please try again.',
         );
       })
       .finally(() => setUpdatingStepId(null));
@@ -217,6 +343,8 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
                 step={step}
                 isUpdating={updatingStepId === step.id}
                 onToggle={handleToggle}
+                onUpdate={handleUpdate}
+                onMove={handleMove}
               />
             ))}
           </ol>
