@@ -48,6 +48,14 @@ export const env = {
     2,
     Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 1))),
   ),
+  aiCircuitFailureThreshold: Math.max(
+    1,
+    Math.floor(numberFromEnv(process.env.AI_CIRCUIT_FAILURE_THRESHOLD, 3)),
+  ),
+  aiCircuitCooldownMs: Math.max(
+    1_000,
+    Math.floor(numberFromEnv(process.env.AI_CIRCUIT_COOLDOWN_MS, 30_000)),
+  ),
   metricsWindowMs: Math.max(
     60_000,
     numberFromEnv(process.env.METRICS_WINDOW_MS, 300_000),

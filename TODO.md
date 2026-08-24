@@ -64,7 +64,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 5 — Grounded AI advisor and evaluation (P1)
 
-- [ ] Define a provider-neutral AI gateway with timeouts, retries, circuit breaking, cost/latency budgets, model configuration, and deterministic fallback responses.
 - [ ] Add answer confidence, uncertainty language, and “verify this” prompts for labor-market, salary, education, licensing, or other time-sensitive claims.
 - [ ] Add conversation memory controls: per-conversation scope, clear-history action, retention setting, export, deletion, and no hidden sensitive memory.
 - [ ] Add advisor feedback buttons and a redacted evaluation dataset covering helpfulness, grounding, safety, refusal quality, bias, and repetitive answers.

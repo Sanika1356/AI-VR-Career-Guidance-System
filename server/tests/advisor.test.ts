@@ -4,6 +4,7 @@ import test from "node:test";
 import { app } from "../src/app.js";
 import {
   chatAdvisor,
+  CircuitBreakerAdvisorProvider,
   OllamaAdvisorProvider,
   type AdvisorProvider,
 } from "../src/services/advisor.service.js";
@@ -230,6 +231,18 @@ test("advisor falls back when Ollama returns a malformed payload", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("advisor circuit breaker opens after repeated failures and recovers after cooldown", async () => {
+  const failing = new FailingProvider();
+  const breaker = new CircuitBreakerAdvisorProvider(failing, {
+    failureThreshold: 2,
+    cooldownMs: 1_000,
+  });
+
+  await assert.rejects(() => breaker.generate("first"), /local Ollama/);
+  await assert.rejects(() => breaker.generate("second"), /local Ollama/);
+  await assert.rejects(() => breaker.generate("third"), /circuit is open/);
 });
 
 test("advisor retries one transient provider failure and caps long responses", async () => {

@@ -41,3 +41,7 @@ services:
         value: "4000"
       - key: AI_RETRY_ATTEMPTS
         value: "1"
+      - key: AI_CIRCUIT_FAILURE_THRESHOLD
+        value: "3"
+      - key: AI_CIRCUIT_COOLDOWN_MS
+        value: "30000"
