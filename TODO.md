@@ -19,16 +19,11 @@
 | Member 2 | Express API, PostgreSQL, migrations, scoring, AI boundaries, observability, security | Publish request/response/error contracts, tests, migrations, seed updates, and safe configuration guidance |
 | Both members | Product decisions, contract changes, evaluation, privacy, release demonstrations | Agree before changing shared types, profile fields, statuses, or authentication |
 
-## Phase 0 — Product governance and measurement (P0)
+## Phase 0 — Product governance and measurement (P0) — completed
 
-- [ ] Write a one-page product specification that defines the target learner, supported career domains, MVP limitations, non-goals, and success metrics.
-- [ ] Define the north-star metrics: assessment completion, recommendation explanation usefulness, roadmap completion, advisor helpfulness, VR fallback engagement, and return usage. Specify privacy-safe event names and retention periods.
-- [ ] Create a shared API-contract change process. Every new field or endpoint must include an example request, success response, error response, authorization rule, migration impact, and frontend consumer.
-- [ ] Create a data dictionary for users, profiles, assessments, career records, skills, recommendations, roadmaps, advisor messages, VR environments, consent, and analytics events.
-- [ ] Define a responsible-AI review checklist covering hallucination, overconfidence, discrimination, sensitive advice, citation quality, prompt injection, and unsafe career or mental-health claims.
-- [ ] Add a lightweight decision log for architecture choices, especially authentication, external taxonomies, AI provider changes, WebXR scope, and data retention.
+The product specification, success metrics and privacy-safe event vocabulary, API-contract change process, data dictionary, responsible-AI checklist, and architecture decision log are drafted in [`docs/product-governance-pack.md`](docs/product-governance-pack.md).
 
-**Acceptance evidence:** Both members approve the product specification, contract process, data dictionary, metric definitions, and responsible-AI checklist in a reviewed pull request.
+- [ ] Both members review and approve the governance pack before future feature implementation begins.
 
 ## Phase 1 — Trust, security, privacy, and reliability (P0)
 
