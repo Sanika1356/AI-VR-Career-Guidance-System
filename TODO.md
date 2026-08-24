@@ -44,7 +44,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 3 — Better assessment and learner modeling (P1)
 
-- [ ] Add adaptive assessment sequencing that selects the next question from uncertainty and coverage while preserving a deterministic fallback when the AI service is unavailable.
 - [ ] Add optional learner goals, constraints, preferred work conditions, education stage, location preference, and time budget only through an approved contract change; do not add client-only fields.
 - [ ] Add assessment retake comparison with versioned results, changed answers, confidence changes, and a clear explanation of why recommendations changed.
 - [ ] Add accessibility support for keyboard-only completion, screen readers, reduced motion, high contrast, readable error summaries, and save/resume across devices.

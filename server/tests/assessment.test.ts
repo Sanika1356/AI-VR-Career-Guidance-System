@@ -7,8 +7,10 @@ import type { DatabaseClient, DatabasePool } from "../src/db/types.js";
 import {
   getAssessmentQuestions,
   getAssessmentResult,
+  getNextAssessmentQuestion,
   submitAssessment,
 } from "../src/services/assessment.service.js";
+import { validateNextAssessmentQuestionQuery } from "../src/validators/assessment.js";
 
 function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
   return { rows, rowCount: rows.length, command: "SELECT", oid: 0, fields: [] };
@@ -165,6 +167,87 @@ test("getAssessmentResult returns only the authenticated user result", async () 
     categoryScores: { career_ai_engineer: 5 },
     topCareerIds: ["career_ai_engineer"],
   });
+});
+
+test("adaptive assessment query validation stays bounded and strict", () => {
+  assert.deepEqual(
+    validateNextAssessmentQuestionQuery({
+      assessmentId: "assessment_demo",
+      answeredQuestionIds: "question_1,question_2",
+    }),
+    {
+      assessmentId: "assessment_demo",
+      answeredQuestionIds: ["question_1", "question_2"],
+    },
+  );
+  assert.throws(
+    () =>
+      validateNextAssessmentQuestionQuery({
+        assessmentId: "assessment_demo",
+        answeredQuestionIds: "question_1,question_1",
+      }),
+    /must not contain duplicates/,
+  );
+  assert.throws(
+    () =>
+      validateNextAssessmentQuestionQuery({
+        answeredQuestionIds: "question_1",
+      }),
+    /assessmentId must be a non-empty string/,
+  );
+});
+
+test("adaptive assessment selects the least-covered domain deterministically and ends safely", async () => {
+  const client = new FakeClient((sql) => {
+    if (sql.includes("FROM assessments"))
+      return queryResult([{ id: "assessment_demo", status: "in_progress" }]);
+    if (sql.includes("FROM assessment_questions aq")) {
+      return queryResult([
+        {
+          question_id: "question_data",
+          question_text: "Data?",
+          question_type: "single-choice",
+          question_order: 1,
+          question_domain: "data",
+          question_difficulty: "introductory",
+          option_id: "option_data",
+          option_label: "Analyze",
+          option_order: 1,
+        },
+        {
+          question_id: "question_ai",
+          question_text: "Software?",
+          question_type: "single-choice",
+          question_order: 2,
+          question_domain: "ai",
+          question_difficulty: "introductory",
+          option_id: "option_ai",
+          option_label: "Build",
+          option_order: 1,
+        },
+      ]);
+    }
+    return queryResult([]);
+  });
+
+  const next = await getNextAssessmentQuestion(
+    "user_demo",
+    "assessment_demo",
+    ["question_data"],
+    poolFor(client),
+  );
+  assert.equal(next.done, false);
+  assert.equal(next.question?.id, "question_ai");
+  assert.equal(next.selection.strategy, "coverage-first-deterministic");
+
+  const finished = await getNextAssessmentQuestion(
+    "user_demo",
+    "assessment_demo",
+    ["question_data", "question_ai"],
+    poolFor(client),
+  );
+  assert.equal(finished.done, true);
+  assert.equal(finished.question, null);
 });
 
 test("assessment result explanations connect scores to answer evidence without diagnosis", async () => {

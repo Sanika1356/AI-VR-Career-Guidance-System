@@ -7,7 +7,12 @@ import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { Notification } from '../components/Notification';
 import { ProgressBar } from '../components/ProgressBar';
-import { getAssessmentQuestions, submitAssessment } from '../services/assessment';
+import {
+  getAssessmentQuestions,
+  getNextAssessmentQuestion,
+  submitAssessment,
+} from '../services/assessment';
+import { adaptiveAssessmentEnabled } from '../config/features';
 import type {
   AssessmentQuestion,
   AssessmentQuestionSet,
@@ -66,6 +71,26 @@ function clearAssessmentDraft(): void {
   } catch {
     // Ignore storage cleanup failures; the completed result remains usable in memory.
   }
+}
+
+async function resolveAdaptiveQuestionSet(
+  response: AssessmentQuestionSet,
+): Promise<AssessmentQuestionSet> {
+  if (!adaptiveAssessmentEnabled || response.questions.length < 2) return response;
+  const questionsById = new Map(response.questions.map((question) => [question.id, question]));
+  const orderedQuestions: AssessmentQuestion[] = [];
+  const answeredQuestionIds: string[] = [];
+  for (let index = 0; index < response.questions.length; index += 1) {
+    const next = await getNextAssessmentQuestion(response.assessmentId, answeredQuestionIds);
+    if (next.done || !next.question) break;
+    const question = questionsById.get(next.question.id);
+    if (!question || answeredQuestionIds.includes(question.id)) break;
+    orderedQuestions.push(question);
+    answeredQuestionIds.push(question.id);
+  }
+  return orderedQuestions.length === response.questions.length
+    ? { ...response, questions: orderedQuestions }
+    : response;
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -322,6 +347,7 @@ export function AssessmentPage({ onNavigate }: AssessmentPageProps) {
     setLoadError(null);
     setIsDraftHydrated(false);
     getAssessmentQuestions()
+      .then((response) => resolveAdaptiveQuestionSet(response).catch(() => response))
       .then((response) => {
         if (!active) return;
         setQuestionSet(response);
