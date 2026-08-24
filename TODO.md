@@ -25,10 +25,7 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 1 — Trust, security, privacy, and reliability (P0)
 
-- [ ] Add automated dependency scanning, secret scanning, lockfile verification, and a CI workflow that runs client checks, server typecheck/build/tests, migration checks, and contract tests.
 - [ ] Add scheduled PostgreSQL backup verification and a documented restore rehearsal using non-production data.
-- [ ] Add feature flags for experimental AI, external career data, and WebXR features so unfinished work cannot break the stable MVP.
-- [ ] Add an abuse-protection policy for registration, advisor requests, automated scraping, oversized prompts, and repeated failed authentication attempts.
 - [ ] Review CORS, security headers, request size limits, token expiry, password policy, session invalidation, and deployment environment variables before every major release.
 
 **Acceptance evidence:** A security/privacy checklist, CI run, redacted audit-log sample, backup-restore record, and failure-injection test are committed without secrets.

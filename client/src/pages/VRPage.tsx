@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { webXrEnabled } from '../config/features';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -60,7 +61,10 @@ export function VRPage({ onNavigate }: VRPageProps) {
           <p>
             Choose a focused environment to imagine the work, tools, and questions behind a career.
             The MVP includes a small set of high-quality worlds while the broader career catalog
-            remains open to future domains.
+            remains open to future domains.{' '}
+            {webXrEnabled
+              ? 'Experimental WebXR controls are enabled only for supported capability checks.'
+              : 'Immersive WebXR controls are disabled in this release; the desktop fallback remains available.'}
           </p>
         </div>
         <Badge tone="success">Desktop-friendly experience</Badge>
