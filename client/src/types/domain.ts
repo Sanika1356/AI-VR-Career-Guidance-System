@@ -247,6 +247,10 @@ export interface SkillGapResponse {
 }
 
 export type RoadmapStepStatus = 'not_started' | 'in_progress' | 'completed';
+export interface RoadmapEvidenceLink {
+  label: string;
+  url: string;
+}
 export interface RoadmapStep {
   id: string;
   title: string;
@@ -259,6 +263,7 @@ export interface RoadmapStep {
   targetDate: string | null;
   status: RoadmapStepStatus;
   notes: string;
+  evidenceLinks: RoadmapEvidenceLink[];
   position: number;
 }
 
@@ -272,6 +277,7 @@ export interface RoadmapStepUpdate {
   targetDate?: string | null;
   status?: RoadmapStepStatus;
   notes?: string;
+  evidenceLinks?: RoadmapEvidenceLink[];
   position?: number;
 }
 

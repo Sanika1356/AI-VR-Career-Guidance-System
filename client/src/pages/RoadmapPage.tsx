@@ -6,7 +6,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ProgressBar } from '../components/ProgressBar';
-import { getRoadmap, updateRoadmapStep } from '../services/roadmap';
+import { getRoadmap, reorderRoadmapStep, updateRoadmapStep } from '../services/roadmap';
 import type {
   RoadmapResponse,
   RoadmapStep,
@@ -19,20 +19,47 @@ interface RoadmapPageProps {
   onNavigate: (href: string) => void;
 }
 
+function evidenceLinksToText(links: RoadmapStep['evidenceLinks']) {
+  return links.map((link) => `${link.label} | ${link.url}`).join('\n');
+}
+
+function parseEvidenceLinksText(value: string): RoadmapStep['evidenceLinks'] {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const separator = line.indexOf('|');
+      return separator < 0
+        ? { label: 'Evidence', url: line }
+        : { label: line.slice(0, separator).trim(), url: line.slice(separator + 1).trim() };
+    })
+    .filter((link) => link.label && link.url);
+}
+
 function RoadmapStepCard({
   step,
   isUpdating,
   onToggle,
   onUpdate,
   onMove,
+  isLast,
 }: {
   step: RoadmapStep;
   isUpdating: boolean;
+  isLast: boolean;
   onToggle: (step: RoadmapStep) => void;
   onUpdate: (step: RoadmapStep, update: RoadmapStepUpdate) => void;
   onMove: (step: RoadmapStep, delta: number) => void;
 }) {
   const descriptionId = `roadmap-step-description-${step.id}`;
+  const [notesDraft, setNotesDraft] = useState(step.notes);
+  const [evidenceDraft, setEvidenceDraft] = useState(evidenceLinksToText(step.evidenceLinks));
+
+  useEffect(() => {
+    setNotesDraft(step.notes);
+    setEvidenceDraft(evidenceLinksToText(step.evidenceLinks));
+  }, [step.notes, step.evidenceLinks]);
 
   return (
     <li className={`roadmap-step ${step.completed ? 'roadmap-step--completed' : ''}`}>
@@ -91,15 +118,34 @@ function RoadmapStepCard({
           <label className="roadmap-step__notes">
             <span>Notes</span>
             <textarea
-              defaultValue={step.notes}
+              value={notesDraft}
               disabled={isUpdating}
               maxLength={2000}
               rows={2}
-              onBlur={(event) =>
-                event.target.value !== step.notes &&
-                onUpdate(step, { completed: step.completed, notes: event.target.value })
+              onChange={(event) => setNotesDraft(event.target.value)}
+              onBlur={() =>
+                notesDraft !== step.notes &&
+                onUpdate(step, { completed: step.completed, notes: notesDraft })
               }
             />
+          </label>
+          <label className="roadmap-step__evidence">
+            <span>Evidence links</span>
+            <textarea
+              value={evidenceDraft}
+              disabled={isUpdating}
+              maxLength={10000}
+              rows={2}
+              placeholder="Course notes | https://example.org"
+              onChange={(event) => setEvidenceDraft(event.target.value)}
+              onBlur={() => {
+                const evidenceLinks = parseEvidenceLinksText(evidenceDraft);
+                if (JSON.stringify(evidenceLinks) !== JSON.stringify(step.evidenceLinks)) {
+                  onUpdate(step, { completed: step.completed, evidenceLinks });
+                }
+              }}
+            />
+            <small>One per line: label | absolute HTTP(S) URL</small>
           </label>
         </div>
         <div className="roadmap-step__footer">
@@ -116,7 +162,7 @@ function RoadmapStepCard({
             <Button
               variant="outline"
               type="button"
-              disabled={isUpdating}
+              disabled={isUpdating || isLast}
               onClick={() => onMove(step, 1)}
             >
               Move down
@@ -199,6 +245,7 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
                         targetDate: response.targetDate,
                         status: response.status,
                         notes: response.notes,
+                        evidenceLinks: response.evidenceLinks,
                         position: response.position ?? currentStep.position,
                       }
                     : currentStep,
@@ -227,26 +274,22 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
     const index = ordered.findIndex((candidate) => candidate.id === step.id);
     const neighbor = ordered[index + delta];
     if (!neighbor) return;
-    const firstPosition = step.position;
-    const secondPosition = neighbor.position;
     setUpdatingStepId(step.id);
     setActionError('');
-    Promise.all([
-      updateRoadmapStep(step.id, { completed: step.completed, position: secondPosition }),
-      updateRoadmapStep(neighbor.id, { completed: neighbor.completed, position: firstPosition }),
-    ])
-      .then(() => {
+    reorderRoadmapStep(step.id, neighbor.position)
+      .then((response) => {
         setRoadmap((current) =>
           current
             ? {
                 ...current,
-                steps: current.steps.map((currentStep) =>
-                  currentStep.id === step.id
-                    ? { ...currentStep, position: secondPosition }
-                    : currentStep.id === neighbor.id
-                      ? { ...currentStep, position: firstPosition }
-                      : currentStep,
-                ),
+                steps: current.steps
+                  .map((currentStep) => {
+                    const updated = response.positions.find(
+                      (position) => position.stepId === currentStep.id,
+                    );
+                    return updated ? { ...currentStep, position: updated.position } : currentStep;
+                  })
+                  .sort((left, right) => left.position - right.position),
               }
             : current,
         );
@@ -342,6 +385,7 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
                 key={step.id}
                 step={step}
                 isUpdating={updatingStepId === step.id}
+                isLast={step.position >= totalSteps}
                 onToggle={handleToggle}
                 onUpdate={handleUpdate}
                 onMove={handleMove}

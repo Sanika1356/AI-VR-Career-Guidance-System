@@ -49,7 +49,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 ## Phase 4 — Personalized roadmap and learning execution (P1)
 
 - [ ] Add prerequisite-aware skill-gap prioritization based on career value, dependency order, learner time budget, confidence, and transferable skills.
-- [ ] Add roadmap milestones with target dates, estimated effort, status, notes, evidence links, and user-controlled reordering.
 - [ ] Add reminders and notification preferences with quiet hours and an opt-out path; keep email or messaging integrations optional and zero-cost by default.
 - [ ] Add portfolio evidence attachments through a private storage design with file type limits, malware scanning plan, ownership checks, deletion, and no public exposure by default.
 - [ ] Add offline-friendly draft handling for assessment and roadmap notes, with conflict resolution when the device reconnects.
