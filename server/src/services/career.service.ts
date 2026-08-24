@@ -119,25 +119,34 @@ function toSummary(row: CareerSummaryRow): CareerSummary {
 
 export async function listCareers(
   database: DatabasePool = requirePool(),
+  languageCode = "en",
 ): Promise<CareerSummary[]> {
   const client = await database.connect();
   try {
-    const result = await client.query<CareerSummaryRow>(`
+    const result = await client.query<CareerSummaryRow>(
+      `
       SELECT
         c.id,
-        c.name,
-        c.description,
+        COALESCE(requested.name, base.name, fallback.name, c.name) AS name,
+        COALESCE(requested.description, base.description, fallback.description, c.description) AS description,
         c.environment_key,
-        COALESCE(
-          jsonb_agg(s.name ORDER BY s.name) FILTER (WHERE s.id IS NOT NULL),
-          '[]'::jsonb
-        ) AS skills
+        COALESCE((
+          SELECT jsonb_agg(COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name) ORDER BY COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name))
+          FROM career_skills cs
+          JOIN skills s ON s.id = cs.skill_id
+          LEFT JOIN skill_labels skill_requested ON skill_requested.skill_id = s.id AND skill_requested.language_code = $1
+          LEFT JOIN skill_labels skill_base ON skill_base.skill_id = s.id AND skill_base.language_code = split_part($1, '-', 1)
+          LEFT JOIN skill_labels skill_fallback ON skill_fallback.skill_id = s.id AND skill_fallback.language_code = 'en'
+          WHERE cs.career_id = c.id
+        ), '[]'::jsonb) AS skills
       FROM careers c
-      LEFT JOIN career_skills cs ON cs.career_id = c.id
-      LEFT JOIN skills s ON s.id = cs.skill_id
-      GROUP BY c.id
-      ORDER BY c.name
-    `);
+      LEFT JOIN career_labels requested ON requested.career_id = c.id AND requested.language_code = $1
+      LEFT JOIN career_labels base ON base.career_id = c.id AND base.language_code = split_part($1, '-', 1)
+      LEFT JOIN career_labels fallback ON fallback.career_id = c.id AND fallback.language_code = 'en'
+      ORDER BY COALESCE(requested.name, base.name, fallback.name, c.name)
+    `,
+      [languageCode],
+    );
     return result.rows.map(toSummary);
   } finally {
     client.release();
@@ -147,6 +156,7 @@ export async function listCareers(
 export async function compareCareers(
   careerIds: string[],
   database: DatabasePool = requirePool(),
+  languageCode = "en",
 ): Promise<{ careers: CareerComparison[] }> {
   const client = await database.connect();
   try {
@@ -154,25 +164,33 @@ export async function compareCareers(
       `
       SELECT
         c.id,
-        c.name,
+        COALESCE(requested.name, base.name, fallback.name, c.name) AS name,
         c.domain,
-        c.description,
+        COALESCE(requested.description, base.description, fallback.description, c.description) AS description,
         c.environment_key,
         ve.title AS environment_title,
         ve.available AS environment_available,
-        COALESCE(
-          jsonb_agg(s.name ORDER BY s.name) FILTER (WHERE s.id IS NOT NULL),
-          '[]'::jsonb
-        ) AS skills,
+        COALESCE((
+          SELECT jsonb_agg(COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name) ORDER BY COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name))
+          FROM career_skills cs
+          JOIN skills s ON s.id = cs.skill_id
+          LEFT JOIN skill_labels skill_requested ON skill_requested.skill_id = s.id AND skill_requested.language_code = $2
+          LEFT JOIN skill_labels skill_base ON skill_base.skill_id = s.id AND skill_base.language_code = split_part($2, '-', 1)
+          LEFT JOIN skill_labels skill_fallback ON skill_fallback.skill_id = s.id AND skill_fallback.language_code = 'en'
+          WHERE cs.career_id = c.id
+        ), '[]'::jsonb) AS skills,
         c.work_activities,
         c.learning_effort,
         COALESCE(
           (
-            SELECT jsonb_agg(DISTINCT transferable.name ORDER BY transferable.name)
+            SELECT jsonb_agg(DISTINCT COALESCE(transferable_requested.name, transferable_base.name, transferable_fallback.name, transferable.name) ORDER BY COALESCE(transferable_requested.name, transferable_base.name, transferable_fallback.name, transferable.name))
             FROM career_skills required
             JOIN skills source_skill ON source_skill.id = required.skill_id
             CROSS JOIN LATERAL jsonb_array_elements_text(source_skill.transferable_skills) AS transferable_id(skill_id)
             JOIN skills transferable ON transferable.id = transferable_id.skill_id
+            LEFT JOIN skill_labels transferable_requested ON transferable_requested.skill_id = transferable.id AND transferable_requested.language_code = $2
+            LEFT JOIN skill_labels transferable_base ON transferable_base.skill_id = transferable.id AND transferable_base.language_code = split_part($2, '-', 1)
+            LEFT JOIN skill_labels transferable_fallback ON transferable_fallback.skill_id = transferable.id AND transferable_fallback.language_code = 'en'
             WHERE required.career_id = c.id
           ),
           '[]'::jsonb
@@ -181,13 +199,14 @@ export async function compareCareers(
         (SELECT COUNT(*) FROM roadmap_steps rs WHERE rs.career_id = c.id) AS roadmap_step_count,
         jsonb_array_length(c.learning_resources) AS resource_count
       FROM careers c
-      LEFT JOIN career_skills cs ON cs.career_id = c.id
-      LEFT JOIN skills s ON s.id = cs.skill_id
+      LEFT JOIN career_labels requested ON requested.career_id = c.id AND requested.language_code = $2
+      LEFT JOIN career_labels base ON base.career_id = c.id AND base.language_code = split_part($2, '-', 1)
+      LEFT JOIN career_labels fallback ON fallback.career_id = c.id AND fallback.language_code = 'en'
       LEFT JOIN vr_environments ve ON ve.key = c.environment_key
       WHERE c.id = ANY($1::text[])
-      GROUP BY c.id, ve.key, ve.title, ve.available
+      GROUP BY c.id, requested.name, requested.description, base.name, base.description, fallback.name, fallback.description, ve.key, ve.title, ve.available
     `,
-      [careerIds],
+      [careerIds, languageCode],
     );
     const byId = new Map(result.rows.map((row) => [row.id, row]));
     const missingCareerId = careerIds.find((careerId) => !byId.has(careerId));
@@ -234,20 +253,26 @@ export async function compareCareers(
 export async function getCareer(
   careerId: string,
   database: DatabasePool = requirePool(),
+  languageCode = "en",
 ): Promise<CareerDetail> {
   const client = await database.connect();
   try {
     const result = await client.query<CareerDetailRow>(
       `SELECT
          c.id,
-         c.name,
-         c.description,
+         COALESCE(requested.name, base.name, fallback.name, c.name) AS name,
+         COALESCE(requested.description, base.description, fallback.description, c.description) AS description,
          c.environment_key,
          c.learning_resources,
-         COALESCE(
-           jsonb_agg(s.name ORDER BY s.name) FILTER (WHERE s.id IS NOT NULL),
-           '[]'::jsonb
-         ) AS skills,
+         COALESCE((
+           SELECT jsonb_agg(COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name) ORDER BY COALESCE(skill_requested.name, skill_base.name, skill_fallback.name, s.name))
+           FROM career_skills cs
+           JOIN skills s ON s.id = cs.skill_id
+           LEFT JOIN skill_labels skill_requested ON skill_requested.skill_id = s.id AND skill_requested.language_code = $2
+           LEFT JOIN skill_labels skill_base ON skill_base.skill_id = s.id AND skill_base.language_code = split_part($2, '-', 1)
+           LEFT JOIN skill_labels skill_fallback ON skill_fallback.skill_id = s.id AND skill_fallback.language_code = 'en'
+           WHERE cs.career_id = c.id
+         ), '[]'::jsonb) AS skills,
          ve.title AS environment_title,
          ve.description AS environment_description,
          ve.available AS environment_available,
@@ -268,12 +293,13 @@ export async function getCareer(
            '[]'::jsonb
          ) AS roadmap
        FROM careers c
-       LEFT JOIN career_skills cs ON cs.career_id = c.id
-       LEFT JOIN skills s ON s.id = cs.skill_id
+       LEFT JOIN career_labels requested ON requested.career_id = c.id AND requested.language_code = $2
+       LEFT JOIN career_labels base ON base.career_id = c.id AND base.language_code = split_part($2, '-', 1)
+       LEFT JOIN career_labels fallback ON fallback.career_id = c.id AND fallback.language_code = 'en'
        LEFT JOIN vr_environments ve ON ve.key = c.environment_key
        WHERE c.id = $1
-       GROUP BY c.id, ve.key, ve.title, ve.description, ve.available`,
-      [careerId],
+       GROUP BY c.id, requested.name, requested.description, base.name, base.description, fallback.name, fallback.description, ve.key, ve.title, ve.description, ve.available`,
+      [careerId, languageCode],
     );
     const row = result.rows[0];
     if (!row)
