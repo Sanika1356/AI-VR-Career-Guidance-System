@@ -25,6 +25,12 @@ const levelLabels: Record<SkillGapItem['level'], string> = {
   advanced: 'Advanced',
 };
 
+const priorityLabels: Record<SkillGapItem['priority'], string> = {
+  high: 'Start first',
+  medium: 'Build next',
+  low: 'Maintain',
+};
+
 function SkillGroup({
   title,
   description,
@@ -49,8 +55,25 @@ function SkillGroup({
         <ul className="skill-gap-list">
           {skills.map((skill) => (
             <li key={`${skill.name}-${skill.level}`} className="skill-gap-list__item">
-              <span className="skill-gap-list__name">{skill.name}</span>
+              <div className="skill-gap-list__heading">
+                <span className="skill-gap-list__name">{skill.name}</span>
+                <Badge
+                  tone={
+                    skill.priority === 'high'
+                      ? 'warning'
+                      : skill.priority === 'low'
+                        ? 'success'
+                        : 'neutral'
+                  }
+                >
+                  {priorityLabels[skill.priority]}
+                </Badge>
+              </div>
               <span className="skill-gap-list__level">{levelLabels[skill.level]}</span>
+              <p className="skill-gap-list__reason">{skill.priorityReason}</p>
+              {skill.blockedBy.length > 0 && (
+                <p className="skill-gap-list__blocked">Blocked by: {skill.blockedBy.join(', ')}</p>
+              )}
             </li>
           ))}
         </ul>

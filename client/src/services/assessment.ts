@@ -3,6 +3,7 @@ import type {
   AssessmentQuestionSet,
   NextAssessmentQuestionResponse,
   AssessmentResultResponse,
+  AssessmentRetakeComparisonResponse,
   AssessmentSubmission,
 } from '../types/domain';
 
@@ -32,4 +33,14 @@ export function submitAssessment(input: AssessmentSubmission): Promise<Assessmen
 
 export function getAssessmentResult(resultId: string): Promise<AssessmentResultResponse> {
   return authenticatedRequest<AssessmentResultResponse>(`/assessment/results/${resultId}`);
+}
+
+export function getAssessmentRetakeComparison(
+  currentResultId: string,
+  previousResultId: string,
+): Promise<AssessmentRetakeComparisonResponse> {
+  const query = new URLSearchParams({ previousResultId });
+  return authenticatedRequest<AssessmentRetakeComparisonResponse>(
+    `/assessment/results/${encodeURIComponent(currentResultId)}/comparison?${query.toString()}`,
+  );
 }
