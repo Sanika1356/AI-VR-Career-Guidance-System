@@ -4,7 +4,7 @@
 
 **Status:** Phase 0 foundation for future feature work
 
-**Owners:** Member 1 — client, accessibility, VR interaction; Member 2 — API, database, AI boundaries, security, deployment; both members — product and contract decisions.
+**Owner:** The project owner now manages the complete product. Frontend/VR and backend/AI are workstreams within one coordinated ownership model.
 
 ## 1. Product specification
 
@@ -57,13 +57,13 @@ The API contract in `docs/api.md` remains the source of truth. A contract change
 | Step | Required artifact | Owner |
 |---|---|---|
 | 1. Proposal | Problem, user value, non-goals, privacy impact, cost, and backward-compatibility statement | Proposer |
-| 2. Contract draft | Method/path, auth rule, request, success response, validation errors, unauthorized/forbidden/not-found/server errors, pagination or limits, and examples | Member 2 with Member 1 review |
-| 3. Client impact | Updated shared types, loading/error states, accessibility implications, and migration fallback | Member 1 |
-| 4. Data impact | Schema change, migration, indexes, seed fixture, rollback, retention, and ownership rules | Member 2 |
-| 5. Test plan | Unit, integration, contract, security, failure, and browser evidence required for completion | Both members |
-| 6. Implementation | Dedicated branch, focused commits, no secrets, and no unrelated refactors | Assigned owner |
-| 7. Review | Both members confirm the contract, tests, privacy, and failure behavior | Both members |
-| 8. Release | Update changelog, deployment notes, TODO status, and rollback instructions | Both members |
+| 2. Contract draft | Method/path, auth rule, request, success response, validation errors, unauthorized/forbidden/not-found/server errors, pagination or limits, and examples | Project owner |
+| 3. Client impact | Updated shared types, loading/error states, accessibility implications, and migration fallback | Project owner — frontend/VR workstream |
+| 4. Data impact | Schema change, migration, indexes, seed fixture, rollback, retention, and ownership rules | Project owner — backend/AI workstream |
+| 5. Test plan | Unit, integration, contract, security, failure, and browser evidence required for completion | Project owner |
+| 6. Implementation | Dedicated branch, focused commits, no secrets, and no unrelated refactors | Project owner |
+| 7. Review | Project owner confirms the contract, tests, privacy, and failure behavior | Project owner |
+| 8. Release | Update changelog, deployment notes, TODO status, and rollback instructions | Project owner |
 
 Backward-compatible additions should be preferred. Removing or renaming a field requires a deprecation period or a coordinated client/server release. The client must not invent fields or call database/provider APIs directly.
 
@@ -72,13 +72,13 @@ Backward-compatible additions should be preferred. Removing or renaming a field 
 | Entity | Required fields | Optional fields | Sensitive data and controls |
 |---|---|---|---|
 | User | `id`, `name`, `email`, password hash, created/updated timestamps | Account status, last-login timestamp | Passwords are hashed; tokens and raw credentials are never logged |
-| Profile | User ID, supported interests, current skills, experience, learning preferences | Future goals/constraints only after contract approval | Learner-entered text is private, exportable, deletable, and untrusted input |
+| Profile | User ID, supported interests, current skills, experience, learning preferences | Future goals/constraints only after an approved contract change | Learner-entered text is private, exportable, deletable, and untrusted input |
 | Assessment | Assessment ID, version, ordered questions, status, created/completed timestamps | Locale, question-bank version | Answer content is account data; answer keys stay server-side |
 | Assessment result | Result ID, user ID, assessment ID/version, career scores, completed timestamp | Explanation reasons, confidence, comparison link | Expose only user-authorized results; do not present as diagnosis |
 | Career | Stable ID, domain, name, description, required skills, source/version | Aliases, education paths, resources, labor-market metadata, VR key | Source, license, freshness, and uncertainty must be retained |
 | Skill | Stable ID, canonical name, aliases, domain | Level scale, prerequisites, related/transferable skills | Taxonomy source/version and mapping confidence required |
 | Recommendation | User/result ID, career ID, score, rank, explanation reasons, algorithm version | Confidence, matched/missing evidence | Never imply certainty; preserve algorithm version for comparison |
-| Skill gap | User/career ID, skill ID, status, evidence, calculation version | Priority, target level, transferability | MVP statuses remain `matched` and `missing` until both members approve more |
+| Skill gap | User/career ID, skill ID, status, evidence, calculation version | Priority, target level, transferability | MVP statuses remain `matched` and `missing` until the project owner approves a richer model |
 | Roadmap | Roadmap ID, user/career ID, version, ordered steps | Time budget, target dates, resource links | User controls completion; source links require provenance |
 | Roadmap step | Step ID, roadmap ID, order, skill, title, description, completed state | Estimate, notes, evidence links | Notes and attachments are private account data |
 | Advisor conversation | Conversation ID, user ID, scope, created/updated timestamps | Retention setting, deleted timestamp | Conversation text is sensitive; redact and delete on request |
@@ -90,7 +90,7 @@ Backward-compatible additions should be preferred. Removing or renaming a field 
 
 ## 4. Responsible-AI review checklist
 
-Before an AI-backed change is released, both members must record the following checks:
+Before an AI-backed change is released, the project owner must record the following checks:
 
 - [ ] The feature states what the model can and cannot do, including uncertainty and fallback behavior.
 - [ ] The prompt and retrieval boundary uses only the learner data necessary for the task and respects account authorization.
@@ -120,7 +120,7 @@ Before an AI-backed change is released, both members must record the following c
 
 ## 6. Definition of done for governance work
 
-Phase 0 governance is complete when this document is reviewed by both members, the root roadmap links to it, the shared API contract points to the change process, and future feature PRs reference the relevant metric, entity, safety check, decision, and acceptance evidence.
+Phase 0 governance is complete when the project owner reviews this document, the root roadmap links to it, the shared API contract points to the change process, and future feature PRs reference the relevant metric, entity, safety check, decision, and acceptance evidence.
 
 ## References
 
