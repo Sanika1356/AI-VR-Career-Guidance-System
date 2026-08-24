@@ -24,12 +24,9 @@ The backend implementation phases, documentation cleanup, deployment configurati
 
 The staging record is available at `docs/staging-verification.md`. It documents the verified Render frontend/API targets, CORS and health behavior, clean-account API journey, browser flow, broader career catalog, advisor fallback, ordered roadmap, and the two approved MVP VR environments.
 
-## 3. Final integration and release gates — pending approval
+## 3. Release completed
 
-These are the only remaining tasks. They require coordination with Member 1 and explicit user approval before any production promotion or live configuration change.
-
-- [ ] Obtain the user’s explicit approval before promoting or redeploying production services.
-- [ ] After both members approve the final demonstration and the user approves production promotion, tag the final release and record the release commit.
+The user explicitly approved production promotion on 24 August 2026. The verified release candidate was checked on `origin/main`, the deployed API and database dependency health endpoints returned HTTP 200, and the annotated release tag `v1.0.0` was published at commit `b7e37aede9a4cb0c3297744300ca35411221fabe`.
 
 ## 4. Final handoff package
 
