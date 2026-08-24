@@ -6,7 +6,8 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ProgressBar } from '../components/ProgressBar';
-import type { Recommendation } from '../types/domain';
+import type { AssessmentExplanation, Recommendation } from '../types/domain';
+import { getAssessmentResult } from '../services/assessment';
 import { getRecommendations } from '../services/recommendations';
 
 interface RecommendationsPageProps {
@@ -72,8 +73,39 @@ function RecommendationCard({
   );
 }
 
+function ExplanationCard({
+  explanation,
+  careerName,
+}: {
+  explanation: AssessmentExplanation;
+  careerName: string;
+}) {
+  return (
+    <Card className="assessment-explanation-card">
+      <div className="recommendation-card__topline">
+        <Badge tone={explanation.confidence === 'high' ? 'success' : 'neutral'}>
+          {explanation.confidence} confidence signal
+        </Badge>
+        <span>{careerName}</span>
+      </div>
+      <h2>Why this path appeared</h2>
+      {explanation.supportingSignals.length > 0 ? (
+        <ul>
+          {explanation.supportingSignals.map((signal) => (
+            <li key={signal}>{signal}</li>
+          ))}
+        </ul>
+      ) : (
+        <p>No single answer provided a strong direct signal for this path.</p>
+      )}
+      <p className="recommendation-card__reason">{explanation.caveat}</p>
+    </Card>
+  );
+}
+
 export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [explanations, setExplanations] = useState<AssessmentExplanation[]>([]);
   const [resultId, setResultId] = useState<string | null>(null);
   const [status, setStatus] = useState<'loading' | 'success' | 'empty' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
@@ -81,6 +113,7 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
   const loadRecommendations = useCallback(() => {
     setStatus('loading');
     setErrorMessage('');
+    setExplanations([]);
     const requestedResultId =
       new URLSearchParams(window.location.search).get('resultId') ?? undefined;
 
@@ -89,6 +122,9 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
         setResultId(response.resultId);
         setRecommendations(response.recommendations);
         setStatus(response.recommendations.length > 0 ? 'success' : 'empty');
+        void getAssessmentResult(response.resultId)
+          .then((result) => setExplanations(result.explanations ?? []))
+          .catch(() => setExplanations([]));
       })
       .catch((error: unknown) => {
         setStatus('error');
@@ -152,6 +188,29 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
           onAction={() => onNavigate('/assessment')}
         />
       )}
+      {status === 'success' && explanations.length > 0 && (
+        <section className="assessment-explanations" aria-label="Assessment evidence explanations">
+          <div>
+            <p className="eyebrow">Evidence, not certainty</p>
+            <h2>What influenced these signals</h2>
+            <p>
+              These are the answers that contributed to each path. You can question or revise them
+              by retaking the assessment.
+            </p>
+          </div>
+          {explanations.map((explanation) => (
+            <ExplanationCard
+              key={explanation.careerId}
+              explanation={explanation}
+              careerName={
+                recommendations.find((item) => item.careerId === explanation.careerId)?.career ??
+                explanation.careerId
+              }
+            />
+          ))}
+        </section>
+      )}
+
       {status === 'success' && (
         <section className="recommendations-list" aria-label="Ranked career recommendations">
           {recommendations.map((recommendation, index) => (

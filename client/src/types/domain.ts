@@ -95,8 +95,17 @@ export interface AssessmentResultSummary {
   topCareerIds: string[];
 }
 
+export interface AssessmentExplanation {
+  careerId: string;
+  score: number;
+  confidence: 'low' | 'medium' | 'high';
+  supportingSignals: string[];
+  caveat: string;
+}
+
 export interface AssessmentResultResponse extends AssessmentResultSummary {
   categoryScores: Record<string, number>;
+  explanations?: AssessmentExplanation[];
 }
 
 export interface Recommendation {

@@ -209,7 +209,25 @@ Response:
 
 ### `GET /api/assessment/results/:resultId`
 
-Returns the detailed assessment result and category scores.
+Returns the detailed assessment result and category scores. When stored answer evidence is available, the response also includes `explanations`. Each explanation identifies the career signal, the score contribution, a low/medium/high heuristic confidence label, up to three supporting answer signals, and a caveat that the result is not a diagnosis or guarantee.
+
+```json
+{
+  "resultId": "result_123",
+  "completedAt": "2026-08-18T00:00:00.000Z",
+  "categoryScores": {"career_ai_engineer": 5},
+  "topCareerIds": ["career_ai_engineer"],
+  "explanations": [
+    {
+      "careerId": "career_ai_engineer",
+      "score": 5,
+      "confidence": "high",
+      "supportingSignals": ["Which activity interests you most?: Building software"],
+      "caveat": "This explanation summarizes assessment signals; it is not a diagnosis or a guarantee of fit."
+    }
+  ]
+}
+```
 
 ## Recommendations
 
