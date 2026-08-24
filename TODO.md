@@ -25,8 +25,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 1 — Trust, security, privacy, and reliability (P0)
 
-- [ ] Add server-side audit events for authentication changes, profile changes, recommendation generation, advisor requests, data export, and deletion. Never log passwords, bearer tokens, private prompts, or full sensitive profile text.
-- [ ] Add structured request IDs, safe error envelopes, rate-limit metrics, latency metrics, and alert thresholds for the API and AI boundary.
 - [ ] Add automated dependency scanning, secret scanning, lockfile verification, and a CI workflow that runs client checks, server typecheck/build/tests, migration checks, and contract tests.
 - [ ] Add scheduled PostgreSQL backup verification and a documented restore rehearsal using non-production data.
 - [ ] Add feature flags for experimental AI, external career data, and WebXR features so unfinished work cannot break the stable MVP.

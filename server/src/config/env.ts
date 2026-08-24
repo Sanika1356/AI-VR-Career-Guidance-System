@@ -1,34 +1,68 @@
-import 'dotenv/config';
+import "dotenv/config";
 
 function numberFromEnv(value: string | undefined, fallback: number): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-const nodeEnv = process.env.NODE_ENV ?? 'development';
-const authSecret = process.env.AUTH_SECRET ?? 'development-only-change-me-please-32-chars';
+const nodeEnv = process.env.NODE_ENV ?? "development";
+const authSecret =
+  process.env.AUTH_SECRET ?? "development-only-change-me-please-32-chars";
 
-if (nodeEnv === 'production' && !process.env.AUTH_SECRET) {
-  throw new Error('AUTH_SECRET must be configured in production');
+if (nodeEnv === "production" && !process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET must be configured in production");
 }
 
 export const env = {
   nodeEnv,
   port: numberFromEnv(process.env.PORT ?? process.env.SERVER_PORT, 4000),
-  corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   databaseUrl: process.env.DATABASE_URL,
   dbPoolMin: numberFromEnv(process.env.DB_POOL_MIN, 1),
   dbPoolMax: numberFromEnv(process.env.DB_POOL_MAX, 10),
   authSecret,
   tokenExpirySeconds: numberFromEnv(process.env.TOKEN_EXPIRY_SECONDS, 86_400),
-  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
-  ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.2:3b',
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
+  ollamaModel: process.env.OLLAMA_MODEL ?? "llama3.2:3b",
   aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 30_000),
-  aiMaxResponseChars: Math.max(200, Math.floor(numberFromEnv(process.env.AI_MAX_RESPONSE_CHARS, 4_000))),
-  aiRetryAttempts: Math.min(2, Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 1)))),
-  authRateLimitWindowMs: numberFromEnv(process.env.AUTH_RATE_LIMIT_WINDOW_MS, 60_000),
+  aiMaxResponseChars: Math.max(
+    200,
+    Math.floor(numberFromEnv(process.env.AI_MAX_RESPONSE_CHARS, 4_000)),
+  ),
+  aiRetryAttempts: Math.min(
+    2,
+    Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 1))),
+  ),
+  metricsWindowMs: Math.max(
+    60_000,
+    numberFromEnv(process.env.METRICS_WINDOW_MS, 300_000),
+  ),
+  metricsAlertMinSamples: Math.max(
+    1,
+    Math.floor(numberFromEnv(process.env.METRICS_ALERT_MIN_SAMPLES, 10)),
+  ),
+  apiErrorRateAlertThreshold: Math.min(
+    1,
+    Math.max(0, numberFromEnv(process.env.API_ERROR_RATE_ALERT_THRESHOLD, 0.2)),
+  ),
+  aiFailureRateAlertThreshold: Math.min(
+    1,
+    Math.max(
+      0,
+      numberFromEnv(process.env.AI_FAILURE_RATE_ALERT_THRESHOLD, 0.3),
+    ),
+  ),
+  authRateLimitWindowMs: numberFromEnv(
+    process.env.AUTH_RATE_LIMIT_WINDOW_MS,
+    60_000,
+  ),
   authRateLimitMax: numberFromEnv(process.env.AUTH_RATE_LIMIT_MAX, 10),
-  aiRateLimitWindowMs: numberFromEnv(process.env.AI_RATE_LIMIT_WINDOW_MS, 60_000),
+  aiRateLimitWindowMs: numberFromEnv(
+    process.env.AI_RATE_LIMIT_WINDOW_MS,
+    60_000,
+  ),
   aiRateLimitMax: numberFromEnv(process.env.AI_RATE_LIMIT_MAX, 20),
-  runSeedData: process.env.RUN_SEED_DATA === 'true' || (nodeEnv !== 'production' && process.env.RUN_SEED_DATA !== 'false'),
+  runSeedData:
+    process.env.RUN_SEED_DATA === "true" ||
+    (nodeEnv !== "production" && process.env.RUN_SEED_DATA !== "false"),
 };

@@ -44,11 +44,13 @@ The system will not infer protected traits, diagnose mental-health conditions, p
 | VR fallback engagement | Consent-based sessions that load an environment and interact with a control | Increase | Store coarse event only; no raw movement or biometric data |
 | Return usage | Learners who return within 7 and 30 days | Increase | Use pseudonymous event IDs and a documented retention period |
 | Safety rate | Flagged or corrected AI outputs divided by evaluated outputs | Decrease | Store redacted evaluation labels and model/config version |
-| Reliability | Successful API requests and p95 latency by route | Improve | Store request ID, route class, status, and timing; never tokens or payloads |
+| Reliability | Successful API requests, error rate, and request timing by route | Improve | Store request ID, route, status, and timing; never tokens or payloads |
 
 ### 1.7 Initial event vocabulary and retention
 
 The initial privacy-safe event vocabulary is `assessment_started`, `assessment_completed`, `recommendations_viewed`, `career_viewed`, `skill_gap_viewed`, `roadmap_viewed`, `roadmap_step_completed`, `advisor_answer_rated`, `vr_environment_loaded`, `vr_control_used`, `session_expired`, `data_export_requested`, and `account_deleted`. Events must contain event name, UTC timestamp, application version, coarse route, consent state, and a short-lived pseudonymous subject ID. Default retention is 90 days for product analytics and 30 days for operational request metrics; deletion and export must cover event records associated with the account where technically possible.
+
+The current Phase 1 implementation also persists a separate server-side audit stream for `auth_register_success`, `auth_login_success`, `privacy_consent_changed`, `profile_changed`, `recommendation_generated`, `advisor_requested`, `data_exported`, and `account_deleted`. Audit metadata is limited to request IDs and small allowlisted primitive fields; passwords, bearer tokens, raw prompts, raw answers, and full profile text are excluded. The API emits structured request logs and maintains rolling aggregate API latency/error, AI latency/failure/fallback, and labelled rate-limit counters. Configurable thresholds emit one redacted alert event per metric window; these operational counters are not a substitute for the future consent-aware analytics pipeline.
 
 ## 2. Shared API-contract change process
 
