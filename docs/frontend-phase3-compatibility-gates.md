@@ -8,20 +8,20 @@
 
 ## Purpose and evidence boundary
 
-This record closes the evidence-gathering work that is possible in the current sandbox and preserves the checks that require unavailable browser engines or physical devices. It does not claim cross-browser, touch-device, target-hardware, or WebXR coverage based on Chromium-only observations.
+This record documents the available Chromium baseline, the real Firefox and WebKit login-route smoke checks, and the checks that still require Microsoft Edge or physical devices. It does not claim target-hardware, touch-device, or WebXR coverage based on software emulation alone.
 
 The authenticated responsive evidence for the learning-flow routes is recorded separately in [`frontend-phase2-resilience.md`](frontend-phase2-resilience.md). The earlier Chromium accessibility, contrast, and desktop VR-fallback baseline is recorded in [`frontend-quality-audit.md`](frontend-quality-audit.md) [1].
 
 ## Environment probe
 
-The sandbox exposes Chromium and a display session. The following alternate browser executables were not available: Firefox, Firefox ESR, Microsoft Edge, Microsoft Edge Stable, and Google Chrome. The sandbox also does not expose `/dev/input` or an attached touch device. No target VR hardware or compatible WebXR headset is attached.
+The sandbox exposes Chromium and a display session. Temporary Playwright Firefox and WebKit engines were provisioned outside the repository for compatibility smoke checks. Microsoft Edge is not available. The sandbox also does not expose a supported touch device or target VR/WebXR hardware.
 
 | Capability | Current evidence | Status |
 |---|---|---|
 | Chromium | Installed and used for the authenticated route captures and desktop VR fallback baseline | Available; covered by existing evidence |
-| Firefox | Executable unavailable | Pending external browser/device access |
-| Safari/WebKit | No Safari/WebKit runtime is available in the Linux sandbox | Pending external browser/device access |
-| Microsoft Edge | Executable unavailable | Pending external browser/device access |
+| Firefox | Deployed `/login` route returned HTTP 200; title, email/password fields, sign-in/create-account controls rendered; no console or page errors | Login-route smoke passed; broader authenticated flow remains unverified |
+| Safari/WebKit | Playwright WebKit deployed `/login` route returned HTTP 200; title, email/password fields, sign-in/create-account controls rendered; no console or page errors | WebKit login-route smoke passed; Safari-specific and broader authenticated flow remain unverified |
+| Microsoft Edge | Executable unavailable | Pending Edge access |
 | Desktop VR fallback | Existing Chromium sample measured 59.7 FPS over a two-second requestAnimationFrame window | Local baseline only; not target-device validation [1] |
 | Touch interaction | No supported touch device or input-device interface is attached | Pending supported touch device |
 | WebXR headset | No compatible headset is attached | Pending compatible WebXR hardware |
@@ -34,16 +34,18 @@ These artifacts establish a useful local baseline without overstating device com
 
 ## Compatibility and performance tasks that remain open
 
+The Firefox and WebKit login-route smoke checks passed in the temporary Playwright engines. The full checklist item remains open only for the Microsoft Edge check and a broader authenticated-flow run in each engine.
+
 | Checklist item | Why it remains open | Required evidence to close it |
 |---|---|---|
-| Firefox, Safari/WebKit, and Edge compatibility | The corresponding engines are unavailable in this environment | Run the authenticated route smoke and visual checks in each supported engine, recording route outcomes and any engine-specific findings |
+| Microsoft Edge compatibility and broader authenticated-flow coverage | Microsoft Edge is unavailable, and the current automated check covers the deployed login route rather than the complete authenticated learning flow | Run the authenticated route smoke and visual checks in Microsoft Edge and extend the route checks across the supported learning-flow pages |
 | Desktop VR fallback performance on target hardware | The current 59.7 FPS result is from sandbox Chromium rather than a supported target device | Capture frame timing and interaction behavior on the intended target hardware under the agreed performance threshold |
 | Touch interaction on the desktop VR fallback | No touch-capable device is attached | Exercise environment selection, canvas interaction, focus/keyboard alternatives, and navigation on a supported touch device |
 | WebXR headset entry and exit | No headset or WebXR runtime is attached | Enter a real immersive session, verify the scene and controls, exit cleanly, and record the device/browser combination |
 
 ## TODO disposition
 
-No Phase 3 or Phase 4 checklist item was removed. The evidence is sufficient to document the blockers and preserve the existing Chromium baseline, but it is not sufficient to mark unavailable-browser, target-device, touch, or headset checks complete. The frontend TODO therefore continues to contain only tasks that lack their required evidence.
+The Firefox and WebKit results narrow the browser gate, but the Microsoft Edge and broader authenticated-flow coverage requirement remains open. Target-device, touch, and headset items remain open because no physical hardware is attached. The frontend TODO continues to contain only tasks that lack their required evidence.
 
 ## References
 
