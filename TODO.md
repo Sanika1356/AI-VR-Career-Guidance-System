@@ -32,9 +32,7 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 2 — Career intelligence and extensible catalog (P1)
 
-- [ ] Add canonical IDs, aliases, related skills, proficiency levels, prerequisites, transferable skills, domains, education pathways, and evidence sources for each career and skill.
 - [ ] Add a scheduled, reviewable catalog-refresh pipeline with source version, imported-at time, license metadata, diff report, rollback, and manual approval before publication.
-- [ ] Add career comparison for two or more careers, including skills, work activities, learning effort, environment, transferable skills, and uncertainty.
 - [ ] Add labor-market or education-resource adapters only after source licensing, freshness, privacy, and cost are approved. Keep external data optional and cacheable.
 
 **Acceptance evidence:** A versioned import fixture, ontology migration, diff report, explanation snapshot, career comparison contract, and tests proving the existing MVP catalog still works.
@@ -42,7 +40,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 ## Phase 3 — Better assessment and learner modeling (P1)
 
 - [ ] Add optional learner goals, constraints, preferred work conditions, education stage, location preference, and time budget only through an approved contract change; do not add client-only fields.
-- [ ] Add assessment retake comparison with versioned results, changed answers, confidence changes, and a clear explanation of why recommendations changed.
 - [ ] Add accessibility support for keyboard-only completion, screen readers, reduced motion, high contrast, readable error summaries, and save/resume across devices.
 - [ ] Add fairness evaluation across synthetic demographic profiles without collecting sensitive demographic data by default.
 - [ ] Add a user-controlled confidence and correction flow so learners can correct an inferred interest or skill rather than accepting it as fact.
@@ -76,7 +73,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 - [ ] Add a capability detector that distinguishes desktop canvas fallback, inline WebXR, and immersive WebXR. Never show an immersive control when `immersive-vr` is unsupported.
 - [ ] Add explicit WebXR lifecycle support: user-activated `requestSession('immersive-vr')`, XR render loop, session `end` handling, cleanup, permissions messaging, and fallback recovery.
 - [ ] Add headset-friendly scene controls, controller/select events, recentering, seated/standing mode, and a clear exit action.
-- [ ] Add WebXR environments independently from the career catalog so a career may exist without a VR world and a VR world can be added later without changing recommendation or roadmap contracts.
 - [ ] Add guided career simulations: inspect tools, complete a short task, receive feedback, and connect the experience to a skill-gap item.
 - [ ] Add scene-level accessibility: captions, audio-description option, comfort settings, seated mode, reduced motion, contrast, non-VR controls, and motion-sickness recovery.
 - [ ] Add asset budgets, lazy loading, texture limits, draw-call monitoring, frame-time telemetry, and graceful low-power fallback.
