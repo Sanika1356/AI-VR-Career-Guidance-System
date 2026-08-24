@@ -2773,6 +2773,11 @@ em {
 .advisor-message--user .advisor-message__caveat {
   color: #c8d0bf;
 }
+.advisor-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 18px;
+}
 .advisor-form {
   border-top: 1px solid #ebe9e2;
   display: grid;

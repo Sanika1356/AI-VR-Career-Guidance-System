@@ -4,7 +4,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import type { ChatMessage } from '../types/domain';
-import { chatAdvisor, getAdvisorCareerId } from '../services/advisor';
+import { chatAdvisor, clearAdvisorHistory, getAdvisorCareerId } from '../services/advisor';
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_MESSAGE_LENGTH = 3;
@@ -99,6 +99,28 @@ export function AdvisorPage() {
     }
   }
 
+  async function handleClearHistory() {
+    if (!conversationId || isSending) return;
+    if (!window.confirm('Clear all messages in this advisor conversation?')) return;
+    setErrorMessage('');
+    try {
+      await clearAdvisorHistory(conversationId);
+      setConversationId(undefined);
+      setMessages([
+        {
+          role: 'advisor',
+          content: 'Your conversation was cleared. Ask me a new question to begin.',
+          createdAt: new Date().toISOString(),
+          sources: [],
+        },
+      ]);
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'The conversation could not be cleared.',
+      );
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setShowValidation(true);
@@ -134,6 +156,16 @@ export function AdvisorPage() {
             advice. Compare its suggestions with your own goals and trusted human perspectives.
           </p>
         </aside>
+        <div className="advisor-card__actions">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => void handleClearHistory()}
+            disabled={!conversationId || isSending}
+          >
+            Clear conversation
+          </Button>
+        </div>
 
         <div className="advisor-messages" aria-live="polite" aria-label="Advisor conversation">
           {messages.map((item, index) => {

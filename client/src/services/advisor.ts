@@ -1,5 +1,9 @@
 import { authenticatedRequest } from './auth';
-import type { AdvisorChatRequest, AdvisorChatResponse } from '../types/domain';
+import type {
+  AdvisorChatRequest,
+  AdvisorChatResponse,
+  ClearAdvisorHistoryResponse,
+} from '../types/domain';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object';
@@ -39,6 +43,13 @@ function parseAdvisorResponse(value: unknown): AdvisorChatResponse {
     confidence: confidence as AdvisorChatResponse['confidence'],
     caveat: typeof caveat === 'string' ? caveat : undefined,
   };
+}
+
+export function clearAdvisorHistory(conversationId: string): Promise<ClearAdvisorHistoryResponse> {
+  return authenticatedRequest<ClearAdvisorHistoryResponse>(
+    `/advisor/conversations/${encodeURIComponent(conversationId)}/messages`,
+    { method: 'DELETE' },
+  );
 }
 
 export async function chatAdvisor(input: AdvisorChatRequest): Promise<AdvisorChatResponse> {
