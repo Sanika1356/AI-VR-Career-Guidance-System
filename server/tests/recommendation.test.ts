@@ -55,6 +55,13 @@ test('getRecommendations ranks careers and persists matched and missing skills',
       reason: 'Assessment match with 1 matched skill and a path to build Machine Learning.',
       matchedSkills: ['Python'],
       missingSkills: ['Machine Learning'],
+      evidence: {
+        assessmentScore: 100,
+        matchedSkillCount: 1,
+        missingSkillCount: 1,
+        confidence: 'high',
+        tradeOffs: ['Build Machine Learning before this path will feel easier.'],
+      },
     },
     {
       careerId: 'career_data_analyst',
@@ -63,6 +70,13 @@ test('getRecommendations ranks careers and persists matched and missing skills',
       reason: 'Assessment match with an opportunity to build SQL and Data Analysis.',
       matchedSkills: [],
       missingSkills: ['SQL', 'Data Analysis'],
+      evidence: {
+        assessmentScore: 60,
+        matchedSkillCount: 0,
+        missingSkillCount: 2,
+        confidence: 'medium',
+        tradeOffs: ['This result relies on assessment signals while your current skills are not yet represented.', 'Build SQL and Data Analysis before this path will feel easier.'],
+      },
     },
   ]);
 
@@ -70,6 +84,9 @@ test('getRecommendations ranks careers and persists matched and missing skills',
   assert.ok(insert);
   assert.equal(insert.values[5], '["Python"]');
   assert.equal(insert.values[6], '["Machine Learning"]');
+  assert.deepEqual(response.recommendations[0].evidence.tradeOffs, [
+    'Build Machine Learning before this path will feel easier.',
+  ]);
 });
 
 test('getRecommendations returns a safe 404 when the explicit result is not owned by the user', async () => {

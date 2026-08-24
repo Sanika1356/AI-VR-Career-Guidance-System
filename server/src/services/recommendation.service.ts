@@ -18,6 +18,14 @@ interface ProfileRow {
   current_skills: string[] | string | null;
 }
 
+export interface RecommendationEvidence {
+  assessmentScore: number;
+  matchedSkillCount: number;
+  missingSkillCount: number;
+  confidence: 'low' | 'medium' | 'high';
+  tradeOffs: string[];
+}
+
 export interface Recommendation {
   careerId: string;
   career: string;
@@ -25,6 +33,7 @@ export interface Recommendation {
   reason: string;
   matchedSkills: string[];
   missingSkills: string[];
+  evidence: RecommendationEvidence;
 }
 
 function parseObject(value: Record<string, number> | string): Record<string, number> {
@@ -136,6 +145,13 @@ export async function getRecommendations(
         const missingSkills = career.requiredSkills.filter((skill) => !currentSkillSet.has(normalizeSkill(skill)));
         const rawScore = Math.max(0, Number(categoryScores[career.id] ?? 0));
         const score = maxRawScore > 0 ? roundScore((rawScore / maxRawScore) * 100) : 0;
+        const confidence: RecommendationEvidence['confidence'] =
+          score >= 75 && matchedSkills.length > 0 ? 'high' : score >= 40 || matchedSkills.length > 0 ? 'medium' : 'low';
+        const tradeOffs = missingSkills.length > 0
+          ? [`Build ${missingSkills.slice(0, 2).join(' and ')} before this path will feel easier.`]
+          : ['Your current profile covers the catalogued skills for this path.'];
+        if (rawScore <= 0) tradeOffs.unshift('The current assessment contains no positive score for this path.');
+        if (rawScore > 0 && matchedSkills.length === 0) tradeOffs.unshift('This result relies on assessment signals while your current skills are not yet represented.');
         return {
           careerId: career.id,
           career: career.name,
@@ -143,6 +159,13 @@ export async function getRecommendations(
           reason: recommendationReason(rawScore, matchedSkills, missingSkills),
           matchedSkills,
           missingSkills,
+          evidence: {
+            assessmentScore: score,
+            matchedSkillCount: matchedSkills.length,
+            missingSkillCount: missingSkills.length,
+            confidence,
+            tradeOffs,
+          },
           rawScore,
         };
       })

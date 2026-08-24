@@ -118,6 +118,14 @@ export interface AssessmentResultResponse extends AssessmentResultSummary {
   explanations?: AssessmentExplanation[];
 }
 
+export interface RecommendationEvidence {
+  assessmentScore: number;
+  matchedSkillCount: number;
+  missingSkillCount: number;
+  confidence: 'low' | 'medium' | 'high';
+  tradeOffs: string[];
+}
+
 export interface Recommendation {
   careerId: string;
   career: string;
@@ -125,6 +133,7 @@ export interface Recommendation {
   reason: string;
   matchedSkills: string[];
   missingSkills: string[];
+  evidence: RecommendationEvidence;
 }
 
 export interface RecommendationResponse {

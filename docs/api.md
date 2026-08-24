@@ -267,11 +267,20 @@ Returns ranked career recommendations for the authenticated user or a specified 
       "score": 91,
       "reason": "Strong programming and analytical skills",
       "matchedSkills": ["Python", "Problem Solving"],
-      "missingSkills": ["Deep Learning"]
+      "missingSkills": ["Deep Learning"],
+      "evidence": {
+        "assessmentScore": 91,
+        "matchedSkillCount": 2,
+        "missingSkillCount": 1,
+        "confidence": "high",
+        "tradeOffs": ["Build Deep Learning before this path will feel easier."]
+      }
     }
   ]
 }
 ```
+
+The `evidence` object explains the ranking without exposing internal scoring weights. `assessmentScore` is the normalized score already returned as `score`; the counts summarize the existing matched and missing skill arrays. `confidence` is a calibrated heuristic label (`low`, `medium`, or `high`), and `tradeOffs` states the principal development cost or limitation visible from the current assessment and profile. These fields are informational and do not guarantee career fit.
 
 ## Skill gap and roadmap
 
