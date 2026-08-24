@@ -20,6 +20,10 @@ const metadataMigrationPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../src/db/migrations/008_catalog_metadata.sql",
 );
+const assessmentMetadataMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/009_assessment_question_metadata.sql",
+);
 
 const requiredTables = [
   "users",
@@ -102,4 +106,24 @@ test("catalog migrations add versioned ontology metadata without changing core e
     assert.match(metadataSql, new RegExp(column));
   }
   assert.match(ontologySql, /local-mvp-v1/);
+});
+
+test("assessment metadata migration is versioned and reviewable without exposing new fields", async () => {
+  const sql = await readFile(assessmentMetadataMigrationPath, "utf8");
+  for (const column of [
+    "question_version",
+    "domain",
+    "competency",
+    "difficulty",
+    "rationale",
+    "accessibility_text",
+    "review_status",
+  ]) {
+    assert.match(sql, new RegExp(column));
+  }
+  assert.match(sql, /published THEN 'approved'/);
+  assert.match(
+    sql,
+    /CREATE INDEX IF NOT EXISTS idx_assessment_questions_domain/,
+  );
 });
