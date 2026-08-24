@@ -397,7 +397,7 @@ Compares the user's known skills with the selected career's required skills.
 
 ### `GET /api/careers/:careerId/roadmap`
 
-Returns an ordered learning plan.
+Returns an ordered learning plan. Each step includes local effort guidance and an accessibility note. If the learner has saved progress, their target date, status, notes, and custom position are returned; otherwise safe defaults are used.
 
 ```json
 {
@@ -409,7 +409,13 @@ Returns an ordered learning plan.
       "description": "Complete the agreed Python practice module.",
       "skill": "Python",
       "order": 1,
-      "completed": false
+      "completed": false,
+      "estimatedEffortMinutes": 90,
+      "accessibilityNote": "Use the text-first learning path and save progress as you go.",
+      "targetDate": null,
+      "status": "not_started",
+      "notes": "",
+      "position": 1
     }
   ]
 }
@@ -417,7 +423,17 @@ Returns an ordered learning plan.
 
 ### `PATCH /api/roadmap/:stepId`
 
-Updates completion state for a roadmap step.
+Updates a roadmap step for the authenticated learner. The required `completed` boolean is backward-compatible; optional `targetDate` (`YYYY-MM-DD` or `null`), `status` (`not_started`, `in_progress`, or `completed`), `notes` (maximum 2,000 characters), and positive `position` fields support personal execution planning. The API stores only the authenticated user’s progress and does not change the catalog’s shared ordering.
+
+```json
+{
+  "completed": false,
+  "targetDate": "2026-09-01",
+  "status": "in_progress",
+  "notes": "Build a small practice project.",
+  "position": 1
+}
+```
 
 ## AI career advisor
 

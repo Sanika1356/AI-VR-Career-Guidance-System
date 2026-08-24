@@ -209,6 +209,7 @@ export interface SkillGapResponse {
   skills: SkillGapItem[];
 }
 
+export type RoadmapStepStatus = 'not_started' | 'in_progress' | 'completed';
 export interface RoadmapStep {
   id: string;
   title: string;
@@ -216,6 +217,12 @@ export interface RoadmapStep {
   skill: string;
   order: number;
   completed: boolean;
+  estimatedEffortMinutes: number;
+  accessibilityNote: string;
+  targetDate: string | null;
+  status: RoadmapStepStatus;
+  notes: string;
+  position: number;
 }
 
 export interface RoadmapResponse {
@@ -225,6 +232,10 @@ export interface RoadmapResponse {
 
 export interface RoadmapStepUpdate {
   completed: boolean;
+  targetDate?: string | null;
+  status?: RoadmapStepStatus;
+  notes?: string;
+  position?: number;
 }
 
 export type ChatMessageRole = 'user' | 'advisor';

@@ -1,50 +1,69 @@
-import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
-import test from 'node:test';
-import type { QueryResult, QueryResultRow } from 'pg';
-import { app } from '../src/app.js';
-import type { DatabaseClient, DatabasePool } from '../src/db/types.js';
-import { getRoadmap, updateRoadmapProgress } from '../src/services/roadmap.service.js';
-import { validateUpdateRoadmapProgressPayload } from '../src/validators/roadmap.js';
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import test from "node:test";
+import type { QueryResult, QueryResultRow } from "pg";
+import { app } from "../src/app.js";
+import type { DatabaseClient, DatabasePool } from "../src/db/types.js";
+import {
+  getRoadmap,
+  updateRoadmapProgress,
+} from "../src/services/roadmap.service.js";
+import { validateUpdateRoadmapProgressPayload } from "../src/validators/roadmap.js";
 
 function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
-  return { rows, rowCount: rows.length, command: 'SELECT', oid: 0, fields: [] };
+  return { rows, rowCount: rows.length, command: "SELECT", oid: 0, fields: [] };
 }
 
 class RoadmapClient implements DatabaseClient {
   readonly queries: string[] = [];
 
-  async query<T extends QueryResultRow = QueryResultRow>(sql: string): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+  ): Promise<QueryResult<T>> {
     this.queries.push(sql.trim());
-    if (sql.includes('SELECT id FROM careers')) {
-      return queryResult([{ id: 'career_ai_engineer' }]) as QueryResult<T>;
+    if (sql.includes("SELECT id FROM careers")) {
+      return queryResult([{ id: "career_ai_engineer" }]) as QueryResult<T>;
     }
-    if (sql.includes('FROM roadmap_steps rs')) {
+    if (sql.includes("FROM roadmap_steps rs")) {
       return queryResult([
         {
-          id: 'roadmap_ai_python',
-          career_id: 'career_ai_engineer',
-          title: 'Strengthen Python',
-          description: 'Complete the Python practice module.',
-          skill: 'Python',
+          id: "roadmap_ai_python",
+          career_id: "career_ai_engineer",
+          title: "Strengthen Python",
+          description: "Complete the Python practice module.",
+          skill: "Python",
           display_order: 1,
+          estimated_effort_minutes: 90,
+          accessibility_note: "Use the text-first path.",
           completed: false,
+          target_date: null,
+          status: "not_started",
+          notes: "",
+          position: null,
         },
         {
-          id: 'roadmap_ai_ml',
-          career_id: 'career_ai_engineer',
-          title: 'Learn Machine Learning',
-          description: 'Study supervised learning fundamentals.',
-          skill: 'Machine Learning',
+          id: "roadmap_ai_ml",
+          career_id: "career_ai_engineer",
+          title: "Learn Machine Learning",
+          description: "Study supervised learning fundamentals.",
+          skill: "Machine Learning",
           display_order: 2,
+          estimated_effort_minutes: 120,
+          accessibility_note: "Use captions where available.",
           completed: true,
+          target_date: null,
+          status: "completed",
+          notes: "Review weekly.",
+          position: null,
         },
       ]) as QueryResult<T>;
     }
-    if (sql.includes('SELECT id, career_id FROM roadmap_steps')) {
-      return queryResult([{ id: 'roadmap_ai_python', career_id: 'career_ai_engineer' }]) as QueryResult<T>;
+    if (sql.includes("SELECT id, career_id FROM roadmap_steps")) {
+      return queryResult([
+        { id: "roadmap_ai_python", career_id: "career_ai_engineer" },
+      ]) as QueryResult<T>;
     }
-    if (sql.includes('INSERT INTO roadmap_progress')) {
+    if (sql.includes("INSERT INTO roadmap_progress")) {
       return queryResult([]) as QueryResult<T>;
     }
     return queryResult([]) as QueryResult<T>;
@@ -57,79 +76,205 @@ function poolFor(client: DatabaseClient): DatabasePool {
   return { connect: async () => client };
 }
 
-test('getRoadmap returns ordered steps with user-specific completion state', async () => {
-  const response = await getRoadmap('user_demo', 'career_ai_engineer', poolFor(new RoadmapClient()));
+test("getRoadmap returns ordered steps with user-specific completion state", async () => {
+  const response = await getRoadmap(
+    "user_demo",
+    "career_ai_engineer",
+    poolFor(new RoadmapClient()),
+  );
   assert.deepEqual(response, {
-    careerId: 'career_ai_engineer',
+    careerId: "career_ai_engineer",
     steps: [
       {
-        id: 'roadmap_ai_python',
-        title: 'Strengthen Python',
-        description: 'Complete the Python practice module.',
-        skill: 'Python',
+        id: "roadmap_ai_python",
+        title: "Strengthen Python",
+        description: "Complete the Python practice module.",
+        skill: "Python",
         order: 1,
         completed: false,
+        estimatedEffortMinutes: 90,
+        accessibilityNote: "Use the text-first path.",
+        targetDate: null,
+        status: "not_started",
+        notes: "",
+        position: 1,
       },
       {
-        id: 'roadmap_ai_ml',
-        title: 'Learn Machine Learning',
-        description: 'Study supervised learning fundamentals.',
-        skill: 'Machine Learning',
+        id: "roadmap_ai_ml",
+        title: "Learn Machine Learning",
+        description: "Study supervised learning fundamentals.",
+        skill: "Machine Learning",
         order: 2,
         completed: true,
+        estimatedEffortMinutes: 120,
+        accessibilityNote: "Use captions where available.",
+        targetDate: null,
+        status: "completed",
+        notes: "Review weekly.",
+        position: 2,
       },
     ],
   });
 });
 
-test('updateRoadmapProgress persists only the authenticated user progress', async () => {
+test("updateRoadmapProgress persists only the authenticated user progress", async () => {
   const client = new RoadmapClient();
-  const response = await updateRoadmapProgress('user_demo', 'roadmap_ai_python', true, poolFor(client));
+  const response = await updateRoadmapProgress(
+    "user_demo",
+    "roadmap_ai_python",
+    true,
+    poolFor(client),
+  );
   assert.deepEqual(response, {
-    stepId: 'roadmap_ai_python',
-    careerId: 'career_ai_engineer',
+    stepId: "roadmap_ai_python",
+    careerId: "career_ai_engineer",
     completed: true,
+    targetDate: null,
+    status: "completed",
+    notes: "",
+    position: null,
   });
-  assert.ok(client.queries.some((query) => query.includes('INSERT INTO roadmap_progress')));
+  assert.ok(
+    client.queries.some((query) =>
+      query.includes("INSERT INTO roadmap_progress"),
+    ),
+  );
 });
 
-test('roadmap progress validator rejects unknown fields and non-boolean values', () => {
-  assert.deepEqual(validateUpdateRoadmapProgressPayload({ completed: false }), { completed: false });
-  assert.throws(() => validateUpdateRoadmapProgressPayload({ completed: 'true' }), /boolean completed/);
-  assert.throws(() => validateUpdateRoadmapProgressPayload({ completed: true, userId: 'other-user' }), /only a boolean completed/);
+test("roadmap progress validator rejects unknown fields and non-boolean values", () => {
+  assert.deepEqual(validateUpdateRoadmapProgressPayload({ completed: false }), {
+    completed: false,
+    targetDate: undefined,
+    status: undefined,
+    notes: undefined,
+    position: undefined,
+  });
+  assert.deepEqual(
+    validateUpdateRoadmapProgressPayload({
+      completed: false,
+      targetDate: "2026-09-01",
+      status: "in_progress",
+      notes: "Build a small practice project.",
+      position: 2,
+    }),
+    {
+      completed: false,
+      targetDate: "2026-09-01",
+      status: "in_progress",
+      notes: "Build a small practice project.",
+      position: 2,
+    },
+  );
+  assert.throws(
+    () => validateUpdateRoadmapProgressPayload({ completed: "true" }),
+    /completed must be a boolean/,
+  );
+  assert.throws(
+    () =>
+      validateUpdateRoadmapProgressPayload({
+        completed: true,
+        userId: "other-user",
+      }),
+    /unsupported field/,
+  );
 });
 
-test('updateRoadmapProgress rejects a missing roadmap step', async () => {
+test("updateRoadmapProgress rejects a missing roadmap step", async () => {
   const client: DatabaseClient = {
-    async query<T extends QueryResultRow = QueryResultRow>(sql: string): Promise<QueryResult<T>> {
-      if (sql.includes('SELECT id, career_id FROM roadmap_steps')) return queryResult([]) as QueryResult<T>;
+    async query<T extends QueryResultRow = QueryResultRow>(
+      sql: string,
+    ): Promise<QueryResult<T>> {
+      if (sql.includes("SELECT id, career_id FROM roadmap_steps"))
+        return queryResult([]) as QueryResult<T>;
       return queryResult([]) as QueryResult<T>;
     },
     release(): void {},
   };
 
   await assert.rejects(
-    updateRoadmapProgress('user_demo', 'roadmap_unknown', true, poolFor(client)),
-    (error: Error & { statusCode?: number; code?: string }) => error.statusCode === 404 && error.code === 'roadmap_step_not_found',
+    updateRoadmapProgress(
+      "user_demo",
+      "roadmap_unknown",
+      true,
+      poolFor(client),
+    ),
+    (error: Error & { statusCode?: number; code?: string }) =>
+      error.statusCode === 404 && error.code === "roadmap_step_not_found",
   );
 });
 
-test('roadmap endpoints require bearer authentication', async () => {
+test("roadmap endpoints require bearer authentication", async () => {
   const server = createServer(app);
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const address = server.address();
-  assert.ok(address && typeof address !== 'string');
+  assert.ok(address && typeof address !== "string");
 
   try {
-    const getResponse = await fetch(`http://127.0.0.1:${address.port}/api/careers/career_ai_engineer/roadmap`);
+    const getResponse = await fetch(
+      `http://127.0.0.1:${address.port}/api/careers/career_ai_engineer/roadmap`,
+    );
     assert.equal(getResponse.status, 401);
-    const patchResponse = await fetch(`http://127.0.0.1:${address.port}/api/roadmap/roadmap_ai_python`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ completed: true }),
-    });
+    const patchResponse = await fetch(
+      `http://127.0.0.1:${address.port}/api/roadmap/roadmap_ai_python`,
+      {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ completed: true }),
+      },
+    );
     assert.equal(patchResponse.status, 401);
   } finally {
-    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
   }
+});
+
+test("updateRoadmapProgress returns user-controlled execution metadata", async () => {
+  const client: DatabaseClient = {
+    async query<T extends QueryResultRow = QueryResultRow>(
+      sql: string,
+    ): Promise<QueryResult<T>> {
+      if (sql.includes("SELECT id, career_id FROM roadmap_steps")) {
+        return queryResult([
+          { id: "roadmap_ai_python", career_id: "career_ai_engineer" },
+        ]) as QueryResult<T>;
+      }
+      if (sql.includes("INSERT INTO roadmap_progress")) {
+        return queryResult([
+          {
+            target_date: "2026-09-01",
+            status: "in_progress",
+            notes: "Build a small practice project.",
+            position: 2,
+          },
+        ]) as QueryResult<T>;
+      }
+      return queryResult([]) as QueryResult<T>;
+    },
+    release(): void {},
+  };
+
+  const response = await updateRoadmapProgress(
+    "user_demo",
+    "roadmap_ai_python",
+    {
+      completed: false,
+      targetDate: "2026-09-01",
+      status: "in_progress",
+      notes: "Build a small practice project.",
+      position: 2,
+    },
+    poolFor(client),
+  );
+
+  assert.deepEqual(response, {
+    stepId: "roadmap_ai_python",
+    careerId: "career_ai_engineer",
+    completed: false,
+    targetDate: "2026-09-01",
+    status: "in_progress",
+    notes: "Build a small practice project.",
+    position: 2,
+  });
 });
