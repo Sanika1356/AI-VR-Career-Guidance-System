@@ -13,7 +13,12 @@ import {
   updatePrivacyConsent,
 } from '../services/privacy';
 import { clearAuthSession } from '../services/auth';
-import type { PrivacyConsent, ProfileResponse, ProfileUpdateInput } from '../types/domain';
+import type {
+  EducationStage,
+  PrivacyConsent,
+  ProfileResponse,
+  ProfileUpdateInput,
+} from '../types/domain';
 
 interface ProfileFormState {
   name: string;
@@ -22,6 +27,12 @@ interface ProfileFormState {
   currentSkills: string;
   experience: string;
   learningPreferences: string;
+  goals: string;
+  constraints: string;
+  preferredWorkConditions: string;
+  educationStage: string;
+  locationPreference: string;
+  weeklyTimeBudgetMinutes: string;
 }
 
 type ProfileField = keyof ProfileFormState;
@@ -35,6 +46,12 @@ function toFormState(response: ProfileResponse): ProfileFormState {
     currentSkills: response.profile.currentSkills.join(', '),
     experience: response.profile.experience,
     learningPreferences: JSON.stringify(response.profile.learningPreferences, null, 2),
+    goals: response.profile.goals.join(', '),
+    constraints: response.profile.constraints.join(', '),
+    preferredWorkConditions: response.profile.preferredWorkConditions.join(', '),
+    educationStage: response.profile.educationStage ?? '',
+    locationPreference: response.profile.locationPreference ?? '',
+    weeklyTimeBudgetMinutes: response.profile.weeklyTimeBudgetMinutes?.toString() ?? '',
   };
 }
 
@@ -58,9 +75,41 @@ function validateForm(form: ProfileFormState): {
   if (!name) errors.name = 'Enter your name.';
   else if (name.length > 120) errors.name = 'Name must be 120 characters or fewer.';
 
+  const goals = toList(form.goals);
+  const constraints = toList(form.constraints);
+  const preferredWorkConditions = toList(form.preferredWorkConditions);
+  const locationPreference = form.locationPreference.trim();
+  const weeklyTimeBudgetMinutes = form.weeklyTimeBudgetMinutes.trim();
+
   if (interests.length > 50) errors.interests = 'Add no more than 50 interests.';
   if (currentSkills.length > 100) errors.currentSkills = 'Add no more than 100 skills.';
+  if (goals.length > 20) errors.goals = 'Add no more than 20 goals.';
+  if (constraints.length > 20) errors.constraints = 'Add no more than 20 constraints.';
+  if (preferredWorkConditions.length > 20)
+    errors.preferredWorkConditions = 'Add no more than 20 work conditions.';
   if (experience.length > 2000) errors.experience = 'Experience must be 2,000 characters or fewer.';
+  if (locationPreference.length > 200)
+    errors.locationPreference = 'Location preference must be 200 characters or fewer.';
+
+  const educationStages = new Set([
+    '',
+    'secondary',
+    'undergraduate',
+    'graduate',
+    'career-changer',
+    'working-professional',
+    'other',
+  ]);
+  if (!educationStages.has(form.educationStage))
+    errors.educationStage = 'Choose a supported education stage.';
+
+  let timeBudget: number | null = null;
+  if (weeklyTimeBudgetMinutes) {
+    timeBudget = Number(weeklyTimeBudgetMinutes);
+    if (!Number.isInteger(timeBudget) || timeBudget < 30 || timeBudget > 10080) {
+      errors.weeklyTimeBudgetMinutes = 'Enter a whole number from 30 to 10,080 minutes.';
+    }
+  }
 
   let learningPreferences: Record<string, unknown> = {};
   try {
@@ -84,6 +133,12 @@ function validateForm(form: ProfileFormState): {
       currentSkills,
       experience,
       learningPreferences,
+      goals,
+      constraints,
+      preferredWorkConditions,
+      educationStage: (form.educationStage || null) as EducationStage | null,
+      locationPreference: locationPreference || null,
+      weeklyTimeBudgetMinutes: timeBudget,
     },
   };
 }
@@ -258,7 +313,8 @@ export function ProfilePage() {
         </h1>
         <p>
           Keep your interests, current skills, experience, and learning preferences up to date so
-          your recommendations stay relevant.
+          your recommendations stay relevant. Optional learner context can help future guidance
+          respect your goals, constraints, and available time.
         </p>
       </div>
 
@@ -462,6 +518,33 @@ export function ProfilePage() {
                 error={errors.currentSkills}
                 hint="Separate skills with commas, for example Python, writing, or teamwork."
               />
+              <Input
+                id="profile-goals"
+                label="Learner goals"
+                name="goals"
+                value={form.goals}
+                onChange={(event) => updateField('goals', event.target.value)}
+                error={errors.goals}
+                hint="Optional goals help prioritize guidance. Separate multiple goals with commas."
+              />
+              <Input
+                id="profile-constraints"
+                label="Constraints"
+                name="constraints"
+                value={form.constraints}
+                onChange={(event) => updateField('constraints', event.target.value)}
+                error={errors.constraints}
+                hint="Optional constraints such as schedule, access, or budget limitations."
+              />
+              <Input
+                id="profile-work-conditions"
+                label="Preferred work conditions"
+                name="preferredWorkConditions"
+                value={form.preferredWorkConditions}
+                onChange={(event) => updateField('preferredWorkConditions', event.target.value)}
+                error={errors.preferredWorkConditions}
+                hint="Optional conditions such as remote, collaborative, or structured work."
+              />
               <div className="profile-form__field">
                 <label className="ui-field__label" htmlFor="profile-experience">
                   Experience
@@ -485,6 +568,59 @@ export function ProfilePage() {
                   </p>
                 )}
               </div>
+              <div className="profile-form__field">
+                <label className="ui-field__label" htmlFor="profile-education-stage">
+                  Education or career stage
+                </label>
+                <select
+                  id="profile-education-stage"
+                  className={`ui-input ${errors.educationStage ? 'ui-input--error' : ''}`.trim()}
+                  name="educationStage"
+                  value={form.educationStage}
+                  onChange={(event) => updateField('educationStage', event.target.value)}
+                  aria-invalid={errors.educationStage ? true : undefined}
+                  aria-describedby="profile-education-stage-hint profile-education-stage-error"
+                >
+                  <option value="">Prefer not to say</option>
+                  <option value="secondary">Secondary education</option>
+                  <option value="undergraduate">Undergraduate</option>
+                  <option value="graduate">Graduate</option>
+                  <option value="career-changer">Career changer</option>
+                  <option value="working-professional">Working professional</option>
+                  <option value="other">Other</option>
+                </select>
+                <p className="ui-field__hint" id="profile-education-stage-hint">
+                  This optional context supports relevant explanations; it is not a qualification
+                  assessment.
+                </p>
+                {errors.educationStage && (
+                  <p className="ui-field__error" id="profile-education-stage-error" role="alert">
+                    {errors.educationStage}
+                  </p>
+                )}
+              </div>
+              <Input
+                id="profile-location"
+                label="Location preference"
+                name="locationPreference"
+                value={form.locationPreference}
+                onChange={(event) => updateField('locationPreference', event.target.value)}
+                error={errors.locationPreference}
+                hint="Optional context such as a region, time zone, or remote preference."
+              />
+              <Input
+                id="profile-time-budget"
+                label="Weekly learning time (minutes)"
+                name="weeklyTimeBudgetMinutes"
+                type="number"
+                min={30}
+                max={10080}
+                step={30}
+                value={form.weeklyTimeBudgetMinutes}
+                onChange={(event) => updateField('weeklyTimeBudgetMinutes', event.target.value)}
+                error={errors.weeklyTimeBudgetMinutes}
+                hint="Optional; enter 30 to 10,080 minutes so future roadmaps can respect your available time."
+              />
               <div className="profile-form__field">
                 <label className="ui-field__label" htmlFor="profile-preferences">
                   Learning preferences

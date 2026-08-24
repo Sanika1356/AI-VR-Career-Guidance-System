@@ -39,7 +39,7 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 3 — Better assessment and learner modeling (P1)
 
-- [ ] Add optional learner goals, constraints, preferred work conditions, education stage, location preference, and time budget only through an approved contract change; do not add client-only fields.
+
 - [ ] Add accessibility support for keyboard-only completion, screen readers, reduced motion, high contrast, readable error summaries, and save/resume across devices.
 - [ ] Add fairness evaluation across synthetic demographic profiles without collecting sensitive demographic data by default.
 - [ ] Add a user-controlled confidence and correction flow so learners can correct an inferred interest or skill rather than accepting it as fact.

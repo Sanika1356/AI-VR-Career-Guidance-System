@@ -196,3 +196,28 @@ test("roadmap evidence migration adds bounded user-owned links", async () => {
   assert.match(sql, /jsonb_typeof\(evidence_links\) = 'array'/);
   assert.match(sql, /jsonb_array_length\(evidence_links\) <= 10/);
 });
+
+const learnerContextMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/019_learner_context.sql",
+);
+
+test("learner-context migration stores optional bounded goals and time budget", async () => {
+  const sql = await readFile(learnerContextMigrationPath, "utf8");
+  for (const column of [
+    "goals",
+    "constraints",
+    "preferred_work_conditions",
+    "education_stage",
+    "location_preference",
+    "weekly_time_budget_minutes",
+  ]) {
+    assert.match(sql, new RegExp(`ADD COLUMN IF NOT EXISTS ${column}`));
+  }
+  assert.match(sql, /jsonb_array_length\(goals\) <= 20/);
+  assert.match(sql, /jsonb_array_length\(constraints\) <= 20/);
+  assert.match(sql, /jsonb_array_length\(preferred_work_conditions\) <= 20/);
+  assert.match(sql, /education_stage IN \('secondary', 'undergraduate', 'graduate', 'career-changer', 'working-professional', 'other'\)/);
+  assert.match(sql, /weekly_time_budget_minutes BETWEEN 30 AND 10080/);
+  assert.match(sql, /Rollback:/);
+});
