@@ -3236,3 +3236,17 @@ em {
     margin-bottom: 16px;
   }
 }
+
+.roadmap-step__evidence {
+  flex: 1 1 260px;
+}
+.roadmap-step__evidence small {
+  color: #777b73;
+  display: block;
+  font-size: 10px;
+  line-height: 1.4;
+  margin-top: 5px;
+}
+.roadmap-step__evidence textarea {
+  min-height: 58px;
+}

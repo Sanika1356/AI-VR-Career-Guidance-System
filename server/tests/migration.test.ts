@@ -179,3 +179,20 @@ test("roadmap activity migration records dated owned events for streaks", async 
   assert.match(sql, /idx_roadmap_progress_events_user_date/);
   assert.match(sql, /status IN \('not_started', 'in_progress', 'completed'\)/);
 });
+
+const roadmapEvidenceMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/018_roadmap_evidence_links.sql",
+);
+
+test("roadmap evidence migration adds bounded user-owned links", async () => {
+  const sql = await readFile(roadmapEvidenceMigrationPath, "utf8");
+  assert.match(sql, /ALTER TABLE roadmap_progress/);
+  assert.match(
+    sql,
+    /ADD COLUMN IF NOT EXISTS evidence_links JSONB NOT NULL DEFAULT '\[\]'::jsonb/,
+  );
+  assert.match(sql, /roadmap_progress_evidence_links_array/);
+  assert.match(sql, /jsonb_typeof\(evidence_links\) = 'array'/);
+  assert.match(sql, /jsonb_array_length\(evidence_links\) <= 10/);
+});

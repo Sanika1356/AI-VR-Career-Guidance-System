@@ -5,11 +5,46 @@ import { createId } from "../utils/id.js";
 
 export type RoadmapStepStatus = "not_started" | "in_progress" | "completed";
 
+export interface RoadmapEvidenceLink {
+  label: string;
+  url: string;
+}
+
+function parseEvidenceLinks(
+  value: RoadmapEvidenceLink[] | string | null,
+): RoadmapEvidenceLink[] {
+  if (Array.isArray(value)) {
+    return value.filter(
+      (item): item is RoadmapEvidenceLink =>
+        Boolean(item) &&
+        typeof item === "object" &&
+        typeof item.label === "string" &&
+        typeof item.url === "string",
+    );
+  }
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (item): item is RoadmapEvidenceLink =>
+            Boolean(item) &&
+            typeof item === "object" &&
+            typeof (item as RoadmapEvidenceLink).label === "string" &&
+            typeof (item as RoadmapEvidenceLink).url === "string",
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export interface RoadmapStepUpdate {
   completed: boolean;
   targetDate?: string | null;
   status?: RoadmapStepStatus;
   notes?: string;
+  evidenceLinks?: RoadmapEvidenceLink[];
   position?: number;
 }
 
@@ -26,6 +61,7 @@ interface RoadmapStepRow {
   target_date: string | null;
   status: RoadmapStepStatus;
   notes: string;
+  evidence_links: RoadmapEvidenceLink[] | string | null;
   position: number | null;
 }
 interface RoadmapCareerRow {
@@ -48,6 +84,7 @@ export interface RoadmapStepResponse {
   targetDate: string | null;
   status: RoadmapStepStatus;
   notes: string;
+  evidenceLinks: RoadmapEvidenceLink[];
   position: number;
 }
 export interface RoadmapResponse {
@@ -80,6 +117,7 @@ export async function getRoadmap(
               rp.target_date,
               COALESCE(rp.status, CASE WHEN rp.completed THEN 'completed' ELSE 'not_started' END) AS status,
               COALESCE(rp.notes, '') AS notes,
+              COALESCE(rp.evidence_links, '[]'::jsonb) AS evidence_links,
               COALESCE(rp.position, rs.display_order) AS position
        FROM roadmap_steps rs
        LEFT JOIN roadmap_progress rp ON rp.step_id = rs.id AND rp.user_id = $1
@@ -103,6 +141,7 @@ export async function getRoadmap(
           : null,
         status: row.status,
         notes: row.notes,
+        evidenceLinks: parseEvidenceLinks(row.evidence_links),
         position: row.position ?? row.display_order,
       })),
     };
@@ -123,6 +162,7 @@ export async function updateRoadmapProgress(
   targetDate: string | null;
   status: RoadmapStepStatus;
   notes: string;
+  evidenceLinks: RoadmapEvidenceLink[];
   position: number | null;
 }> {
   const update: RoadmapStepUpdate =
@@ -149,11 +189,12 @@ export async function updateRoadmapProgress(
       target_date: string | null;
       status: RoadmapStepStatus;
       notes: string;
+      evidence_links: RoadmapEvidenceLink[] | string | null;
       position: number | null;
     }>(
       `INSERT INTO roadmap_progress
-        (user_id, step_id, completed, target_date, status, notes, position, updated_at)
-       VALUES ($1, $2, $3, $4, COALESCE($5, CASE WHEN $3 THEN 'completed' ELSE 'not_started' END), $6, $7, NOW())
+        (user_id, step_id, completed, target_date, status, notes, evidence_links, position, updated_at)
+       VALUES ($1, $2, $3, $4, COALESCE($5, CASE WHEN $3 THEN 'completed' ELSE 'not_started' END), $6, COALESCE($7, '[]'::jsonb), $8, NOW())
        ON CONFLICT (user_id, step_id)
        DO UPDATE SET completed = EXCLUDED.completed,
                      target_date = CASE WHEN $4::date IS NULL THEN roadmap_progress.target_date ELSE EXCLUDED.target_date END,
@@ -164,9 +205,10 @@ export async function updateRoadmapProgress(
                        ELSE roadmap_progress.status
                      END,
                      notes = CASE WHEN $6::text IS NULL THEN roadmap_progress.notes ELSE EXCLUDED.notes END,
-                     position = CASE WHEN $7::integer IS NULL THEN roadmap_progress.position ELSE EXCLUDED.position END,
+                     evidence_links = CASE WHEN $7::jsonb IS NULL THEN roadmap_progress.evidence_links ELSE EXCLUDED.evidence_links END,
+                     position = CASE WHEN $8::integer IS NULL THEN roadmap_progress.position ELSE EXCLUDED.position END,
                      updated_at = NOW()
-       RETURNING completed, target_date, status, notes, position`,
+       RETURNING completed, target_date, status, notes, evidence_links, position`,
       [
         userId,
         stepId,
@@ -174,12 +216,16 @@ export async function updateRoadmapProgress(
         update.targetDate ?? null,
         requestedStatus,
         update.notes ?? null,
+        update.evidenceLinks ? JSON.stringify(update.evidenceLinks) : null,
         update.position ?? null,
       ],
     );
     const saved = progressResult.rows[0];
     const savedStatus = saved?.status ?? requestedStatus ?? defaultStatus;
     const savedNotes = saved?.notes ?? update.notes ?? "";
+    const savedEvidenceLinks = parseEvidenceLinks(
+      saved?.evidence_links ?? update.evidenceLinks ?? [],
+    );
     const savedPosition = saved?.position ?? update.position ?? null;
     await client.query(
       `INSERT INTO roadmap_progress_events
@@ -203,7 +249,107 @@ export async function updateRoadmapProgress(
         : null,
       status: savedStatus,
       notes: savedNotes,
+      evidenceLinks: savedEvidenceLinks,
       position: savedPosition,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+interface RoadmapReorderRow {
+  id: string;
+  career_id: string;
+  display_order: number;
+  completed: boolean;
+  target_date: string | null;
+  status: RoadmapStepStatus;
+  notes: string;
+  evidence_links: RoadmapEvidenceLink[] | string | null;
+  position: number;
+}
+
+export interface RoadmapReorderResponse {
+  careerId: string;
+  positions: Array<{ stepId: string; position: number }>;
+}
+
+export async function reorderRoadmapStep(
+  userId: string,
+  stepId: string,
+  targetPosition: number,
+  database: DatabasePool = requirePool(),
+): Promise<RoadmapReorderResponse> {
+  const client = await database.connect();
+  try {
+    await client.query("BEGIN");
+    const stepResult = await client.query<RoadmapReorderRow>(
+      `SELECT rs.id, rs.career_id, rs.display_order,
+              COALESCE(rp.completed, FALSE) AS completed,
+              rp.target_date,
+              COALESCE(rp.status, CASE WHEN rp.completed THEN 'completed' ELSE 'not_started' END) AS status,
+              COALESCE(rp.notes, '') AS notes,
+              COALESCE(rp.evidence_links, '[]'::jsonb) AS evidence_links,
+              COALESCE(rp.position, rs.display_order) AS position
+       FROM roadmap_steps rs
+       LEFT JOIN roadmap_progress rp ON rp.step_id = rs.id AND rp.user_id = $1
+       WHERE rs.career_id = (SELECT career_id FROM roadmap_steps WHERE id = $2)
+       ORDER BY COALESCE(rp.position, rs.display_order), rs.display_order, rs.id`,
+      [userId, stepId],
+    );
+    const rows = stepResult.rows;
+    const selectedIndex = rows.findIndex((row) => row.id === stepId);
+    if (selectedIndex < 0) {
+      throw new AppError(
+        404,
+        "roadmap_step_not_found",
+        "The roadmap step does not exist.",
+      );
+    }
+    if (
+      !Number.isInteger(targetPosition) ||
+      targetPosition < 1 ||
+      targetPosition > rows.length
+    ) {
+      throw new AppError(
+        400,
+        "validation_error",
+        `targetPosition must be between 1 and ${rows.length}.`,
+      );
+    }
+
+    const reordered = [...rows];
+    const [selected] = reordered.splice(selectedIndex, 1);
+    reordered.splice(targetPosition - 1, 0, selected);
+    for (const [index, row] of reordered.entries()) {
+      await client.query(
+        `INSERT INTO roadmap_progress
+          (user_id, step_id, completed, target_date, status, notes, evidence_links, position, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, NOW())
+         ON CONFLICT (user_id, step_id)
+         DO UPDATE SET position = EXCLUDED.position, updated_at = NOW()`,
+        [
+          userId,
+          row.id,
+          row.completed,
+          row.target_date,
+          row.status,
+          row.notes,
+          JSON.stringify(parseEvidenceLinks(row.evidence_links)),
+          index + 1,
+        ],
+      );
+    }
+    await client.query("COMMIT");
+    return {
+      careerId: rows[0]?.career_id ?? "",
+      positions: reordered.map((row, index) => ({
+        stepId: row.id,
+        position: index + 1,
+      })),
     };
   } catch (error) {
     await client.query("ROLLBACK");

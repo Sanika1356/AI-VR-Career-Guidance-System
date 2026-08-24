@@ -2,9 +2,13 @@ import type { NextFunction, Response } from "express";
 import {
   getRoadmap,
   updateRoadmapProgress,
+  reorderRoadmapStep,
 } from "../services/roadmap.service.js";
 import type { AuthenticatedRequest } from "../types/auth.js";
-import { validateUpdateRoadmapProgressPayload } from "../validators/roadmap.js";
+import {
+  validateReorderRoadmapPayload,
+  validateUpdateRoadmapProgressPayload,
+} from "../validators/roadmap.js";
 import { AppError } from "../utils/app-error.js";
 
 export async function getRoadmapController(
@@ -20,6 +24,27 @@ export async function getRoadmapController(
       throw new AppError(400, "validation_error", "careerId is required.");
     }
     response.status(200).json(await getRoadmap(request.userId, careerId));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function reorderRoadmapStepController(
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!request.userId)
+      throw new AppError(401, "unauthorized", "Authentication is required.");
+    const stepId = request.params.stepId;
+    if (typeof stepId !== "string" || stepId.length === 0) {
+      throw new AppError(400, "validation_error", "stepId is required.");
+    }
+    const { targetPosition } = validateReorderRoadmapPayload(request.body);
+    response
+      .status(200)
+      .json(await reorderRoadmapStep(request.userId, stepId, targetPosition));
   } catch (error) {
     next(error);
   }

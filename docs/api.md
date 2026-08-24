@@ -493,7 +493,7 @@ Returns an ordered learning plan. Each step includes local effort guidance and a
 
 ### `PATCH /api/roadmap/:stepId`
 
-Updates a roadmap step for the authenticated learner. The required `completed` boolean is backward-compatible; optional `targetDate` (`YYYY-MM-DD` or `null`), `status` (`not_started`, `in_progress`, or `completed`), `notes` (maximum 2,000 characters), and positive `position` fields support personal execution planning. The API stores only the authenticated user’s progress and does not change the catalog’s shared ordering.
+Updates a roadmap step for the authenticated learner. The required `completed` boolean is backward-compatible; optional `targetDate` (`YYYY-MM-DD` or `null`), `status` (`not_started`, `in_progress`, or `completed`), `notes` (maximum 2,000 characters), `evidenceLinks` (at most 10 `{label, url}` objects using absolute HTTP(S) URLs), and positive `position` fields support personal execution planning. Omitted optional fields preserve their existing user-owned values. The API stores only the authenticated user’s progress and does not change the catalog’s shared ordering.
 
 ```json
 {
@@ -501,7 +501,20 @@ Updates a roadmap step for the authenticated learner. The required `completed` b
   "targetDate": "2026-09-01",
   "status": "in_progress",
   "notes": "Build a small practice project.",
+  "evidenceLinks": [
+    { "label": "Practice brief", "url": "https://example.org/brief" }
+  ],
   "position": 1
+}
+```
+
+### `PATCH /api/roadmap/:stepId/reorder`
+
+Atomically moves one authenticated learner’s roadmap step to a one-based target position within its career roadmap. The server normalizes all positions in one transaction, so concurrent two-request client swaps are not required. `targetPosition` must be between `1` and the number of steps in that roadmap. The response returns the authenticated user’s career ID and the normalized `{stepId, position}` list.
+
+```json
+{
+  "targetPosition": 1
 }
 ```
 

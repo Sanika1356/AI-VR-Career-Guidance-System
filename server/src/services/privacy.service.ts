@@ -1,6 +1,6 @@
-import { requirePool } from '../db/pool.js';
-import type { DatabaseClient, DatabasePool } from '../db/types.js';
-import { AppError } from '../utils/app-error.js';
+import { requirePool } from "../db/pool.js";
+import type { DatabaseClient, DatabasePool } from "../db/types.js";
+import { AppError } from "../utils/app-error.js";
 
 export interface PrivacyConsent {
   analytics: boolean;
@@ -72,12 +72,15 @@ function mapConsent(row?: ConsentRow): PrivacyConsent {
     analytics: Boolean(row?.analytics ?? false),
     personalizedAi: Boolean(row?.personalized_ai ?? false),
     vrTelemetry: Boolean(row?.vr_telemetry ?? false),
-    policyVersion: row?.policy_version ?? 'v1',
+    policyVersion: row?.policy_version ?? "v1",
     updatedAt: iso(row?.updated_at ?? null),
   };
 }
 
-async function withClient<T>(database: DatabasePool, work: (client: DatabaseClient) => Promise<T>): Promise<T> {
+async function withClient<T>(
+  database: DatabasePool,
+  work: (client: DatabaseClient) => Promise<T>,
+): Promise<T> {
   const client = await database.connect();
   try {
     return await work(client);
@@ -102,7 +105,7 @@ export async function getPrivacyConsent(
 
 export async function updatePrivacyConsent(
   userId: string,
-  input: Pick<PrivacyConsent, 'analytics' | 'personalizedAi' | 'vrTelemetry'>,
+  input: Pick<PrivacyConsent, "analytics" | "personalizedAi" | "vrTelemetry">,
   database: DatabasePool = requirePool(),
 ): Promise<PrivacyConsent> {
   return withClient(database, async (client) => {
@@ -132,9 +135,23 @@ export async function exportAccountData(
       [userId],
     );
     const user = userResult.rows[0];
-    if (!user) throw new AppError(404, 'account_not_found', 'The account does not exist.');
+    if (!user)
+      throw new AppError(
+        404,
+        "account_not_found",
+        "The account does not exist.",
+      );
 
-    const [profileResult, consentResult, assessments, assessmentResults, recommendations, roadmapProgress, roadmapActivityEvents, conversations] = await Promise.all([
+    const [
+      profileResult,
+      consentResult,
+      assessments,
+      assessmentResults,
+      recommendations,
+      roadmapProgress,
+      roadmapActivityEvents,
+      conversations,
+    ] = await Promise.all([
       client.query<ProfileRow>(
         `SELECT interests, current_skills, experience, learning_preferences, created_at, updated_at
          FROM profiles WHERE user_id = $1`,
@@ -145,18 +162,42 @@ export async function exportAccountData(
          FROM privacy_consents WHERE user_id = $1`,
         [userId],
       ),
-      client.query(`SELECT id, status, started_at, completed_at FROM assessments WHERE user_id = $1 ORDER BY started_at`, [userId]),
-      client.query(`SELECT id, assessment_id, category_scores, top_career_ids, completed_at FROM assessment_results WHERE user_id = $1 ORDER BY completed_at`, [userId]),
-      client.query(`SELECT r.id, r.result_id, r.career_id, r.score, r.reason, r.matched_skills, r.missing_skills, r.rank FROM recommendations r JOIN assessment_results ar ON ar.id = r.result_id WHERE ar.user_id = $1 ORDER BY r.rank`, [userId]),
-      client.query(`SELECT user_id, step_id, completed, updated_at FROM roadmap_progress WHERE user_id = $1 ORDER BY updated_at`, [userId]),
-      client.query(`SELECT id, step_id, completed, status, activity_date, occurred_at FROM roadmap_progress_events WHERE user_id = $1 ORDER BY occurred_at`, [userId]),
-      client.query(`SELECT id, career_id, created_at FROM conversations WHERE user_id = $1 ORDER BY created_at`, [userId]),
+      client.query(
+        `SELECT id, status, started_at, completed_at FROM assessments WHERE user_id = $1 ORDER BY started_at`,
+        [userId],
+      ),
+      client.query(
+        `SELECT id, assessment_id, category_scores, top_career_ids, completed_at FROM assessment_results WHERE user_id = $1 ORDER BY completed_at`,
+        [userId],
+      ),
+      client.query(
+        `SELECT r.id, r.result_id, r.career_id, r.score, r.reason, r.matched_skills, r.missing_skills, r.rank FROM recommendations r JOIN assessment_results ar ON ar.id = r.result_id WHERE ar.user_id = $1 ORDER BY r.rank`,
+        [userId],
+      ),
+      client.query(
+        `SELECT user_id, step_id, completed, target_date, status, notes, evidence_links, position, updated_at FROM roadmap_progress WHERE user_id = $1 ORDER BY updated_at`,
+        [userId],
+      ),
+      client.query(
+        `SELECT id, step_id, completed, status, activity_date, occurred_at FROM roadmap_progress_events WHERE user_id = $1 ORDER BY occurred_at`,
+        [userId],
+      ),
+      client.query(
+        `SELECT id, career_id, created_at FROM conversations WHERE user_id = $1 ORDER BY created_at`,
+        [userId],
+      ),
     ]);
 
-    const conversationIds = conversations.rows.map((conversation) => conversation.id as string);
-    const messages = conversationIds.length > 0
-      ? await client.query(`SELECT id, conversation_id, role, content, created_at FROM messages WHERE conversation_id = ANY($1::text[]) ORDER BY created_at`, [conversationIds])
-      : { rows: [] };
+    const conversationIds = conversations.rows.map(
+      (conversation) => conversation.id as string,
+    );
+    const messages =
+      conversationIds.length > 0
+        ? await client.query(
+            `SELECT id, conversation_id, role, content, created_at FROM messages WHERE conversation_id = ANY($1::text[]) ORDER BY created_at`,
+            [conversationIds],
+          )
+        : { rows: [] };
 
     const profile = profileResult.rows[0];
     return {
@@ -169,14 +210,16 @@ export async function exportAccountData(
         createdAt: new Date(user.created_at).toISOString(),
         updatedAt: new Date(user.updated_at).toISOString(),
       },
-      profile: profile ? {
-        interests: profile.interests,
-        currentSkills: profile.current_skills,
-        experience: profile.experience,
-        learningPreferences: profile.learning_preferences,
-        createdAt: new Date(profile.created_at).toISOString(),
-        updatedAt: new Date(profile.updated_at).toISOString(),
-      } : null,
+      profile: profile
+        ? {
+            interests: profile.interests,
+            currentSkills: profile.current_skills,
+            experience: profile.experience,
+            learningPreferences: profile.learning_preferences,
+            createdAt: new Date(profile.created_at).toISOString(),
+            updatedAt: new Date(profile.updated_at).toISOString(),
+          }
+        : null,
       privacy: mapConsent(consentResult.rows[0]),
       assessments: assessments.rows,
       assessmentResults: assessmentResults.rows,
@@ -185,7 +228,9 @@ export async function exportAccountData(
       roadmapActivityEvents: roadmapActivityEvents.rows,
       conversations: conversations.rows.map((conversation) => ({
         ...conversation,
-        messages: messages.rows.filter((message) => message.conversation_id === conversation.id),
+        messages: messages.rows.filter(
+          (message) => message.conversation_id === conversation.id,
+        ),
       })),
     };
   });
@@ -197,14 +242,22 @@ export async function deleteAccount(
 ): Promise<{ deleted: true; userId: string }> {
   return withClient(database, async (client) => {
     try {
-      await client.query('BEGIN');
-      const result = await client.query<{ id: string }>('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
-      if (!result.rows[0]) throw new AppError(404, 'account_not_found', 'The account does not exist.');
-      await client.query('COMMIT');
+      await client.query("BEGIN");
+      const result = await client.query<{ id: string }>(
+        "DELETE FROM users WHERE id = $1 RETURNING id",
+        [userId],
+      );
+      if (!result.rows[0])
+        throw new AppError(
+          404,
+          "account_not_found",
+          "The account does not exist.",
+        );
+      await client.query("COMMIT");
       return { deleted: true, userId };
     } catch (error) {
       try {
-        await client.query('ROLLBACK');
+        await client.query("ROLLBACK");
       } catch {
         // Preserve the original error if rollback is unavailable.
       }
