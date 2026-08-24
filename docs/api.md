@@ -161,6 +161,43 @@ Returns available career paths.
 
 Returns full information for one career, including required skills, recommended learning resources, and the VR environment key when available.
 
+### `GET /api/careers/comparison?careerIds=<id1>,<id2>[,<id3>...]`
+
+Returns a read-only comparison for two to five distinct careers from the local catalog. The response preserves the requested order and includes skills, project-authored work activities, a directional learning-effort label with roadmap/resource counts, transferable skills available in the ontology, optional VR environment metadata, and explicit uncertainty notes. It does not claim salary, employment probability, licensing status, or other external labor-market facts.
+
+```json
+{
+  "careers": [
+    {
+      "id": "career_ai_engineer",
+      "name": "AI Engineer",
+      "domain": "technology",
+      "description": "Builds intelligent software systems.",
+      "skills": ["Machine Learning", "Python"],
+      "workActivities": [
+        "Build and evaluate a small intelligent-system feature"
+      ],
+      "learningEffort": {
+        "label": "substantial",
+        "roadmapStepCount": 2,
+        "resourceCount": 3
+      },
+      "transferableSkills": ["Communication"],
+      "environment": {
+        "key": "ai-engineer-lab",
+        "title": "AI Engineering Lab",
+        "available": true
+      },
+      "uncertainty": [
+        "Project-authored comparison metadata is directional and is not a labor-market forecast or qualification."
+      ]
+    }
+  ]
+}
+```
+
+The route is rate-limited with the catalog limiter. It returns `400` for fewer than two, more than five, malformed, or duplicate IDs and `404` when any requested career is not in the catalog.
+
 ## Assessment
 
 ### `GET /api/assessment/questions`

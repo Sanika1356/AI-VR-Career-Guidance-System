@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
 import {
+  compareCareersController,
   getCareerController,
   listCareersController,
 } from "../controllers/career.controller.js";
@@ -14,4 +15,5 @@ const catalogRateLimiter = createRateLimiter({
 });
 
 careerRouter.get("/", catalogRateLimiter, listCareersController);
+careerRouter.get("/comparison", catalogRateLimiter, compareCareersController);
 careerRouter.get("/:careerId", catalogRateLimiter, getCareerController);
