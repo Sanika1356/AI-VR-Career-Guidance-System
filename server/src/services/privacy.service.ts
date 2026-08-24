@@ -33,6 +33,7 @@ export interface AccountExport {
   assessmentResults: unknown[];
   recommendations: unknown[];
   roadmapProgress: unknown[];
+  roadmapActivityEvents: unknown[];
   conversations: unknown[];
 }
 
@@ -133,7 +134,7 @@ export async function exportAccountData(
     const user = userResult.rows[0];
     if (!user) throw new AppError(404, 'account_not_found', 'The account does not exist.');
 
-    const [profileResult, consentResult, assessments, assessmentResults, recommendations, roadmapProgress, conversations] = await Promise.all([
+    const [profileResult, consentResult, assessments, assessmentResults, recommendations, roadmapProgress, roadmapActivityEvents, conversations] = await Promise.all([
       client.query<ProfileRow>(
         `SELECT interests, current_skills, experience, learning_preferences, created_at, updated_at
          FROM profiles WHERE user_id = $1`,
@@ -148,6 +149,7 @@ export async function exportAccountData(
       client.query(`SELECT id, assessment_id, category_scores, top_career_ids, completed_at FROM assessment_results WHERE user_id = $1 ORDER BY completed_at`, [userId]),
       client.query(`SELECT r.id, r.result_id, r.career_id, r.score, r.reason, r.matched_skills, r.missing_skills, r.rank FROM recommendations r JOIN assessment_results ar ON ar.id = r.result_id WHERE ar.user_id = $1 ORDER BY r.rank`, [userId]),
       client.query(`SELECT user_id, step_id, completed, updated_at FROM roadmap_progress WHERE user_id = $1 ORDER BY updated_at`, [userId]),
+      client.query(`SELECT id, step_id, completed, status, activity_date, occurred_at FROM roadmap_progress_events WHERE user_id = $1 ORDER BY occurred_at`, [userId]),
       client.query(`SELECT id, career_id, created_at FROM conversations WHERE user_id = $1 ORDER BY created_at`, [userId]),
     ]);
 
@@ -180,6 +182,7 @@ export async function exportAccountData(
       assessmentResults: assessmentResults.rows,
       recommendations: recommendations.rows,
       roadmapProgress: roadmapProgress.rows,
+      roadmapActivityEvents: roadmapActivityEvents.rows,
       conversations: conversations.rows.map((conversation) => ({
         ...conversation,
         messages: messages.rows.filter((message) => message.conversation_id === conversation.id),

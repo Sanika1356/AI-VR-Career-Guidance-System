@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Badge } from '../components/Badge';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ProgressBar } from '../components/ProgressBar';
+import { getDashboard } from '../services/dashboard';
 import { getProfile } from '../services/profile';
-import type { ProfileResponse } from '../types/domain';
+import type { DashboardResponse, ProfileResponse } from '../types/domain';
 
 interface DashboardPageProps {
   onNavigate: (href: string) => void;
@@ -18,17 +20,32 @@ function countPreferenceValues(preferences: Record<string, unknown>) {
   }).length;
 }
 
+function formatDate(value: string | null) {
+  if (!value) return 'No target date';
+  return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadProfile = useCallback(async () => {
+  const loadDashboard = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      setProfile(await getProfile());
+      const [profileResponse, dashboardResponse] = await Promise.all([
+        getProfile(),
+        getDashboard(),
+      ]);
+      setProfile(profileResponse);
+      setDashboard(dashboardResponse);
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.',
@@ -39,8 +56,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   }, []);
 
   useEffect(() => {
-    void loadProfile();
-  }, [loadProfile]);
+    void loadDashboard();
+  }, [loadDashboard]);
 
   const profileSummary = useMemo(() => {
     if (!profile) return null;
@@ -74,19 +91,21 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     );
   }
 
-  if (error || !profile || !profileSummary) {
+  if (error || !profile || !profileSummary || !dashboard) {
     return (
       <div className="page-frame page-frame--narrow">
         <ErrorState
           title="Your dashboard needs another look"
           description={error ?? 'We could not load the profile signals for this dashboard.'}
-          onAction={() => void loadProfile()}
+          onAction={() => void loadDashboard()}
         />
       </div>
     );
   }
 
   const firstName = profile.user.name.split(' ')[0] || 'there';
+  const latest = dashboard.recommendationChanges.latest;
+  const previous = dashboard.recommendationChanges.previous;
 
   return (
     <div className="page-frame dashboard-page">
@@ -140,6 +159,137 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <span className="dashboard-stat-card__label">skills listed</span>
         </Card>
       </section>
+
+      <section className="dashboard-progress-grid" aria-label="Learning progress summary">
+        <Card
+          title="Roadmap progress"
+          description="Your completed roadmap steps and the skills they represent."
+        >
+          <div className="dashboard-progress-metric">
+            <strong>{dashboard.roadmap.completionPercent}%</strong>
+            <span>
+              {dashboard.roadmap.completedSteps} of {dashboard.roadmap.totalSteps} steps complete
+            </span>
+          </div>
+          <ProgressBar value={dashboard.roadmap.completionPercent} label="Roadmap completion" />
+          {dashboard.roadmap.completedSkills.length > 0 ? (
+            <div className="dashboard-tags" aria-label="Completed skills">
+              {dashboard.roadmap.completedSkills.map((skill) => (
+                <Badge key={skill} tone="success">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="muted-text">Complete a roadmap step to build your first skill signal.</p>
+          )}
+        </Card>
+
+        <Card
+          title="Learning streak"
+          description="A simple activity signal from your roadmap updates."
+        >
+          <div className="dashboard-streak">
+            <strong>{dashboard.streaks.currentDays}</strong>
+            <span>current day streak</span>
+          </div>
+          <p className="muted-text">
+            Longest recorded streak: {dashboard.streaks.longestDays} day
+            {dashboard.streaks.longestDays === 1 ? '' : 's'}.
+          </p>
+        </Card>
+      </section>
+
+      <section className="dashboard-execution-grid" aria-label="Roadmap execution details">
+        <Card title="Active milestones" description="Roadmap steps you have marked as in progress.">
+          {dashboard.roadmap.activeMilestones.length > 0 ? (
+            <div className="dashboard-list">
+              {dashboard.roadmap.activeMilestones.map((milestone) => (
+                <div className="dashboard-list__item" key={milestone.stepId}>
+                  <div>
+                    <strong>{milestone.title}</strong>
+                    <small>
+                      {milestone.skill} · target {formatDate(milestone.targetDate)}
+                    </small>
+                  </div>
+                  {milestone.notes && <p>{milestone.notes}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted-text">
+              No active milestones yet. Choose a roadmap step when you are ready.
+            </p>
+          )}
+          <button
+            className="text-link"
+            type="button"
+            onClick={() => onNavigate('/recommendations')}
+          >
+            Review career roadmaps <span aria-hidden="true">↗</span>
+          </button>
+        </Card>
+
+        <Card
+          title="Reflection notes"
+          description="Your latest private notes attached to roadmap steps."
+        >
+          {dashboard.roadmap.reflectionNotes.length > 0 ? (
+            <div className="dashboard-list">
+              {dashboard.roadmap.reflectionNotes.map((note) => (
+                <div className="dashboard-list__item" key={note.stepId}>
+                  <strong>{note.title}</strong>
+                  <small>
+                    {note.skill} · updated {formatDate(note.updatedAt)}
+                  </small>
+                  <p>{note.notes}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted-text">
+              Add a short note to a roadmap step to see reflections here.
+            </p>
+          )}
+        </Card>
+      </section>
+
+      <Card
+        className="dashboard-recommendation-change"
+        title="Recommendation changes"
+        description="A comparison of your two most recent completed assessment results, when available."
+      >
+        {latest ? (
+          <div className="dashboard-recommendation-change__content">
+            <div>
+              <strong>{latest.topCareerIds.length} current career signals</strong>
+              <small>
+                Latest assessment completed {new Date(latest.completedAt).toLocaleDateString()}
+              </small>
+            </div>
+            {previous ? (
+              <div>
+                <strong>
+                  {dashboard.recommendationChanges.changedCareerIds.length} changed career signal
+                  {dashboard.recommendationChanges.changedCareerIds.length === 1 ? '' : 's'}
+                </strong>
+                <small>Compared with the previous completed assessment</small>
+              </div>
+            ) : (
+              <p className="muted-text">
+                Complete another assessment later to compare changes over time.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="muted-text">
+            Complete the assessment to start tracking recommendation changes.
+          </p>
+        )}
+        <button className="text-link" type="button" onClick={() => onNavigate('/recommendations')}>
+          View recommendations <span aria-hidden="true">↗</span>
+        </button>
+      </Card>
 
       <section className="dashboard-next" aria-labelledby="dashboard-next-title">
         <div className="section-heading">
