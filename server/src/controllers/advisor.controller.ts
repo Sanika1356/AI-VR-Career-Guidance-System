@@ -1,9 +1,11 @@
 import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "../types/auth.js";
 import { chatAdvisor } from "../services/advisor.service.js";
+import { recordAdvisorFeedback } from "../services/advisor-feedback.service.js";
 import { clearAdvisorHistory } from "../services/advisor-memory.service.js";
 import {
   validateAdvisorChatInput,
+  validateAdvisorFeedbackInput,
   validateConversationId,
 } from "../validators/advisor.js";
 import { AppError } from "../utils/app-error.js";
@@ -32,6 +34,27 @@ export async function clearAdvisorHistoryController(
       userId,
       requestId: requestAuditId(response),
       metadata: { deletedMessageCount: result.deletedMessageCount },
+    });
+    response.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function recordAdvisorFeedbackController(
+  request: AuthenticatedRequest,
+  response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const userId = authenticatedUserId(request);
+    const input = validateAdvisorFeedbackInput(request.body);
+    const result = await recordAdvisorFeedback(userId, input);
+    await recordAuditEvent({
+      eventType: "advisor_feedback_submitted",
+      userId,
+      requestId: requestAuditId(response),
+      metadata: { helpful: input.helpful, reason: input.reason ?? null },
     });
     response.status(200).json(result);
   } catch (error) {

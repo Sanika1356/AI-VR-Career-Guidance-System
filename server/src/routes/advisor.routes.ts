@@ -3,6 +3,7 @@ import { env } from "../config/env.js";
 import {
   chatAdvisorController,
   clearAdvisorHistoryController,
+  recordAdvisorFeedbackController,
 } from "../controllers/advisor.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { createRateLimiter } from "../middleware/rate-limit.js";
@@ -21,6 +22,13 @@ advisorRouter.delete(
   requireFeature(env.aiAdvisorEnabled, "AI advisor"),
   advisorRateLimiter,
   clearAdvisorHistoryController,
+);
+advisorRouter.post(
+  "/feedback",
+  requireAuth,
+  requireFeature(env.aiAdvisorEnabled, "AI advisor"),
+  advisorRateLimiter,
+  recordAdvisorFeedbackController,
 );
 advisorRouter.post(
   "/chat",

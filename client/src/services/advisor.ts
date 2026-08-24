@@ -2,6 +2,8 @@ import { authenticatedRequest } from './auth';
 import type {
   AdvisorChatRequest,
   AdvisorChatResponse,
+  AdvisorFeedbackRequest,
+  AdvisorFeedbackResponse,
   ClearAdvisorHistoryResponse,
 } from '../types/domain';
 
@@ -43,6 +45,15 @@ function parseAdvisorResponse(value: unknown): AdvisorChatResponse {
     confidence: confidence as AdvisorChatResponse['confidence'],
     caveat: typeof caveat === 'string' ? caveat : undefined,
   };
+}
+
+export function submitAdvisorFeedback(
+  input: AdvisorFeedbackRequest,
+): Promise<AdvisorFeedbackResponse> {
+  return authenticatedRequest<AdvisorFeedbackResponse>('/advisor/feedback', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export function clearAdvisorHistory(conversationId: string): Promise<ClearAdvisorHistoryResponse> {

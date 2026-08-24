@@ -65,7 +65,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 ## Phase 5 — Grounded AI advisor and evaluation (P1)
 
 - [ ] Add conversation memory controls: per-conversation scope, clear-history action, retention setting, export, deletion, and no hidden sensitive memory.
-- [ ] Add advisor feedback buttons and a redacted evaluation dataset covering helpfulness, grounding, safety, refusal quality, bias, and repetitive answers.
 - [ ] Add prompt/response redaction and observability that stores metrics and evaluation IDs rather than raw sensitive conversations by default.
 - [ ] Add a human-review or escalation pathway for unsafe, discriminatory, or high-impact guidance.
 
