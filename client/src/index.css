@@ -2140,12 +2140,17 @@ em {
 }
 
 .skill-gap-list__item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e3e1da;
+}
+
+.skill-gap-list__heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #e3e1da;
 }
 
 .skill-gap-list__item:last-child {
@@ -2158,12 +2163,23 @@ em {
 }
 
 .skill-gap-list__level {
-  flex-shrink: 0;
   color: #777b73;
   font-family: 'DM Mono', monospace;
   font-size: 0.68rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.skill-gap-list__reason,
+.skill-gap-list__blocked {
+  margin: 0;
+  color: #656a66;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.skill-gap-list__blocked {
+  color: #8b5d2b;
 }
 
 .skill-gap-group__empty {

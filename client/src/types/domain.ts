@@ -52,6 +52,27 @@ export interface CareerDetail extends CareerSummary {
   roadmap: CareerDetailRoadmapStep[];
 }
 
+export interface CareerComparison {
+  id: string;
+  name: string;
+  domain: string;
+  description: string;
+  skills: string[];
+  workActivities: string[];
+  learningEffort: {
+    label: string;
+    roadmapStepCount: number;
+    resourceCount: number;
+  };
+  transferableSkills: string[];
+  environment: VREnvironment | null;
+  uncertainty: string[];
+}
+
+export interface CareerComparisonResponse {
+  careers: CareerComparison[];
+}
+
 export type AssessmentQuestionType = 'single-choice' | 'multiple-choice' | 'scale' | 'text';
 
 export interface AssessmentOption {
@@ -116,6 +137,32 @@ export interface AssessmentExplanation {
 export interface AssessmentResultResponse extends AssessmentResultSummary {
   categoryScores: Record<string, number>;
   explanations?: AssessmentExplanation[];
+}
+
+export interface AssessmentRetakeComparisonResponse {
+  currentResultId: string;
+  previousResultId: string;
+  currentCompletedAt: string;
+  previousCompletedAt: string;
+  currentQuestionBankVersion: number;
+  previousQuestionBankVersion: number;
+  questionBankVersionMatches: boolean;
+  changedAnswers: Array<{
+    questionId: string;
+    questionText: string;
+    previousOptionId: string | null;
+    previousOptionLabel: string | null;
+    currentOptionId: string | null;
+    currentOptionLabel: string | null;
+  }>;
+  scoreChanges: Array<{
+    careerId: string;
+    previousScore: number;
+    currentScore: number;
+    delta: number;
+  }>;
+  topCareerChanges: { added: string[]; removed: string[] };
+  explanation: string[];
 }
 
 export interface RecommendationEvidence {
