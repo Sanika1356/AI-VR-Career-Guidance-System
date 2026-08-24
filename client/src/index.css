@@ -2891,3 +2891,53 @@ em {
     font-size: 11px;
   }
 }
+
+.profile-page__privacy-card {
+  grid-column: 1 / -1;
+}
+.profile-privacy {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+.profile-privacy__choice {
+  align-items: flex-start;
+  background: #f7f8f3;
+  border: 1px solid #e0e2da;
+  border-radius: 2px;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+}
+.profile-privacy__choice input {
+  accent-color: #829d31;
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
+.profile-privacy__choice span {
+  display: grid;
+  gap: 4px;
+}
+.profile-privacy__choice small {
+  color: #656a66;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.profile-privacy__actions {
+  border-top: 1px solid #d9dcd4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+@media (max-width: 480px) {
+  .profile-privacy__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .profile-privacy__actions .ui-button {
+    width: 100%;
+  }
+}

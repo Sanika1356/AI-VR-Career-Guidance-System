@@ -147,6 +147,46 @@ export function authenticatedRequest<T>(path: string, init: RequestInit = {}): P
   );
 }
 
+export async function authenticatedResponse(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const session = readAuthSession();
+  if (!session) {
+    throw new AuthApiError('unauthorized', 'Your session has ended. Please sign in again.', 401);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.token}`,
+        ...init.headers,
+      },
+    });
+  } catch {
+    throw new AuthApiError(
+      'network_error',
+      'The server could not be reached. Check your connection and try again.',
+      0,
+    );
+  }
+
+  if (!response.ok) {
+    if (response.status === 401) expireAuthSession();
+    const payload = (await response.json().catch(() => ({}))) as ApiErrorPayload;
+    throw new AuthApiError(
+      payload.error ?? 'request_failed',
+      payload.message ?? 'The request could not be completed. Please try again.',
+      response.status,
+    );
+  }
+
+  return response;
+}
+
 export function isUnauthorizedError(error: unknown): boolean {
   return error instanceof AuthApiError && error.status === 401;
 }

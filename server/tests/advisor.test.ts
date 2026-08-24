@@ -1,33 +1,76 @@
-import assert from 'node:assert/strict';
-import { createServer } from 'node:http';
-import test from 'node:test';
-import { app } from '../src/app.js';
-import { chatAdvisor, OllamaAdvisorProvider, type AdvisorProvider } from '../src/services/advisor.service.js';
-import type { DatabaseClient, DatabasePool } from '../src/db/types.js';
-import { validateAdvisorChatInput } from '../src/validators/advisor.js';
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import test from "node:test";
+import { app } from "../src/app.js";
+import {
+  chatAdvisor,
+  OllamaAdvisorProvider,
+  type AdvisorProvider,
+} from "../src/services/advisor.service.js";
+import type { DatabaseClient, DatabasePool } from "../src/db/types.js";
+import { validateAdvisorChatInput } from "../src/validators/advisor.js";
 
 class FakeClient implements DatabaseClient {
   readonly queries: string[] = [];
   private conversationExists = false;
 
+  constructor(private readonly personalizedAi = true) {}
+
   async query<T>(text: string): Promise<{ rows: T[] }> {
-    this.queries.push(text.trim().replace(/\s+/g, ' '));
-    if (text.includes('FROM profiles')) {
-      return { rows: [{ name: 'Asha', interests: ['ai'], current_skills: ['Python'], experience: 'Beginner', learning_preferences: 'Projects' }] as T[] };
+    this.queries.push(text.trim().replace(/\s+/g, " "));
+    if (text.includes("FROM privacy_consents")) {
+      return { rows: [{ personalized_ai: this.personalizedAi }] as T[] };
     }
-    if (text.includes('FROM assessment_results')) {
-      return { rows: [{ category_scores: { career_ai_engineer: 9 }, top_career_ids: ['career_ai_engineer'] }] as T[] };
+    if (text.includes("FROM profiles")) {
+      return {
+        rows: [
+          {
+            name: "Asha",
+            interests: ["ai"],
+            current_skills: ["Python"],
+            experience: "Beginner",
+            learning_preferences: "Projects",
+          },
+        ] as T[],
+      };
     }
-    if (text.includes('FROM careers')) {
-      return { rows: [{ id: 'career_ai_engineer', name: 'AI Engineer', description: 'Build intelligent systems.', skill_name: 'Machine Learning' }] as T[] };
+    if (text.includes("FROM assessment_results")) {
+      return {
+        rows: [
+          {
+            category_scores: { career_ai_engineer: 9 },
+            top_career_ids: ["career_ai_engineer"],
+          },
+        ] as T[],
+      };
     }
-    if (text.includes('FROM roadmap_steps')) {
-      return { rows: [{ title: 'Learn ML', skill: 'Machine Learning', completed: false }] as T[] };
+    if (text.includes("FROM careers")) {
+      return {
+        rows: [
+          {
+            id: "career_ai_engineer",
+            name: "AI Engineer",
+            description: "Build intelligent systems.",
+            skill_name: "Machine Learning",
+          },
+        ] as T[],
+      };
     }
-    if (text.includes('FROM conversations')) {
-      return { rows: this.conversationExists ? [{ id: 'conversation_existing' }] as T[] : [] };
+    if (text.includes("FROM roadmap_steps")) {
+      return {
+        rows: [
+          { title: "Learn ML", skill: "Machine Learning", completed: false },
+        ] as T[],
+      };
     }
-    if (text.startsWith('INSERT INTO conversations')) {
+    if (text.includes("FROM conversations")) {
+      return {
+        rows: this.conversationExists
+          ? ([{ id: "conversation_existing" }] as T[])
+          : [],
+      };
+    }
+    if (text.startsWith("INSERT INTO conversations")) {
       this.conversationExists = true;
     }
     return { rows: [] as T[] };
@@ -45,23 +88,23 @@ class FakePool implements DatabasePool {
 }
 
 class RecordingProvider implements AdvisorProvider {
-  prompt = '';
+  prompt = "";
 
   async generate(prompt: string): Promise<string> {
     this.prompt = prompt;
-    return 'Use a small machine-learning project to build confidence.';
+    return "Use a small machine-learning project to build confidence.";
   }
 }
 
 class FailingProvider implements AdvisorProvider {
   async generate(): Promise<string> {
-    throw new Error('local Ollama is unavailable');
+    throw new Error("local Ollama is unavailable");
   }
 }
 
 class EmptyProvider implements AdvisorProvider {
   async generate(): Promise<string> {
-    return '   ';
+    return "   ";
   }
 }
 
@@ -70,42 +113,65 @@ class RetryProvider implements AdvisorProvider {
 
   async generate(): Promise<string> {
     this.attempts += 1;
-    if (this.attempts === 1) throw new Error('transient provider failure');
-    return 'The provider recovered after one retry.';
+    if (this.attempts === 1) throw new Error("transient provider failure");
+    return "The provider recovered after one retry.";
   }
 }
 
 class LongProvider implements AdvisorProvider {
   async generate(): Promise<string> {
-    return 'x'.repeat(5000);
+    return "x".repeat(5000);
   }
 }
 
-test('advisor enriches the local provider prompt with profile, assessment, career, skill gap, and roadmap context', async () => {
+test("advisor enriches the local provider prompt with profile, assessment, career, skill gap, and roadmap context", async () => {
   const database = new FakePool();
   const provider = new RecordingProvider();
   const response = await chatAdvisor(
-    'user_asha',
-    { message: 'What should I learn first?', careerId: 'career_ai_engineer' },
+    "user_asha",
+    { message: "What should I learn first?", careerId: "career_ai_engineer" },
     database,
     provider,
   );
 
-  assert.equal(response.conversationId.startsWith('conversation_'), true);
+  assert.equal(response.conversationId.startsWith("conversation_"), true);
   assert.equal(response.sources.length, 0);
-  assert.equal(response.answer, 'Use a small machine-learning project to build confidence.');
+  assert.equal(
+    response.answer,
+    "Use a small machine-learning project to build confidence.",
+  );
   assert.match(provider.prompt, /Asha/);
   assert.match(provider.prompt, /career_ai_engineer/);
   assert.match(provider.prompt, /Machine Learning/);
   assert.match(provider.prompt, /Learn ML/);
   assert.match(provider.prompt, /Missing skills/);
-  assert.ok(database.client.queries.some((query) => query.includes('INSERT INTO messages')));
+  assert.ok(
+    database.client.queries.some((query) =>
+      query.includes("INSERT INTO messages"),
+    ),
+  );
 });
 
-test('advisor returns deterministic fallback text when local Ollama fails', async () => {
+test("advisor does not use private profile context when personalized AI consent is disabled", async () => {
+  const provider = new RecordingProvider();
   const response = await chatAdvisor(
-    'user_asha',
-    { message: 'How do I start?', careerId: 'career_ai_engineer' },
+    "user_asha",
+    { message: "What should I learn first?", careerId: "career_ai_engineer" },
+    new FakePool(new FakeClient(false)),
+    provider,
+  );
+
+  assert.match(provider.prompt, /Profile context: Not shared/);
+  assert.match(provider.prompt, /Roadmap progress context: Not shared/);
+  assert.doesNotMatch(provider.prompt, /Asha/);
+  assert.doesNotMatch(provider.prompt, /Learn ML/);
+  assert.doesNotMatch(response.answer, /Machine Learning/);
+});
+
+test("advisor returns deterministic fallback text when local Ollama fails", async () => {
+  const response = await chatAdvisor(
+    "user_asha",
+    { message: "How do I start?", careerId: "career_ai_engineer" },
     new FakePool(),
     new FailingProvider(),
   );
@@ -115,10 +181,10 @@ test('advisor returns deterministic fallback text when local Ollama fails', asyn
   assert.match(response.answer, /general guidance, not a guarantee/);
 });
 
-test('advisor uses safe fallback text when a provider returns an empty answer', async () => {
+test("advisor uses safe fallback text when a provider returns an empty answer", async () => {
   const response = await chatAdvisor(
-    'user_asha',
-    { message: 'How do I start?', careerId: 'career_ai_engineer' },
+    "user_asha",
+    { message: "How do I start?", careerId: "career_ai_engineer" },
     new FakePool(),
     new EmptyProvider(),
   );
@@ -127,7 +193,7 @@ test('advisor uses safe fallback text when a provider returns an empty answer', 
   assert.match(response.answer, /general guidance, not a guarantee/);
 });
 
-test('advisor falls back when Ollama returns a malformed payload', async () => {
+test("advisor falls back when Ollama returns a malformed payload", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = (async () => ({
     ok: true,
@@ -136,8 +202,8 @@ test('advisor falls back when Ollama returns a malformed payload', async () => {
 
   try {
     const response = await chatAdvisor(
-      'user_asha',
-      { message: 'How do I start?', careerId: 'career_ai_engineer' },
+      "user_asha",
+      { message: "How do I start?", careerId: "career_ai_engineer" },
       new FakePool(),
       new OllamaAdvisorProvider(),
     );
@@ -147,83 +213,108 @@ test('advisor falls back when Ollama returns a malformed payload', async () => {
   }
 });
 
-test('advisor retries one transient provider failure and caps long responses', async () => {
+test("advisor retries one transient provider failure and caps long responses", async () => {
   const retryProvider = new RetryProvider();
   const retried = await chatAdvisor(
-    'user_asha',
-    { message: 'What should I learn next?' },
+    "user_asha",
+    { message: "What should I learn next?" },
     new FakePool(),
     retryProvider,
   );
   assert.equal(retryProvider.attempts, 2);
-  assert.equal(retried.answer, 'The provider recovered after one retry.');
+  assert.equal(retried.answer, "The provider recovered after one retry.");
 
   const limited = await chatAdvisor(
-    'user_asha',
-    { message: 'Give me a concise plan.' },
+    "user_asha",
+    { message: "Give me a concise plan." },
     new FakePool(),
     new LongProvider(),
   );
   assert.equal(limited.answer.length, 4000);
-  assert.equal(limited.answer.endsWith('…'), true);
+  assert.equal(limited.answer.endsWith("…"), true);
 });
 
-test('advisor continues an owned conversation with the same conversation id', async () => {
+test("advisor continues an owned conversation with the same conversation id", async () => {
   const database = new FakePool();
   const provider = new RecordingProvider();
   const first = await chatAdvisor(
-    'user_asha',
-    { message: 'Start my plan', careerId: 'career_ai_engineer' },
+    "user_asha",
+    { message: "Start my plan", careerId: "career_ai_engineer" },
     database,
     provider,
   );
   const second = await chatAdvisor(
-    'user_asha',
-    { message: 'Continue my plan', careerId: 'career_ai_engineer', conversationId: first.conversationId },
+    "user_asha",
+    {
+      message: "Continue my plan",
+      careerId: "career_ai_engineer",
+      conversationId: first.conversationId,
+    },
     database,
     provider,
   );
 
   assert.equal(second.conversationId, first.conversationId);
-  assert.ok(database.client.queries.filter((query) => query.includes('INSERT INTO messages')).length >= 4);
-});
-
-test('advisor rejects a conversation owned by another user', async () => {
-  const database = new FakePool();
-  await assert.rejects(
-    () => chatAdvisor('user_asha', {
-      message: 'Continue our plan',
-      conversationId: 'conversation_existing',
-    }, database, new RecordingProvider()),
-    (error: unknown) => error instanceof Error && error.message === 'The conversation does not exist.',
+  assert.ok(
+    database.client.queries.filter((query) =>
+      query.includes("INSERT INTO messages"),
+    ).length >= 4,
   );
 });
 
-test('advisor validator rejects unsupported fields and oversized messages', () => {
+test("advisor rejects a conversation owned by another user", async () => {
+  const database = new FakePool();
+  await assert.rejects(
+    () =>
+      chatAdvisor(
+        "user_asha",
+        {
+          message: "Continue our plan",
+          conversationId: "conversation_existing",
+        },
+        database,
+        new RecordingProvider(),
+      ),
+    (error: unknown) =>
+      error instanceof Error &&
+      error.message === "The conversation does not exist.",
+  );
+});
+
+test("advisor validator rejects unsupported fields and oversized messages", () => {
   assert.throws(
-    () => validateAdvisorChatInput({ message: 'Valid question', unsupported: true }),
+    () =>
+      validateAdvisorChatInput({
+        message: "Valid question",
+        unsupported: true,
+      }),
     /unsupported field/,
   );
   assert.throws(
-    () => validateAdvisorChatInput({ message: 'x'.repeat(2001) }),
+    () => validateAdvisorChatInput({ message: "x".repeat(2001) }),
     /between 3 and 2000 characters/,
   );
 });
 
-test('advisor endpoint requires bearer authentication', async () => {
+test("advisor endpoint requires bearer authentication", async () => {
   const server = createServer(app);
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const address = server.address();
-  assert.ok(address && typeof address !== 'string');
+  assert.ok(address && typeof address !== "string");
 
   try {
-    const response = await fetch(`http://127.0.0.1:${address.port}/api/advisor/chat`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ message: 'How should I start?' }),
-    });
+    const response = await fetch(
+      `http://127.0.0.1:${address.port}/api/advisor/chat`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message: "How should I start?" }),
+      },
+    );
     assert.equal(response.status, 401);
   } finally {
-    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    await new Promise<void>((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
   }
 });

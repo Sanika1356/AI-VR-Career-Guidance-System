@@ -203,3 +203,20 @@ export interface ProfileUpdateInput {
   experience?: string;
   learningPreferences?: Record<string, unknown>;
 }
+
+export interface PrivacyConsent {
+  analytics: boolean;
+  personalizedAi: boolean;
+  vrTelemetry: boolean;
+  policyVersion: string;
+  updatedAt: string | null;
+}
+
+export interface PrivacyConsentResponse {
+  consent: PrivacyConsent;
+}
+
+export interface AccountDeletionResponse {
+  deleted: true;
+  userId: string;
+}

@@ -121,6 +121,7 @@ function buildPrompt(
   career: { id: string; name: string; description: string; skills: string[] } | null,
   roadmap: RoadmapRow[],
   missingSkills: string[],
+  allowPersonalization: boolean,
 ): string {
   const profileData = {
     name: profile?.name ?? 'Not provided',
@@ -133,14 +134,14 @@ function buildPrompt(
     'You are a cautious career guidance advisor. Give practical, concise guidance based only on the supplied context.',
     'Do not invent labor-market facts, guarantees, credentials, salaries, or links. State uncertainty when context is incomplete.',
     `User question: ${input.message}`,
-    `Profile context: ${JSON.stringify(profileData)}`,
-    `Latest assessment context: ${JSON.stringify({
+    `Profile context: ${allowPersonalization ? JSON.stringify(profileData) : 'Not shared by the user.'}`,
+    `Latest assessment context: ${allowPersonalization ? JSON.stringify({
       categoryScores: parseObject(assessment?.category_scores ?? null),
       topCareerIds: parseArray(assessment?.top_career_ids ?? []),
-    })}`,
+    }) : 'Not shared by the user.'}`,
     `Selected career context: ${JSON.stringify(career ?? { selected: false })}`,
-    `Missing skills for the selected career: ${JSON.stringify(missingSkills)}`,
-    `Roadmap progress context: ${JSON.stringify(roadmap)}`,
+    `Missing skills for the selected career: ${JSON.stringify(allowPersonalization ? missingSkills : [])}`,
+    `Roadmap progress context: ${allowPersonalization ? JSON.stringify(roadmap) : 'Not shared by the user.'}`,
     'Answer in plain text with a short explanation and concrete next steps.',
   ].join('\n');
 }
@@ -193,7 +194,7 @@ export async function chatAdvisor(
 ): Promise<AdvisorResponse> {
   const client = await database.connect();
   try {
-    const [profileResult, assessmentResult] = await Promise.all([
+    const [profileResult, assessmentResult, consentResult] = await Promise.all([
       client.query<ProfileRow>(
         `SELECT u.name, p.interests, p.current_skills, p.experience, p.learning_preferences
          FROM profiles p JOIN users u ON u.id = p.user_id
@@ -203,6 +204,10 @@ export async function chatAdvisor(
       client.query<AssessmentRow>(
         `SELECT category_scores, top_career_ids FROM assessment_results
          WHERE user_id = $1 ORDER BY completed_at DESC LIMIT 1`,
+        [userId],
+      ),
+      client.query<{ personalized_ai: boolean }>(
+        'SELECT personalized_ai FROM privacy_consents WHERE user_id = $1',
         [userId],
       ),
     ]);
@@ -233,7 +238,8 @@ export async function chatAdvisor(
     const currentSkills = parseArray(profileResult.rows[0]?.current_skills ?? []);
     const currentSkillSet = new Set(currentSkills.map(normalizeSkill));
     const missingSkills = career?.skills.filter((skill) => !currentSkillSet.has(normalizeSkill(skill))) ?? [];
-    const prompt = buildPrompt(input, profileResult.rows[0], assessmentResult.rows[0], career, roadmap, missingSkills);
+    const allowPersonalization = consentResult.rows[0]?.personalized_ai === true;
+    const prompt = buildPrompt(input, profileResult.rows[0], assessmentResult.rows[0], career, roadmap, missingSkills, allowPersonalization);
 
     let answer: string;
     try {
@@ -242,7 +248,7 @@ export async function chatAdvisor(
       answer = limitAdvisorOutput(await new FallbackAdvisorProvider({
         message: input.message,
         careerName: career?.name,
-        missingSkills,
+        missingSkills: allowPersonalization ? missingSkills : [],
       }).generate());
     }
 
