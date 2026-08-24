@@ -371,3 +371,47 @@ export interface AccountDeletionResponse {
   deleted: true;
   userId: string;
 }
+
+export interface DashboardMilestone {
+  stepId: string;
+  title: string;
+  skill: string;
+  targetDate: string | null;
+  notes: string;
+  position: number;
+}
+
+export interface DashboardReflectionNote {
+  stepId: string;
+  title: string;
+  skill: string;
+  notes: string;
+  updatedAt: string | null;
+}
+
+export interface DashboardRecommendationSnapshot {
+  resultId: string;
+  completedAt: string;
+  topCareerIds: string[];
+}
+
+export interface DashboardResponse {
+  roadmap: {
+    totalSteps: number;
+    completedSteps: number;
+    completionPercent: number;
+    completedSkills: string[];
+    activeMilestones: DashboardMilestone[];
+    reflectionNotes: DashboardReflectionNote[];
+  };
+  streaks: {
+    currentDays: number;
+    longestDays: number;
+    activityDates: string[];
+  };
+  recommendationChanges: {
+    latest: DashboardRecommendationSnapshot | null;
+    previous: DashboardRecommendationSnapshot | null;
+    changedCareerIds: string[];
+  };
+}

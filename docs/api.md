@@ -97,6 +97,35 @@ Returns the authenticated user's profile, interests, current skills, and learnin
 
 Updates editable profile fields. The request and response must use the same field names as the frontend types.
 
+### `GET /api/dashboard`
+
+Returns an authenticated, user-owned progress summary. It includes completed roadmap skills, active in-progress milestones, the latest five reflection notes, activity streaks from roadmap update events, and the two most recent assessment-result snapshots. `changedCareerIds` is the symmetric difference between the latest and previous top-career ID lists; it is empty until two completed results exist. No raw assessment answers, advisor messages, or sensitive profile fields are included.
+
+```json
+{
+  "roadmap": {
+    "totalSteps": 2,
+    "completedSteps": 1,
+    "completionPercent": 50,
+    "completedSkills": ["Python"],
+    "activeMilestones": [],
+    "reflectionNotes": []
+  },
+  "streaks": {
+    "currentDays": 2,
+    "longestDays": 3,
+    "activityDates": ["2026-08-23", "2026-08-24"]
+  },
+  "recommendationChanges": {
+    "latest": null,
+    "previous": null,
+    "changedCareerIds": []
+  }
+}
+```
+
+The endpoint requires `Authorization: Bearer <token>` and returns a safe `401` response when the token is missing or invalid. Activity history is recorded without storing note text or assessment answers in the event table; roadmap notes remain in the existing user-owned progress row.
+
 ## Privacy and account data
 
 All privacy endpoints require the authenticated user’s bearer token. Optional collection is disabled by default for new and migrated accounts.
@@ -133,7 +162,7 @@ Request:
 
 ### `GET /api/privacy/export`
 
-Returns a JSON export of the authenticated user’s account, profile, privacy choices, assessments, results, recommendations, roadmap progress, conversations, and messages. Password hashes, bearer tokens, and server-only values are never included.
+Returns a JSON export of the authenticated user’s account, profile, privacy choices, assessments, results, recommendations, roadmap progress, compact roadmap activity events, conversations, and messages. Activity events contain progress status and dates but no roadmap note text, assessment answers, advisor content, or secrets. Password hashes, bearer tokens, and server-only values are never included.
 
 ### `DELETE /api/privacy/account`
 

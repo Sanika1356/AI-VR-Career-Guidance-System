@@ -1,6 +1,7 @@
 import { requirePool } from "../db/pool.js";
 import type { DatabasePool } from "../db/types.js";
 import { AppError } from "../utils/app-error.js";
+import { createId } from "../utils/id.js";
 
 export type RoadmapStepStatus = "not_started" | "in_progress" | "completed";
 
@@ -126,10 +127,11 @@ export async function updateRoadmapProgress(
 }> {
   const update: RoadmapStepUpdate =
     typeof input === "boolean" ? { completed: input } : input;
-  const status =
-    update.status ?? (update.completed ? "completed" : "not_started");
+  const requestedStatus = update.status ?? null;
+  const defaultStatus = update.completed ? "completed" : "not_started";
   const client = await database.connect();
   try {
+    await client.query("BEGIN");
     const stepResult = await client.query<RoadmapOwnershipRow>(
       "SELECT id, career_id FROM roadmap_steps WHERE id = $1",
       [stepId],
@@ -143,6 +145,7 @@ export async function updateRoadmapProgress(
       );
     }
     const progressResult = await client.query<{
+      completed: boolean;
       target_date: string | null;
       status: RoadmapStepStatus;
       notes: string;
@@ -150,37 +153,61 @@ export async function updateRoadmapProgress(
     }>(
       `INSERT INTO roadmap_progress
         (user_id, step_id, completed, target_date, status, notes, position, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       VALUES ($1, $2, $3, $4, COALESCE($5, CASE WHEN $3 THEN 'completed' ELSE 'not_started' END), $6, $7, NOW())
        ON CONFLICT (user_id, step_id)
        DO UPDATE SET completed = EXCLUDED.completed,
-                     target_date = EXCLUDED.target_date,
-                     status = EXCLUDED.status,
-                     notes = EXCLUDED.notes,
-                     position = EXCLUDED.position,
+                     target_date = CASE WHEN $4::date IS NULL THEN roadmap_progress.target_date ELSE EXCLUDED.target_date END,
+                     status = CASE
+                       WHEN $5::text IS NOT NULL THEN EXCLUDED.status
+                       WHEN EXCLUDED.completed THEN 'completed'
+                       WHEN roadmap_progress.status = 'completed' THEN 'not_started'
+                       ELSE roadmap_progress.status
+                     END,
+                     notes = CASE WHEN $6::text IS NULL THEN roadmap_progress.notes ELSE EXCLUDED.notes END,
+                     position = CASE WHEN $7::integer IS NULL THEN roadmap_progress.position ELSE EXCLUDED.position END,
                      updated_at = NOW()
-       RETURNING target_date, status, notes, position`,
+       RETURNING completed, target_date, status, notes, position`,
       [
         userId,
         stepId,
         update.completed,
         update.targetDate ?? null,
-        status,
-        update.notes ?? "",
+        requestedStatus,
+        update.notes ?? null,
         update.position ?? null,
       ],
     );
     const saved = progressResult.rows[0];
+    const savedStatus = saved?.status ?? requestedStatus ?? defaultStatus;
+    const savedNotes = saved?.notes ?? update.notes ?? "";
+    const savedPosition = saved?.position ?? update.position ?? null;
+    await client.query(
+      `INSERT INTO roadmap_progress_events
+        (id, user_id, step_id, completed, status)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        createId("roadmap_progress_event"),
+        userId,
+        stepId,
+        update.completed,
+        savedStatus,
+      ],
+    );
+    await client.query("COMMIT");
     return {
       stepId,
       careerId: step.career_id,
-      completed: update.completed,
+      completed: saved?.completed ?? update.completed,
       targetDate: saved?.target_date
         ? String(saved.target_date).slice(0, 10)
         : null,
-      status: saved?.status ?? status,
-      notes: saved?.notes ?? update.notes ?? "",
-      position: saved?.position ?? update.position ?? null,
+      status: savedStatus,
+      notes: savedNotes,
+      position: savedPosition,
     };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
   }

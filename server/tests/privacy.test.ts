@@ -170,6 +170,17 @@ test("account export includes owned data without password hashes or tokens", asy
       return queryResult([
         { id: "recommendation_1", career_id: "career_ai_engineer" },
       ]);
+    if (sql.includes("FROM roadmap_progress_events"))
+      return queryResult([
+        {
+          id: "event_1",
+          step_id: "step_1",
+          completed: true,
+          status: "completed",
+          activity_date: "2026-08-24",
+          occurred_at: "2026-08-24T00:00:00.000Z",
+        },
+      ]);
     if (sql.includes("FROM roadmap_progress"))
       return queryResult([
         { user_id: "user_demo", step_id: "step_1", completed: true },
@@ -198,6 +209,16 @@ test("account export includes owned data without password hashes or tokens", asy
   assert.equal(exported.user.id, "user_demo");
   assert.equal(exported.privacy.personalizedAi, true);
   assert.equal(exported.conversations.length, 1);
+  assert.deepEqual(exported.roadmapActivityEvents, [
+    {
+      id: "event_1",
+      step_id: "step_1",
+      completed: true,
+      status: "completed",
+      activity_date: "2026-08-24",
+      occurred_at: "2026-08-24T00:00:00.000Z",
+    },
+  ]);
   assert.deepEqual(
     (exported.conversations[0] as { messages: unknown[] }).messages,
     [

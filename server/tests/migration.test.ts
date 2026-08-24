@@ -157,3 +157,25 @@ test("learning-resource migration stores provenance metadata and idempotent auth
   assert.match(sql, /'resource_data_postgres_docs'/);
   assert.match(sql, /'catalog'/);
 });
+
+const roadmapActivityMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/017_roadmap_activity_events.sql",
+);
+
+test("roadmap activity migration records dated owned events for streaks", async () => {
+  const sql = await readFile(roadmapActivityMigrationPath, "utf8");
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS roadmap_progress_events/);
+  assert.match(
+    sql,
+    /user_id TEXT NOT NULL REFERENCES users\(id\) ON DELETE CASCADE/,
+  );
+  assert.match(
+    sql,
+    /step_id TEXT NOT NULL REFERENCES roadmap_steps\(id\) ON DELETE CASCADE/,
+  );
+  assert.match(sql, /activity_date DATE NOT NULL/);
+  assert.match(sql, /occurred_at TIMESTAMPTZ NOT NULL/);
+  assert.match(sql, /idx_roadmap_progress_events_user_date/);
+  assert.match(sql, /status IN \('not_started', 'in_progress', 'completed'\)/);
+});
