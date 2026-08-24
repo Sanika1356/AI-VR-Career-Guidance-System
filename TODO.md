@@ -108,7 +108,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 - [ ] Add AI quality monitoring for grounding, refusal rate, latency, fallback rate, user feedback, and unsafe-output review.
 - [ ] Add VR telemetry only with consent and coarse metrics; do not collect raw movement or biometric data by default.
 - [ ] Add experiment flags and pre-registered evaluation plans for assessment, advisor, and VR changes. Avoid dark patterns and never hide core functionality from a control group without review.
-- [ ] Publish a transparent limitations page explaining that guidance is informational, not a guarantee of employment or professional licensing.
 
 **Acceptance evidence:** Consent-aware event schema, aggregate dashboard, quality alerts, experiment plan, and published limitations copy.
 

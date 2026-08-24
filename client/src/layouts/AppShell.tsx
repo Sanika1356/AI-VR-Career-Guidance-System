@@ -82,7 +82,15 @@ export function AppShell({
       </header>
       <main>{children}</main>
       <footer className="footer">
-        AI-VR Career Guidance System <span>•</span> Built for curious minds
+        <span>AI-VR Career Guidance System</span> <span aria-hidden="true">•</span>{' '}
+        <span>Built for curious minds</span>{' '}
+        <a
+          className="footer__link"
+          href="/limitations"
+          onClick={(event) => handleNavigation(event, '/limitations', onNavigate)}
+        >
+          Limitations and safeguards
+        </a>
       </footer>
     </div>
   );
