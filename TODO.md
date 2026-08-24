@@ -15,15 +15,13 @@
 
 | Owner | Primary responsibility | Coordination requirement |
 |---|---|---|
-| Member 1 | React client, accessibility, interaction design, VR/WebXR, device testing | Consume only documented server contracts; provide screenshots, device logs, and browser evidence |
-| Member 2 | Express API, PostgreSQL, migrations, scoring, AI boundaries, observability, security | Publish request/response/error contracts, tests, migrations, seed updates, and safe configuration guidance |
-| Both members | Product decisions, contract changes, evaluation, privacy, release demonstrations | Agree before changing shared types, profile fields, statuses, or authentication |
+| Frontend/VR workstream | React client, accessibility, interaction design, VR/WebXR, device testing | Maintain the client against documented contracts and provide screenshots, device logs, and browser evidence |
+| Backend/AI workstream | Express API, PostgreSQL, migrations, scoring, AI boundaries, observability, security | Publish request/response/error contracts, tests, migrations, seed updates, and safe configuration guidance |
+| Project owner | Product decisions, contract changes, evaluation, privacy, release demonstrations | Approve shared types, profile fields, statuses, authentication, and release scope |
 
 ## Phase 0 — Product governance and measurement (P0) — completed
 
-The product specification, success metrics and privacy-safe event vocabulary, API-contract change process, data dictionary, responsible-AI checklist, and architecture decision log are drafted in [`docs/product-governance-pack.md`](docs/product-governance-pack.md).
-
-- [ ] Both members review and approve the governance pack before future feature implementation begins.
+The product specification, success metrics and privacy-safe event vocabulary, API-contract change process, data dictionary, responsible-AI checklist, and architecture decision log are documented in [`docs/product-governance-pack.md`](docs/product-governance-pack.md) and accepted by the project owner.
 
 ## Phase 1 — Trust, security, privacy, and reliability (P0)
 
