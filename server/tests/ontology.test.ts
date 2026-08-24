@@ -24,6 +24,7 @@ class FakeClient implements DatabaseClient {
           description: "Build intelligent systems.",
           domain: "technology",
           aliases: ["Machine Learning Engineer"],
+          education_pathways: ["computer science"],
           source_references: ["local-mvp-catalog-v1"],
           ontology_version: "local-mvp-v1",
           skills: [
@@ -44,6 +45,8 @@ class FakeClient implements DatabaseClient {
         aliases: [],
         prerequisites: [],
         transferable_skills: [],
+        related_skills: [],
+        proficiency_levels: ["beginner", "intermediate", "advanced"],
         source_references: ["local-mvp-catalog-v1"],
         ontology_version: "local-mvp-v1",
       },
@@ -59,6 +62,14 @@ test("local ontology adapter preserves stable IDs, domains, levels, and provenan
   assert.equal(snapshot.source.version, "local-mvp-v1");
   assert.equal(snapshot.careers[0]?.id, "career_ai_engineer");
   assert.equal(snapshot.careers[0]?.domain, "technology");
+  assert.deepEqual(snapshot.careers[0]?.educationPathways, [
+    "computer science",
+  ]);
+  assert.deepEqual(snapshot.skills[0]?.proficiencyLevels, [
+    "beginner",
+    "intermediate",
+    "advanced",
+  ]);
   assert.deepEqual(snapshot.careers[0]?.skills, [
     {
       skillId: "skill_python",
@@ -86,6 +97,7 @@ test("ontology validator rejects duplicate IDs and unknown skill references", ()
         description: "A career.",
         domain: "technology",
         aliases: [],
+        educationPathways: [],
         skills: [
           {
             skillId: "skill_one",
@@ -105,6 +117,8 @@ test("ontology validator rejects duplicate IDs and unknown skill references", ()
         aliases: [],
         prerequisites: [],
         transferableSkills: [],
+        relatedSkills: [],
+        proficiencyLevels: ["beginner", "intermediate", "advanced"],
         sourceReferences: [],
         ontologyVersion: "local-mvp-v1",
       },

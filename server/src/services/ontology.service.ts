@@ -14,6 +14,8 @@ export interface OntologySkill {
   aliases: string[];
   prerequisites: string[];
   transferableSkills: string[];
+  relatedSkills: string[];
+  proficiencyLevels: Array<"beginner" | "intermediate" | "advanced">;
   sourceReferences: string[];
   ontologyVersion: string;
 }
@@ -31,6 +33,7 @@ export interface OntologyCareer {
   domain: string;
   aliases: string[];
   skills: OntologyCareerSkill[];
+  educationPathways: string[];
   sourceReferences: string[];
   ontologyVersion: string;
 }
@@ -48,6 +51,7 @@ interface CareerRow {
   description: string;
   domain: string;
   aliases: unknown;
+  education_pathways: unknown;
   source_references: unknown;
   ontology_version: string;
   skills: OntologyCareerSkill[] | string | null;
@@ -60,6 +64,8 @@ interface SkillRow {
   aliases: unknown;
   prerequisites: unknown;
   transferable_skills: unknown;
+  related_skills: unknown;
+  proficiency_levels: unknown;
   source_references: unknown;
   ontology_version: string;
 }
@@ -129,6 +135,21 @@ export function validateOntologySnapshot(snapshot: OntologySnapshot): void {
           `Skill ${skill.id} references unknown prerequisite ${prerequisite}`,
         );
     }
+    for (const relatedSkill of [
+      ...skill.relatedSkills,
+      ...skill.transferableSkills,
+    ]) {
+      if (!skillIds.has(relatedSkill)) {
+        throw new Error(
+          `Skill ${skill.id} references unknown related skill ${relatedSkill}`,
+        );
+      }
+    }
+    for (const level of skill.proficiencyLevels) {
+      if (!["beginner", "intermediate", "advanced"].includes(level)) {
+        throw new Error(`Skill ${skill.id} has an invalid proficiency level`);
+      }
+    }
   }
 }
 
@@ -145,6 +166,7 @@ export async function loadLocalOntology(
           c.description,
           c.domain,
           c.aliases,
+          c.education_pathways,
           c.source_references,
           c.ontology_version,
           COALESCE(
@@ -164,7 +186,7 @@ export async function loadLocalOntology(
         ORDER BY c.id
       `),
       client.query<SkillRow>(`
-        SELECT id, name, domain, aliases, prerequisites, transferable_skills, source_references, ontology_version
+        SELECT id, name, domain, aliases, prerequisites, transferable_skills, related_skills, proficiency_levels, source_references, ontology_version
         FROM skills
         ORDER BY id
       `),
@@ -184,6 +206,7 @@ export async function loadLocalOntology(
         domain: row.domain,
         aliases: stringArray(row.aliases),
         skills: careerSkills(row.skills),
+        educationPathways: stringArray(row.education_pathways),
         sourceReferences: stringArray(row.source_references),
         ontologyVersion: row.ontology_version,
       })),
@@ -194,6 +217,10 @@ export async function loadLocalOntology(
         aliases: stringArray(row.aliases),
         prerequisites: stringArray(row.prerequisites),
         transferableSkills: stringArray(row.transferable_skills),
+        relatedSkills: stringArray(row.related_skills),
+        proficiencyLevels: stringArray(row.proficiency_levels) as Array<
+          "beginner" | "intermediate" | "advanced"
+        >,
         sourceReferences: stringArray(row.source_references),
         ontologyVersion: row.ontology_version,
       })),
