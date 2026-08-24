@@ -208,6 +208,49 @@ function buildPrompt(
   ].join("\n");
 }
 
+export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
+  private consecutiveFailures = 0;
+  private openedAt = 0;
+
+  constructor(
+    private readonly provider: AdvisorProvider,
+    private readonly options: {
+      failureThreshold?: number;
+      cooldownMs?: number;
+    } = {},
+  ) {}
+
+  async generate(prompt: string): Promise<string> {
+    const failureThreshold = Math.max(
+      1,
+      this.options.failureThreshold ?? env.aiCircuitFailureThreshold,
+    );
+    const cooldownMs = Math.max(
+      1_000,
+      this.options.cooldownMs ?? env.aiCircuitCooldownMs,
+    );
+    if (this.openedAt > 0) {
+      if (Date.now() - this.openedAt < cooldownMs) {
+        throw new Error("AI provider circuit is open");
+      }
+      this.openedAt = 0;
+      this.consecutiveFailures = 0;
+    }
+
+    try {
+      const answer = await this.provider.generate(prompt);
+      this.consecutiveFailures = 0;
+      return answer;
+    } catch (error) {
+      this.consecutiveFailures += 1;
+      if (this.consecutiveFailures >= failureThreshold) {
+        this.openedAt = Date.now();
+      }
+      throw error;
+    }
+  }
+}
+
 export class OllamaAdvisorProvider implements AdvisorProvider {
   async generate(prompt: string): Promise<string> {
     const controller = new AbortController();
@@ -272,7 +315,9 @@ export async function chatAdvisor(
   userId: string,
   input: AdvisorChatInput,
   database: DatabasePool = requirePool(),
-  provider: AdvisorProvider = new OllamaAdvisorProvider(),
+  provider: AdvisorProvider = new CircuitBreakerAdvisorProvider(
+    new OllamaAdvisorProvider(),
+  ),
 ): Promise<AdvisorResponse> {
   const client = await database.connect();
   try {
