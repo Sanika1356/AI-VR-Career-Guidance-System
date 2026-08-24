@@ -44,7 +44,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 3 — Better assessment and learner modeling (P1)
 
-- [ ] Add an extensible question-bank model with question version, domain, competency, difficulty, scoring key, rationale, accessibility text, and review status.
 - [ ] Add adaptive assessment sequencing that selects the next question from uncertainty and coverage while preserving a deterministic fallback when the AI service is unavailable.
 - [ ] Add assessment result explanations that connect answers to recommendation evidence without presenting a psychological diagnosis or false certainty.
 - [ ] Add optional learner goals, constraints, preferred work conditions, education stage, location preference, and time budget only through an approved contract change; do not add client-only fields.
