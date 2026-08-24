@@ -450,6 +450,21 @@ Response:
 
 The backend must protect provider credentials, apply input limits, handle provider failures, and avoid presenting unsupported claims as certain career advice. The response `confidence` is a deterministic context-coverage label (`low`, `medium`, or `high`), not a claim that the advice is true or that an outcome is likely. The `caveat` instructs the learner to verify consequential decisions with authoritative sources and trusted people. If the configured local provider is unavailable, returns an empty or malformed response, or exhausts its bounded retries, the endpoint returns a deterministic fallback that explains the limitation and still suggests a small next learning activity from the available skill-gap context. The fallback is general guidance, not a diagnosis, employment guarantee, or external labor-market claim. Consequential education, licensing, salary, employment, and other time-sensitive claims must be verified against an appropriate authoritative source; the local catalog references are not labor-market forecasts.
 
+### `POST /api/advisor/feedback`
+
+Records a replacement-safe helpfulness rating for one assistant message in an owned conversation. The request accepts only the conversation ID, assistant message timestamp, a boolean helpfulness value, and an optional fixed reason (`clear`, `actionable`, `grounded`, `incorrect`, `unsafe`, or `other`). Free-form comments are rejected to keep the initial evaluation dataset redacted and bounded.
+
+```json
+{
+  "conversationId": "conversation_123",
+  "messageCreatedAt": "2026-08-18T00:00:00.000Z",
+  "helpful": true,
+  "reason": "actionable"
+}
+```
+
+The response confirms that the rating was recorded. Feedback is ownership-scoped and can replace the previous rating for the same user, conversation, and assistant-message timestamp.
+
 ### `DELETE /api/advisor/conversations/:conversationId/messages`
 
 Deletes all messages in a conversation owned by the authenticated user and preserves the conversation record so a new message can start a fresh context. The operation is transactional, returns the deleted message count, and returns the same safe `conversation_not_found` response for an unknown or another user’s conversation. It does not implement retention settings or an administrative cross-user history tool.

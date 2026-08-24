@@ -1,5 +1,15 @@
 import { AppError } from "../utils/app-error.js";
 
+export type AdvisorFeedbackReason =
+  "clear" | "actionable" | "grounded" | "incorrect" | "unsafe" | "other";
+
+export interface AdvisorFeedbackInput {
+  conversationId: string;
+  messageCreatedAt: string;
+  helpful: boolean;
+  reason?: AdvisorFeedbackReason;
+}
+
 export interface AdvisorChatInput {
   message: string;
   careerId?: string;
@@ -27,6 +37,76 @@ export function validateConversationId(value: unknown): string {
     );
   }
   return value;
+}
+
+export function validateAdvisorFeedbackInput(
+  value: unknown,
+): AdvisorFeedbackInput {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new AppError(
+      400,
+      "invalid_advisor_feedback",
+      "Advisor feedback must be a JSON object.",
+    );
+  }
+  const input = value as Record<string, unknown>;
+  const allowedKeys = new Set([
+    "conversationId",
+    "messageCreatedAt",
+    "helpful",
+    "reason",
+  ]);
+  if (Object.keys(input).some((key) => !allowedKeys.has(key))) {
+    throw new AppError(
+      400,
+      "invalid_advisor_feedback",
+      "Advisor feedback contains an unsupported field.",
+    );
+  }
+  const conversationId = validateConversationId(input.conversationId);
+  if (
+    typeof input.messageCreatedAt !== "string" ||
+    input.messageCreatedAt.length > 60 ||
+    Number.isNaN(Date.parse(input.messageCreatedAt))
+  ) {
+    throw new AppError(
+      400,
+      "invalid_advisor_feedback",
+      "messageCreatedAt must be a valid timestamp.",
+    );
+  }
+  if (typeof input.helpful !== "boolean") {
+    throw new AppError(
+      400,
+      "invalid_advisor_feedback",
+      "helpful must be a boolean.",
+    );
+  }
+  const reasons = new Set<AdvisorFeedbackReason>([
+    "clear",
+    "actionable",
+    "grounded",
+    "incorrect",
+    "unsafe",
+    "other",
+  ]);
+  if (
+    input.reason !== undefined &&
+    (typeof input.reason !== "string" ||
+      !reasons.has(input.reason as AdvisorFeedbackReason))
+  ) {
+    throw new AppError(
+      400,
+      "invalid_advisor_feedback",
+      "reason is not supported.",
+    );
+  }
+  return {
+    conversationId,
+    messageCreatedAt: new Date(input.messageCreatedAt).toISOString(),
+    helpful: input.helpful,
+    reason: input.reason as AdvisorFeedbackReason | undefined,
+  };
 }
 
 export function validateAdvisorChatInput(value: unknown): AdvisorChatInput {

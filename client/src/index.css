@@ -2767,6 +2767,23 @@ em {
 .advisor-message__caveat {
   color: #8a642c;
 }
+.advisor-message__feedback {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.advisor-message__feedback > span {
+  color: #777b73;
+  font-size: 12px;
+  margin-right: 4px;
+}
+.advisor-message__feedback .button {
+  font-size: 12px;
+  min-height: 30px;
+  padding: 5px 10px;
+}
 .advisor-message--user .advisor-message__time,
 .advisor-message--user .advisor-message__sources,
 .advisor-message--user .advisor-message__confidence,

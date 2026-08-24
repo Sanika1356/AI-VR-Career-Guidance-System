@@ -4,7 +4,12 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import type { ChatMessage } from '../types/domain';
-import { chatAdvisor, clearAdvisorHistory, getAdvisorCareerId } from '../services/advisor';
+import {
+  chatAdvisor,
+  clearAdvisorHistory,
+  getAdvisorCareerId,
+  submitAdvisorFeedback,
+} from '../services/advisor';
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_MESSAGE_LENGTH = 3;
@@ -96,6 +101,25 @@ export function AdvisorPage() {
     } finally {
       sendingRef.current = false;
       setIsSending(false);
+    }
+  }
+
+  async function handleFeedback(index: number, helpful: boolean, messageCreatedAt: string) {
+    if (!conversationId) return;
+    try {
+      await submitAdvisorFeedback({
+        conversationId,
+        messageCreatedAt,
+        helpful,
+        reason: helpful ? 'actionable' : 'other',
+      });
+      setMessages((current) =>
+        current.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, feedbackHelpful: helpful } : item,
+        ),
+      );
+    } catch (error: unknown) {
+      setErrorMessage(error instanceof Error ? error.message : 'Feedback could not be saved.');
     }
   }
 
@@ -197,6 +221,32 @@ export function AdvisorPage() {
                   <small className="advisor-message__sources">
                     Context: {item.sources.join(' · ')}
                   </small>
+                )}
+                {isEndOfSenderGroup && item.role === 'advisor' && conversationId && (
+                  <div
+                    className="advisor-message__feedback"
+                    aria-label="Rate this advisor response"
+                  >
+                    <span>Was this useful?</span>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => void handleFeedback(index, true, item.createdAt)}
+                      disabled={item.feedbackHelpful === false}
+                      aria-pressed={item.feedbackHelpful === true}
+                    >
+                      Yes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => void handleFeedback(index, false, item.createdAt)}
+                      disabled={item.feedbackHelpful === true}
+                      aria-pressed={item.feedbackHelpful === false}
+                    >
+                      No
+                    </Button>
+                  </div>
                 )}
               </div>
             );

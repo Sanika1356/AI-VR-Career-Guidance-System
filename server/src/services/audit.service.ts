@@ -10,6 +10,7 @@ export type AuditEventType =
   | "recommendation_generated"
   | "advisor_requested"
   | "advisor_history_cleared"
+  | "advisor_feedback_submitted"
   | "data_exported"
   | "account_deleted";
 

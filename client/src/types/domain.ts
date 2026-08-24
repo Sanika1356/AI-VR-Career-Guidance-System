@@ -237,6 +237,20 @@ export interface ChatMessage {
   sources?: string[];
   confidence?: 'low' | 'medium' | 'high';
   caveat?: string;
+  feedbackHelpful?: boolean;
+}
+export type AdvisorFeedbackReason =
+  'clear' | 'actionable' | 'grounded' | 'incorrect' | 'unsafe' | 'other';
+export interface AdvisorFeedbackRequest {
+  conversationId: string;
+  messageCreatedAt: string;
+  helpful: boolean;
+  reason?: AdvisorFeedbackReason;
+}
+export interface AdvisorFeedbackResponse {
+  recorded: true;
+  conversationId: string;
+  messageCreatedAt: string;
 }
 export interface AdvisorChatRequest {
   message: string;
