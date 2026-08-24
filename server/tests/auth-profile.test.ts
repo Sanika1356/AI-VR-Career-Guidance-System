@@ -7,6 +7,7 @@ import { registerUser, loginUser } from '../src/services/auth.service.js';
 import { getProfile, updateProfile } from '../src/services/profile.service.js';
 import { hashPassword } from '../src/utils/password.js';
 import type { QueryResult, QueryResultRow } from 'pg';
+import { validateProfileUpdateInput } from '../src/validators/auth.js';
 
 function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
   return { rows, rowCount: rows.length, command: 'SELECT', oid: 0, fields: [] };
@@ -14,11 +15,13 @@ function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
 
 class FakeClient implements DatabaseClient {
   public readonly queries: string[] = [];
+  public readonly values: readonly unknown[][] = [];
 
   constructor(private readonly respond: (sql: string, values: readonly unknown[]) => QueryResult<QueryResultRow>) {}
 
   async query<T extends QueryResultRow = QueryResultRow>(sql: string, values: readonly unknown[] = []): Promise<QueryResult<T>> {
     this.queries.push(sql.trim().split('\n')[0]);
+    this.values.push([...values]);
     return this.respond(sql, values) as QueryResult<T>;
   }
 
@@ -68,6 +71,12 @@ test('profile services preserve frontend field names and user ownership', async 
     current_skills: ['research'],
     experience: 'Beginner',
     learning_preferences: { pace: 'steady' },
+    goals: ['Build a portfolio'],
+    constraints: ['Evening-only study'],
+    preferred_work_conditions: ['Remote'],
+    education_stage: 'working-professional',
+    location_preference: 'Remote or Europe',
+    weekly_time_budget_minutes: 240,
   };
   const client = new FakeClient((sql) => sql.includes('SELECT') ? queryResult([profileRow]) : queryResult([]));
 
@@ -77,12 +86,31 @@ test('profile services preserve frontend field names and user ownership', async 
     currentSkills: ['research'],
     experience: 'Beginner',
     learningPreferences: { pace: 'steady' },
+    goals: ['Build a portfolio'],
+    constraints: ['Evening-only study'],
+    preferredWorkConditions: ['Remote'],
+    educationStage: 'working-professional',
+    locationPreference: 'Remote or Europe',
+    weeklyTimeBudgetMinutes: 240,
   });
 
   const updated = await updateProfile('user_demo', { currentSkills: ['typescript'] }, poolFor(client));
   assert.equal(updated.user.id, 'user_demo');
   assert.ok(client.queries.includes('BEGIN'));
   assert.ok(client.queries.includes('COMMIT'));
+
+  await updateProfile(
+    'user_demo',
+    {
+      educationStage: null,
+      locationPreference: null,
+      weeklyTimeBudgetMinutes: null,
+    },
+    poolFor(client),
+  );
+  const updateValues = client.values.filter((values) => values.length === 14);
+  const clearValues = updateValues.at(-1);
+  assert.deepEqual(clearValues?.slice(-6), [true, null, true, null, true, null]);
 });
 
 test('GET /api/profile requires a bearer token before accessing the database', async () => {
@@ -101,6 +129,36 @@ test('GET /api/profile requires a bearer token before accessing the database', a
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
+});
+
+test('profile validator accepts learner context and rejects unsafe bounds', () => {
+  assert.deepEqual(validateProfileUpdateInput({
+    goals: ['Build a portfolio'],
+    constraints: ['Evening-only study'],
+    preferredWorkConditions: ['Remote'],
+    educationStage: 'working-professional',
+    locationPreference: 'Remote or Europe',
+    weeklyTimeBudgetMinutes: 240,
+  }), {
+    goals: ['Build a portfolio'],
+    constraints: ['Evening-only study'],
+    preferredWorkConditions: ['Remote'],
+    educationStage: 'working-professional',
+    locationPreference: 'Remote or Europe',
+    weeklyTimeBudgetMinutes: 240,
+  });
+  assert.deepEqual(validateProfileUpdateInput({
+    educationStage: null,
+    locationPreference: null,
+    weeklyTimeBudgetMinutes: null,
+  }), {
+    educationStage: null,
+    locationPreference: null,
+    weeklyTimeBudgetMinutes: null,
+  });
+  assert.throws(() => validateProfileUpdateInput({ weeklyTimeBudgetMinutes: 29 }), /30 to 10080/);
+  assert.throws(() => validateProfileUpdateInput({ educationStage: 'unverified' }), /supported values/);
+  assert.throws(() => validateProfileUpdateInput({ goals: Array.from({ length: 21 }, () => 'goal') }), /at most 20/);
 });
 
 test('POST /api/auth/register validates input before database access', async () => {

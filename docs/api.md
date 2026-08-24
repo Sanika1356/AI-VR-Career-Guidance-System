@@ -91,11 +91,24 @@ The MVP returns a stateless bearer token from registration and login. The client
 
 ### `GET /api/profile`
 
-Returns the authenticated user's profile, interests, current skills, and learning preferences.
+Returns the authenticated user's profile, interests, current skills, learning preferences, and optional learner context. The optional learner context is user-entered and untrusted: `goals`, `constraints`, and `preferredWorkConditions` are arrays of at most 20 non-empty strings; `educationStage` is one of `secondary`, `undergraduate`, `graduate`, `career-changer`, `working-professional`, or `other`; `locationPreference` is at most 200 characters; and `weeklyTimeBudgetMinutes` is an integer from 30 through 10,080. These values are private, exportable, and deletable, and they do not represent qualifications or job-application decisions.
 
 ### `PUT /api/profile`
 
-Updates editable profile fields. The request and response must use the same field names as the frontend types.
+Updates editable profile fields. The request and response must use the same field names as the frontend types. Existing fields are preserved when omitted. Optional nullable learner-context fields may be set to `null` to clear them.
+
+Example learner-context fields:
+
+```json
+{
+  "goals": ["Build a portfolio"],
+  "constraints": ["Evening-only study"],
+  "preferredWorkConditions": ["Remote"],
+  "educationStage": "working-professional",
+  "locationPreference": "Remote or Europe",
+  "weeklyTimeBudgetMinutes": 240
+}
+```
 
 ### `GET /api/dashboard`
 

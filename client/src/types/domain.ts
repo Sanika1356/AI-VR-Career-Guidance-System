@@ -337,11 +337,20 @@ export interface VREnvironmentResponse {
   environments: VREnvironment[];
 }
 
+export type EducationStage =
+  'secondary' | 'undergraduate' | 'graduate' | 'career-changer' | 'working-professional' | 'other';
+
 export interface ProfileData {
   interests: string[];
   currentSkills: string[];
   experience: string;
   learningPreferences: Record<string, unknown>;
+  goals: string[];
+  constraints: string[];
+  preferredWorkConditions: string[];
+  educationStage: EducationStage | null;
+  locationPreference: string | null;
+  weeklyTimeBudgetMinutes: number | null;
 }
 
 export interface ProfileResponse {
@@ -359,6 +368,12 @@ export interface ProfileUpdateInput {
   currentSkills?: string[];
   experience?: string;
   learningPreferences?: Record<string, unknown>;
+  goals?: string[];
+  constraints?: string[];
+  preferredWorkConditions?: string[];
+  educationStage?: EducationStage | null;
+  locationPreference?: string | null;
+  weeklyTimeBudgetMinutes?: number | null;
 }
 
 export interface PrivacyConsent {
