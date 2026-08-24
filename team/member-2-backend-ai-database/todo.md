@@ -1,33 +1,25 @@
-# Member 2 — Backend, AI, Database, and Deployment Remaining Work
+# Backend TODO — Remaining Work Only
 
-**Owner:** Member 2
+**Owner:** Member 2 — backend, AI service boundaries, database, deployment, and operations.
 
-**Scope:** `server/`, backend-related documentation, database migrations, API behavior, AI service boundaries, deployment configuration, and backend operations.
+All MVP backend implementation, API contracts, database migrations and seed data, authentication, recommendation and skill-gap logic, roadmap and advisor routes, VR catalog, deployment preparation, staging verification, quality gates, and release approval work are complete and have been removed from this active checklist.
 
-**Coordination:** Member 1 works independently on `client/`. The shared contract is `docs/api.md`; neither member should invent fields, endpoints, credentials, or direct database/provider access. Completed implementation and staging tasks are intentionally omitted from this file.
+Future backend and AI work is tracked in the repository-root [`TODO.md`](../../TODO.md). The backend owner must agree with Member 1 on the shared API/data contract before starting any roadmap item.
 
-## 1. Separate-laptop working agreement
+## Current backend status
 
-| Rule | Backend action |
+| Area | Status |
 |---|---|
-| Branch ownership | Create a new `feature/member2-*` branch for every backend push. Never commit directly to `main`. |
-| Pull before work | Start each new phase from the latest approved backend/main state and check whether Member 1 changes alter the shared API contract. |
-| File boundary | Modify `server/` for backend work. Modify shared docs or this TODO only when the contract or handoff requires it. Do not modify `client/` unless both members explicitly agree. |
-| API source of truth | Keep `docs/api.md`, backend behavior, and the client request wrapper aligned. Record any contract change before implementation. |
-| Secrets | Keep `DATABASE_URL`, `AUTH_SECRET`, `CORS_ORIGIN`, and any future provider credentials in private environment configuration. Never commit or paste real values into Git, chat, screenshots, or TODO files. |
-| Handoff evidence | Before Member 1 consumes an endpoint, provide method, path, auth requirement, request/response examples, error behavior, seed requirement, and tested commit. |
-| Completion evidence | Check a task only after code, tests, documentation, and a reproducible local or approved staging check support the claim. |
+| Server TypeScript and production build | Complete and validated |
+| Automated backend tests | Complete; 51 default-suite tests pass, with the real PostgreSQL integration path documented separately |
+| PostgreSQL schema, migrations, and seed data | Complete for the MVP |
+| Authentication and protected API routes | Complete for the MVP |
+| Career catalog, recommendations, skill gap, roadmap, advisor, and VR APIs | Complete for the MVP |
+| Render/Neon deployment and health checks | Complete and documented |
+| Release approval and `v1.0.0` tag | Complete |
 
-## 2. Completed baseline
+## Backend coordination rules for future work
 
-The backend implementation phases, documentation cleanup, deployment configuration, frozen-lockfile repair, and staging verification are complete. The backend quality gate passed with a clean TypeScript check, a passing production build, 51 passing default-suite tests, and 52 passing tests when the real-PostgreSQL integration test was enabled.
+Before implementing a unified-roadmap item, create a `feature/member2-*` branch from the latest approved `main`, update `docs/api.md` and shared types when the contract changes, add migrations and rollback notes, add unit/integration/contract tests, document error behavior and seed requirements, and never commit secrets or real connection strings.
 
-The staging record is available at `docs/staging-verification.md`. It documents the verified Render frontend/API targets, CORS and health behavior, clean-account API journey, browser flow, broader career catalog, advisor fallback, ordered roadmap, and the two approved MVP VR environments.
-
-## 3. Release completed
-
-The user explicitly approved production promotion on 24 August 2026. The verified release candidate was checked on `origin/main`, the deployed API and database dependency health endpoints returned HTTP 200, and the annotated release tag `v1.0.0` was published at commit `b7e37aede9a4cb0c3297744300ca35411221fabe`.
-
-## 4. Final handoff package
-
-The final handoff must include the merged backend commit and pull request, endpoint and environment-variable references without secret values, migration and seed instructions, staging URL and health evidence, `docs/staging-verification.md`, known limitations, and any unresolved client contract issue. The project is complete only when the server builds from a clean checkout, migrations are safe for local and Render Free startup, tests pass, the deployed API is healthy, and both members approve the same end-to-end journey.
+A future item may be moved into this file only when it has been selected from the unified roadmap, assigned to Member 2, and has explicit acceptance criteria. Completed items must be removed from this file after their evidence is merged.
