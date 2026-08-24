@@ -32,7 +32,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 
 ## Phase 2 — Career intelligence and extensible catalog (P1)
 
-- [ ] Design a versioned occupation/skill ontology adapter that can import the current local catalog and later ingest O*NET or ESCO without changing the core career, recommendation, skill-gap, or roadmap contracts.
 - [ ] Add canonical IDs, aliases, related skills, proficiency levels, prerequisites, transferable skills, domains, education pathways, and evidence sources for each career and skill.
 - [ ] Add a scheduled, reviewable catalog-refresh pipeline with source version, imported-at time, license metadata, diff report, rollback, and manual approval before publication.
 - [ ] Add multilingual career and skill labels with language fallback and terminology normalization.
