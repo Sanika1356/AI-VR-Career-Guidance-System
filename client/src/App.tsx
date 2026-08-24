@@ -7,6 +7,7 @@ import { AdvisorPage } from './pages/AdvisorPage';
 import { AssessmentPage } from './pages/AssessmentPage';
 import { CareerCatalogPage } from './pages/CareerCatalogPage';
 import { CareerDetailPage } from './pages/CareerDetailPage';
+import { LimitationsPage } from './pages/LimitationsPage';
 
 import { DashboardPage } from './pages/DashboardPage';
 
@@ -34,6 +35,7 @@ type RouteKey =
   | 'roadmap'
   | 'advisor'
   | 'vr'
+  | 'limitations'
   | 'not-found';
 
 interface RouteState {
@@ -94,6 +96,11 @@ const routes: Record<
   vr: {
     title: 'Explore career worlds',
     description: 'Enter a desktop-friendly 3D career hub and discover immersive environments.',
+  },
+  limitations: {
+    title: 'Pathfinder limitations',
+    description:
+      'Understand what the system can do, what it cannot promise, and how to use it thoughtfully.',
   },
 };
 
@@ -342,6 +349,7 @@ export default function App() {
       {route.key === 'advisor' && session && <AdvisorPage />}
       {route.key === 'vr' && session && <VRPage onNavigate={navigate} />}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
+      {route.key === 'limitations' && <LimitationsPage onNavigate={navigate} />}
       {route.key === 'career-details' && (
         <CareerDetailPage careerId={route.careerId} onNavigate={navigate} />
       )}
