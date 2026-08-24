@@ -252,6 +252,10 @@ export interface AdvisorChatResponse {
   caveat?: string;
   createdAt: string;
 }
+export interface ClearAdvisorHistoryResponse {
+  conversationId: string;
+  deletedMessageCount: number;
+}
 
 export interface VREnvironment {
   key: string;

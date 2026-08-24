@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
-import { chatAdvisorController } from "../controllers/advisor.controller.js";
+import {
+  chatAdvisorController,
+  clearAdvisorHistoryController,
+} from "../controllers/advisor.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { createRateLimiter } from "../middleware/rate-limit.js";
 import { requireFeature } from "../middleware/feature-flag.js";
@@ -12,6 +15,13 @@ const advisorRateLimiter = createRateLimiter({
   maxRequests: env.aiRateLimitMax,
 });
 
+advisorRouter.delete(
+  "/conversations/:conversationId/messages",
+  requireAuth,
+  requireFeature(env.aiAdvisorEnabled, "AI advisor"),
+  advisorRateLimiter,
+  clearAdvisorHistoryController,
+);
 advisorRouter.post(
   "/chat",
   requireAuth,
