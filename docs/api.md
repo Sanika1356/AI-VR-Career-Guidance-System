@@ -91,6 +91,48 @@ Returns the authenticated user's profile, interests, current skills, and learnin
 
 Updates editable profile fields. The request and response must use the same field names as the frontend types.
 
+## Privacy and account data
+
+All privacy endpoints require the authenticated user’s bearer token. Optional collection is disabled by default for new and migrated accounts.
+
+### `GET /api/privacy/consent`
+
+Returns the authenticated user’s privacy choices.
+
+```json
+{
+  "consent": {
+    "analytics": false,
+    "personalizedAi": false,
+    "vrTelemetry": false,
+    "policyVersion": "v1",
+    "updatedAt": null
+  }
+}
+```
+
+### `PUT /api/privacy/consent`
+
+Stores explicit boolean choices for optional analytics, personalized advisor context, and coarse VR telemetry.
+
+Request:
+
+```json
+{
+  "analytics": true,
+  "personalizedAi": true,
+  "vrTelemetry": false
+}
+```
+
+### `GET /api/privacy/export`
+
+Returns a JSON export of the authenticated user’s account, profile, privacy choices, assessments, results, recommendations, roadmap progress, conversations, and messages. Password hashes, bearer tokens, and server-only values are never included.
+
+### `DELETE /api/privacy/account`
+
+Permanently deletes the authenticated user and all account-owned records covered by the database cascade rules. The client must ask for confirmation, clear its local session, and return the user to sign-in after a successful deletion.
+
 ## Careers
 
 ### `GET /api/careers`

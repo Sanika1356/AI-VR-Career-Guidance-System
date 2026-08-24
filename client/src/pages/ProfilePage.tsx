@@ -6,7 +6,14 @@ import { Input } from '../components/Input';
 import { LoadingState } from '../components/LoadingState';
 import { Notification } from '../components/Notification';
 import { getProfile, updateProfile } from '../services/profile';
-import type { ProfileResponse, ProfileUpdateInput } from '../types/domain';
+import {
+  deleteAccount,
+  exportAccountData,
+  getPrivacyConsent,
+  updatePrivacyConsent,
+} from '../services/privacy';
+import { clearAuthSession } from '../services/auth';
+import type { PrivacyConsent, ProfileResponse, ProfileUpdateInput } from '../types/domain';
 
 interface ProfileFormState {
   name: string;
@@ -90,6 +97,12 @@ export function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState<PrivacyConsent | null>(null);
+  const [privacyError, setPrivacyError] = useState<string | null>(null);
+  const [privacyMessage, setPrivacyMessage] = useState<string | null>(null);
+  const [isSavingPrivacy, setIsSavingPrivacy] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadProfile = useCallback(() => {
     let active = true;
@@ -115,6 +128,23 @@ export function ProfilePage() {
   }, []);
 
   useEffect(() => loadProfile(), [loadProfile]);
+
+  useEffect(() => {
+    let active = true;
+    getPrivacyConsent()
+      .then((consent) => {
+        if (active) setPrivacyConsent(consent);
+      })
+      .catch((error: unknown) => {
+        if (active)
+          setPrivacyError(
+            error instanceof Error ? error.message : 'We could not load your privacy choices.',
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const updateField = (field: ProfileField, value: string) => {
     setForm((current) => (current ? { ...current, [field]: value } : current));
@@ -151,6 +181,71 @@ export function ProfilePage() {
       setSaveError(error instanceof Error ? error.message : 'We could not save your profile.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const togglePrivacyConsent = (
+    field: keyof Pick<PrivacyConsent, 'analytics' | 'personalizedAi' | 'vrTelemetry'>,
+  ) => {
+    setPrivacyConsent((current) => (current ? { ...current, [field]: !current[field] } : current));
+    setPrivacyError(null);
+    setPrivacyMessage(null);
+  };
+
+  const handleSavePrivacy = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!privacyConsent) return;
+    setIsSavingPrivacy(true);
+    setPrivacyError(null);
+    setPrivacyMessage(null);
+    try {
+      const consent = await updatePrivacyConsent(privacyConsent);
+      setPrivacyConsent(consent);
+      setPrivacyMessage('Your privacy choices have been saved.');
+    } catch (error: unknown) {
+      setPrivacyError(
+        error instanceof Error ? error.message : 'We could not save your privacy choices.',
+      );
+    } finally {
+      setIsSavingPrivacy(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    setPrivacyError(null);
+    try {
+      const blob = await exportAccountData();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pathfinder-account-export.json';
+      link.click();
+      URL.revokeObjectURL(url);
+      setPrivacyMessage('Your account export has been downloaded.');
+    } catch (error: unknown) {
+      setPrivacyError(
+        error instanceof Error ? error.message : 'We could not export your account data.',
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (
+      !window.confirm('Delete your Pathfinder account and all saved data? This cannot be undone.')
+    )
+      return;
+    setIsDeleting(true);
+    setPrivacyError(null);
+    try {
+      await deleteAccount();
+      clearAuthSession();
+      window.location.assign('/login?reason=account-deleted');
+    } catch (error: unknown) {
+      setPrivacyError(error instanceof Error ? error.message : 'We could not delete your account.');
+      setIsDeleting(false);
     }
   };
 
@@ -202,6 +297,106 @@ export function ProfilePage() {
             <p className="profile-page__account-note">
               Your email address cannot be edited from this page.
             </p>
+          </Card>
+
+          <Card
+            className="profile-page__privacy-card"
+            title="Privacy and account data"
+            description="Choose what optional data Pathfinder may use and manage your saved account data."
+          >
+            {privacyError && (
+              <Notification
+                tone="error"
+                title="Privacy action failed"
+                onDismiss={() => setPrivacyError(null)}
+              >
+                {privacyError}
+              </Notification>
+            )}
+            {privacyMessage && (
+              <Notification
+                tone="success"
+                title="Privacy settings updated"
+                onDismiss={() => setPrivacyMessage(null)}
+              >
+                {privacyMessage}
+              </Notification>
+            )}
+            {privacyConsent ? (
+              <form className="profile-privacy" onSubmit={handleSavePrivacy}>
+                <p className="profile-page__account-note">
+                  Optional choices are off by default. Core career, skill-gap, and roadmap features
+                  remain available.
+                </p>
+                <label className="profile-privacy__choice">
+                  <input
+                    type="checkbox"
+                    checked={privacyConsent.personalizedAi}
+                    onChange={() => togglePrivacyConsent('personalizedAi')}
+                  />
+                  <span>
+                    <strong>Personalized advisor context</strong>
+                    <small>
+                      Allow saved profile, assessment, and roadmap context to personalize advisor
+                      answers.
+                    </small>
+                  </span>
+                </label>
+                <label className="profile-privacy__choice">
+                  <input
+                    type="checkbox"
+                    checked={privacyConsent.analytics}
+                    onChange={() => togglePrivacyConsent('analytics')}
+                  />
+                  <span>
+                    <strong>Product analytics</strong>
+                    <small>Allow privacy-safe usage events to help improve the experience.</small>
+                  </span>
+                </label>
+                <label className="profile-privacy__choice">
+                  <input
+                    type="checkbox"
+                    checked={privacyConsent.vrTelemetry}
+                    onChange={() => togglePrivacyConsent('vrTelemetry')}
+                  />
+                  <span>
+                    <strong>VR telemetry</strong>
+                    <small>
+                      Allow coarse VR engagement events; raw movement and biometric data are never
+                      requested.
+                    </small>
+                  </span>
+                </label>
+                <div className="profile-form__actions">
+                  <Button type="submit" disabled={isSavingPrivacy}>
+                    {isSavingPrivacy ? 'Saving privacy choices…' : 'Save privacy choices'}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <LoadingState
+                label="Loading privacy choices"
+                description="Preparing your account controls."
+              />
+            )}
+            <div className="profile-privacy__actions">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExport}
+                disabled={isExporting || isDeleting}
+              >
+                {isExporting ? 'Preparing export…' : 'Download my data'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={isDeleting || isExporting}
+              >
+                {isDeleting ? 'Deleting account…' : 'Delete account'}
+              </Button>
+            </div>
           </Card>
 
           <Card

@@ -51,6 +51,7 @@ export async function registerUser(input: RegisterInput, database: DatabasePool 
       [userId, input.name, input.email, passwordHash],
     );
     await client.query('INSERT INTO profiles (user_id) VALUES ($1)', [userId]);
+    await client.query('INSERT INTO privacy_consents (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING', [userId]);
     await client.query('COMMIT');
 
     const user = userResult.rows[0];
