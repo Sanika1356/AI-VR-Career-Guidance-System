@@ -5,6 +5,11 @@ function numberFromEnv(value: string | undefined, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function booleanFromEnv(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  return value === "true";
+}
+
 const nodeEnv = process.env.NODE_ENV ?? "development";
 const authSecret =
   process.env.AUTH_SECRET ?? "development-only-change-me-please-32-chars";
@@ -17,6 +22,16 @@ export const env = {
   nodeEnv,
   port: numberFromEnv(process.env.PORT ?? process.env.SERVER_PORT, 4000),
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  requestBodyLimitBytes: Math.max(
+    1_024,
+    Math.floor(numberFromEnv(process.env.REQUEST_BODY_LIMIT_BYTES, 1_000_000)),
+  ),
+  aiAdvisorEnabled: booleanFromEnv(process.env.AI_ADVISOR_ENABLED, true),
+  externalCareerDataEnabled: booleanFromEnv(
+    process.env.EXTERNAL_CAREER_DATA_ENABLED,
+    false,
+  ),
+  webXrEnabled: booleanFromEnv(process.env.WEBXR_ENABLED, false),
   databaseUrl: process.env.DATABASE_URL,
   dbPoolMin: numberFromEnv(process.env.DB_POOL_MIN, 1),
   dbPoolMax: numberFromEnv(process.env.DB_POOL_MAX, 10),
@@ -62,6 +77,11 @@ export const env = {
     60_000,
   ),
   aiRateLimitMax: numberFromEnv(process.env.AI_RATE_LIMIT_MAX, 20),
+  catalogRateLimitWindowMs: numberFromEnv(
+    process.env.CATALOG_RATE_LIMIT_WINDOW_MS,
+    60_000,
+  ),
+  catalogRateLimitMax: numberFromEnv(process.env.CATALOG_RATE_LIMIT_MAX, 60),
   runSeedData:
     process.env.RUN_SEED_DATA === "true" ||
     (nodeEnv !== "production" && process.env.RUN_SEED_DATA !== "false"),

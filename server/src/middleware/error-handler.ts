@@ -11,6 +11,24 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
     return;
   }
 
+  if (typeof error === 'object' && error !== null && 'type' in error) {
+    const parserError = error as { type?: unknown };
+    if (parserError.type === 'entity.too.large') {
+      response.status(413).json({
+        error: 'payload_too_large',
+        message: 'Request body is too large.',
+      });
+      return;
+    }
+    if (parserError.type === 'entity.parse.failed') {
+      response.status(400).json({
+        error: 'invalid_json',
+        message: 'Request body must contain valid JSON.',
+      });
+      return;
+    }
+  }
+
   const unknownError = error instanceof Error ? error : new Error('Unknown non-Error failure');
   console.error(JSON.stringify({
     event: 'http_error',
