@@ -14,6 +14,8 @@ This document is the shared agreement between the frontend and backend. Member 2
 - Forbidden requests: HTTP `403`
 - Missing resources: HTTP `404`
 - Unexpected server errors: HTTP `500`
+- Request tracing: every response includes an opaque `X-Request-Id`; clients may send one and should include it in support reports
+- Operational privacy: structured logs and audit events never contain passwords, bearer tokens, raw prompts, raw answers, or full private profile text
 
 ## Health
 
@@ -27,6 +29,10 @@ Returns the server status and can be used by both members to verify local connec
   "service": "career-guidance-api"
 }
 ```
+
+### Request IDs and operational signals
+
+The server returns an opaque `X-Request-Id` header on every request and uses it to correlate a request log with a server-side audit event when applicable. API request logs contain method, path, status, and duration only. The backend also maintains rolling aggregate API latency/error, AI latency/failure/fallback, and labelled rate-limit counters; configurable thresholds emit redacted alert events without exposing user payloads.
 
 ## Authentication and profile
 
