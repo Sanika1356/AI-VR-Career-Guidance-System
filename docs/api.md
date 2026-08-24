@@ -176,8 +176,8 @@ Returns ordered assessment questions without exposing answer keys or internal sc
       "text": "Which activity interests you most?",
       "type": "single-choice",
       "options": [
-        {"id": "option_a", "label": "Building software"},
-        {"id": "option_b", "label": "Analyzing data"}
+        { "id": "option_a", "label": "Building software" },
+        { "id": "option_b", "label": "Analyzing data" }
       ]
     }
   ]
@@ -196,7 +196,7 @@ Returns the next published question for an in-progress assessment. The selector 
     "id": "question_2",
     "text": "Which project sounds useful?",
     "type": "single-choice",
-    "options": [{"id": "option_a", "label": "Automating a workflow"}]
+    "options": [{ "id": "option_a", "label": "Automating a workflow" }]
   },
   "selection": {
     "strategy": "coverage-first-deterministic",
@@ -214,9 +214,7 @@ Request:
 ```json
 {
   "assessmentId": "assessment_123",
-  "answers": [
-    {"questionId": "question_1", "optionId": "option_a"}
-  ]
+  "answers": [{ "questionId": "question_1", "optionId": "option_a" }]
 }
 ```
 
@@ -238,19 +236,61 @@ Returns the detailed assessment result and category scores. When stored answer e
 {
   "resultId": "result_123",
   "completedAt": "2026-08-18T00:00:00.000Z",
-  "categoryScores": {"career_ai_engineer": 5},
+  "categoryScores": { "career_ai_engineer": 5 },
   "topCareerIds": ["career_ai_engineer"],
   "explanations": [
     {
       "careerId": "career_ai_engineer",
       "score": 5,
       "confidence": "high",
-      "supportingSignals": ["Which activity interests you most?: Building software"],
+      "supportingSignals": [
+        "Which activity interests you most?: Building software"
+      ],
       "caveat": "This explanation summarizes assessment signals; it is not a diagnosis or a guarantee of fit."
     }
   ]
 }
 ```
+
+### `GET /api/assessment/results/:resultId/comparison?previousResultId=<id>`
+
+Compares the authenticated learner’s current result with one earlier owned result. Results remain immutable; the comparison is derived at request time from stored answers and scores. It reports changed answer selections, career score deltas, top-career additions/removals, and the question-bank versions used for both attempts. When versions differ, `questionBankVersionMatches` is `false` and the explanation asks the learner to interpret changes cautiously.
+
+```json
+{
+  "currentResultId": "result_new",
+  "previousResultId": "result_old",
+  "currentCompletedAt": "2026-08-24T00:00:00.000Z",
+  "previousCompletedAt": "2026-08-18T00:00:00.000Z",
+  "currentQuestionBankVersion": 1,
+  "previousQuestionBankVersion": 1,
+  "questionBankVersionMatches": true,
+  "changedAnswers": [
+    {
+      "questionId": "question_1",
+      "questionText": "Which activity interests you most?",
+      "previousOptionId": "option_b",
+      "previousOptionLabel": "Analyzing data",
+      "currentOptionId": "option_a",
+      "currentOptionLabel": "Building software"
+    }
+  ],
+  "scoreChanges": [
+    {
+      "careerId": "career_ai_engineer",
+      "previousScore": 2,
+      "currentScore": 5,
+      "delta": 3
+    }
+  ],
+  "topCareerChanges": { "added": ["career_ai_engineer"], "removed": [] },
+  "explanation": [
+    "1 answer changed; score differences reflect those selections and the pinned question-bank version."
+  ]
+}
+```
+
+The comparison endpoint never exposes option scoring JSON, accepts only two different result IDs, and returns `404` if either result is not owned by the authenticated user.
 
 ## Recommendations
 
@@ -292,8 +332,8 @@ Compares the user's known skills with the selected career's required skills.
 {
   "careerId": "career_ai_engineer",
   "skills": [
-    {"name": "Python", "status": "matched", "level": "intermediate"},
-    {"name": "Deep Learning", "status": "missing", "level": "beginner"}
+    { "name": "Python", "status": "matched", "level": "intermediate" },
+    { "name": "Deep Learning", "status": "missing", "level": "beginner" }
   ]
 }
 ```

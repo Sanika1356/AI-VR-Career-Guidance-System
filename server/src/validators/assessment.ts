@@ -15,6 +15,10 @@ export interface NextAssessmentQuestionInput {
   answeredQuestionIds: string[];
 }
 
+export interface CompareAssessmentResultsInput {
+  previousResultId: string;
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -72,6 +76,21 @@ export function validateNextAssessmentQuestionQuery(
   return {
     assessmentId: requiredId(query.assessmentId, "assessmentId"),
     answeredQuestionIds,
+  };
+}
+
+export function validateCompareAssessmentResultsQuery(
+  query: unknown,
+): CompareAssessmentResultsInput {
+  if (!isPlainObject(query)) {
+    throw new AppError(
+      400,
+      "validation_error",
+      "Query parameters must be an object.",
+    );
+  }
+  return {
+    previousResultId: requiredId(query.previousResultId, "previousResultId"),
   };
 }
 

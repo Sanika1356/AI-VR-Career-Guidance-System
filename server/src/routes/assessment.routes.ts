@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  compareAssessmentResultsController,
   getAssessmentQuestionsController,
   getAssessmentResultController,
   getNextAssessmentQuestionController,
@@ -13,3 +14,7 @@ assessmentRouter.get("/questions", getAssessmentQuestionsController);
 assessmentRouter.get("/next", getNextAssessmentQuestionController);
 assessmentRouter.post("/submit", submitAssessmentController);
 assessmentRouter.get("/results/:resultId", getAssessmentResultController);
+assessmentRouter.get(
+  "/results/:resultId/comparison",
+  compareAssessmentResultsController,
+);

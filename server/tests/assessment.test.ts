@@ -5,12 +5,16 @@ import type { QueryResult, QueryResultRow } from "pg";
 import { app } from "../src/app.js";
 import type { DatabaseClient, DatabasePool } from "../src/db/types.js";
 import {
+  compareAssessmentResults,
   getAssessmentQuestions,
   getAssessmentResult,
   getNextAssessmentQuestion,
   submitAssessment,
 } from "../src/services/assessment.service.js";
-import { validateNextAssessmentQuestionQuery } from "../src/validators/assessment.js";
+import {
+  validateCompareAssessmentResultsQuery,
+  validateNextAssessmentQuestionQuery,
+} from "../src/validators/assessment.js";
 
 function queryResult<T extends QueryResultRow>(rows: T[]): QueryResult<T> {
   return { rows, rowCount: rows.length, command: "SELECT", oid: 0, fields: [] };
@@ -300,6 +304,123 @@ test("assessment result explanations connect scores to answer evidence without d
         "This explanation summarizes assessment signals; it is not a diagnosis or a guarantee of fit.",
     },
   ]);
+});
+
+test("retake comparison reports changed answers, score deltas, and top-career changes", async () => {
+  const client = new FakeClient((sql, values) => {
+    if (sql.includes("FROM assessment_results")) {
+      const resultId = values[0];
+      return queryResult(
+        resultId === "result_new"
+          ? [
+              {
+                id: "result_new",
+                assessment_id: "assessment_new",
+                completed_at: "2026-08-24T00:00:00.000Z",
+                category_scores: {
+                  career_ai_engineer: 5,
+                  career_data_analyst: 1,
+                },
+                top_career_ids: ["career_ai_engineer"],
+                question_bank_version: 1,
+              },
+            ]
+          : [
+              {
+                id: "result_old",
+                assessment_id: "assessment_old",
+                completed_at: "2026-08-18T00:00:00.000Z",
+                category_scores: {
+                  career_ai_engineer: 2,
+                  career_data_analyst: 3,
+                },
+                top_career_ids: ["career_data_analyst"],
+                question_bank_version: 1,
+              },
+            ],
+      ) as QueryResult<QueryResultRow>;
+    }
+    if (sql.includes("FROM assessment_answers")) {
+      return queryResult([
+        {
+          assessment_id: "assessment_old",
+          question_id: "question_1",
+          question_text: "Which activity?",
+          option_id: "option_data",
+          option_label: "Analyzing data",
+        },
+        {
+          assessment_id: "assessment_new",
+          question_id: "question_1",
+          question_text: "Which activity?",
+          option_id: "option_ai",
+          option_label: "Building software",
+        },
+        {
+          assessment_id: "assessment_old",
+          question_id: "question_2",
+          question_text: "Which project?",
+          option_id: "option_same",
+          option_label: "A shared project",
+        },
+        {
+          assessment_id: "assessment_new",
+          question_id: "question_2",
+          question_text: "Which project?",
+          option_id: "option_same",
+          option_label: "A shared project",
+        },
+      ]) as QueryResult<QueryResultRow>;
+    }
+    return queryResult([]);
+  });
+
+  const comparison = await compareAssessmentResults(
+    "user_demo",
+    "result_new",
+    "result_old",
+    poolFor(client),
+  );
+  assert.equal(comparison.questionBankVersionMatches, true);
+  assert.deepEqual(comparison.changedAnswers, [
+    {
+      questionId: "question_1",
+      questionText: "Which activity?",
+      previousOptionId: "option_data",
+      previousOptionLabel: "Analyzing data",
+      currentOptionId: "option_ai",
+      currentOptionLabel: "Building software",
+    },
+  ]);
+  assert.deepEqual(comparison.scoreChanges, [
+    {
+      careerId: "career_ai_engineer",
+      previousScore: 2,
+      currentScore: 5,
+      delta: 3,
+    },
+    {
+      careerId: "career_data_analyst",
+      previousScore: 3,
+      currentScore: 1,
+      delta: -2,
+    },
+  ]);
+  assert.deepEqual(comparison.topCareerChanges, {
+    added: ["career_ai_engineer"],
+    removed: ["career_data_analyst"],
+  });
+});
+
+test("retake comparison rejects the same result and invalid query values", () => {
+  assert.deepEqual(
+    validateCompareAssessmentResultsQuery({ previousResultId: "result_old" }),
+    { previousResultId: "result_old" },
+  );
+  assert.throws(
+    () => validateCompareAssessmentResultsQuery({ previousResultId: "" }),
+    /previousResultId must be a non-empty string/,
+  );
 });
 
 test("assessment endpoints require bearer authentication", async () => {

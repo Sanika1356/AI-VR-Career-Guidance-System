@@ -19,6 +19,7 @@ interface QuestionRow {
 interface AssessmentRow {
   id: string;
   status: "in_progress" | "completed";
+  question_bank_version?: number;
 }
 
 interface OptionScoreRow {
@@ -33,6 +34,7 @@ interface ResultRow {
   completed_at: string | Date;
   category_scores: Record<string, number> | string;
   top_career_ids: string[] | string;
+  question_bank_version?: number;
 }
 
 interface AnswerEvidenceRow {
@@ -40,6 +42,14 @@ interface AnswerEvidenceRow {
   question_text: string;
   option_label: string;
   scoring: Record<string, number> | string;
+}
+
+interface ComparisonAnswerRow {
+  assessment_id: string;
+  question_id: string;
+  question_text: string;
+  option_id: string;
+  option_label: string;
 }
 
 export interface AssessmentQuestionsResponse {
@@ -76,6 +86,35 @@ export interface AssessmentResultResponse {
   categoryScores: Record<string, number>;
   topCareerIds: string[];
   explanations?: AssessmentExplanation[];
+}
+
+export interface AssessmentRetakeComparisonResponse {
+  currentResultId: string;
+  previousResultId: string;
+  currentCompletedAt: string;
+  previousCompletedAt: string;
+  currentQuestionBankVersion: number;
+  previousQuestionBankVersion: number;
+  questionBankVersionMatches: boolean;
+  changedAnswers: Array<{
+    questionId: string;
+    questionText: string;
+    previousOptionId: string | null;
+    previousOptionLabel: string | null;
+    currentOptionId: string | null;
+    currentOptionLabel: string | null;
+  }>;
+  scoreChanges: Array<{
+    careerId: string;
+    previousScore: number;
+    currentScore: number;
+    delta: number;
+  }>;
+  topCareerChanges: {
+    added: string[];
+    removed: string[];
+  };
+  explanation: string[];
 }
 
 function parseObject(
@@ -242,9 +281,15 @@ export async function getAssessmentQuestions(
   const assessmentId = createId("assessment");
   try {
     await client.query("BEGIN");
+    const versionResult = await client.query<{ question_bank_version: number }>(
+      "SELECT COALESCE(MAX(question_version), 1) AS question_bank_version FROM assessment_questions WHERE published = TRUE",
+    );
+    const questionBankVersion = Number(
+      versionResult.rows[0]?.question_bank_version ?? 1,
+    );
     await client.query(
-      "INSERT INTO assessments (id, user_id) VALUES ($1, $2)",
-      [assessmentId, userId],
+      "INSERT INTO assessments (id, user_id, question_bank_version) VALUES ($1, $2, $3)",
+      [assessmentId, userId, questionBankVersion],
     );
     const result = await client.query<QuestionRow>(`
       SELECT
@@ -358,14 +403,15 @@ export async function submitAssessment(
       .slice(0, 3)
       .map(([careerId]) => careerId);
     await client.query(
-      `INSERT INTO assessment_results (id, assessment_id, user_id, category_scores, top_career_ids)
-       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb)`,
+      `INSERT INTO assessment_results (id, assessment_id, user_id, category_scores, top_career_ids, question_bank_version)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6)`,
       [
         resultId,
         assessmentId,
         userId,
         JSON.stringify(categoryScores),
         JSON.stringify(topCareerIds),
+        Number(assessment.question_bank_version ?? 1),
       ],
     );
     await client.query(
@@ -383,6 +429,179 @@ export async function submitAssessment(
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
+  } finally {
+    client.release();
+  }
+}
+
+function toIsoDate(value: string | Date): string {
+  return value instanceof Date
+    ? value.toISOString()
+    : new Date(value).toISOString();
+}
+
+function roundedDelta(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+export async function compareAssessmentResults(
+  userId: string,
+  currentResultId: string,
+  previousResultId: string,
+  database: DatabasePool = requirePool(),
+): Promise<AssessmentRetakeComparisonResponse> {
+  if (currentResultId === previousResultId) {
+    throw new AppError(
+      400,
+      "validation_error",
+      "current and previous results must differ.",
+    );
+  }
+  const client = await database.connect();
+  try {
+    const result = await client.query<ResultRow>(
+      `SELECT id, assessment_id, completed_at, category_scores, top_career_ids, question_bank_version
+       FROM assessment_results
+       WHERE id = $1 AND user_id = $2`,
+      [currentResultId, userId],
+    );
+    const previousResult = await client.query<ResultRow>(
+      `SELECT id, assessment_id, completed_at, category_scores, top_career_ids, question_bank_version
+       FROM assessment_results
+       WHERE id = $1 AND user_id = $2`,
+      [previousResultId, userId],
+    );
+    const current = result.rows[0];
+    const previous = previousResult.rows[0];
+    if (!current || !previous) {
+      throw new AppError(
+        404,
+        "assessment_result_not_found",
+        "One or both assessment results were not found.",
+      );
+    }
+
+    const answers = await client.query<ComparisonAnswerRow>(
+      `SELECT aa.assessment_id, aq.id AS question_id, aq.text AS question_text, ao.id AS option_id, ao.label AS option_label
+       FROM assessment_answers aa
+       JOIN assessment_questions aq ON aq.id = aa.question_id
+       JOIN assessment_options ao ON ao.id = aa.option_id
+       WHERE aa.assessment_id = ANY($1::text[])
+       ORDER BY aq.display_order, aa.assessment_id`,
+      [[current.assessment_id, previous.assessment_id]],
+    );
+    const byAssessment = new Map<string, Map<string, ComparisonAnswerRow>>();
+    for (const answer of answers.rows) {
+      if (!byAssessment.has(answer.assessment_id))
+        byAssessment.set(answer.assessment_id, new Map());
+      byAssessment.get(answer.assessment_id)!.set(answer.question_id, answer);
+    }
+    const currentAnswers = byAssessment.get(current.assessment_id) ?? new Map();
+    const previousAnswers =
+      byAssessment.get(previous.assessment_id) ?? new Map();
+    const questionIds = [
+      ...new Set([...currentAnswers.keys(), ...previousAnswers.keys()]),
+    ].sort();
+    const changedAnswers = questionIds
+      .filter(
+        (questionId) =>
+          currentAnswers.get(questionId)?.option_id !==
+          previousAnswers.get(questionId)?.option_id,
+      )
+      .map((questionId) => {
+        const currentAnswer = currentAnswers.get(questionId);
+        const previousAnswer = previousAnswers.get(questionId);
+        return {
+          questionId,
+          questionText:
+            currentAnswer?.question_text ??
+            previousAnswer?.question_text ??
+            questionId,
+          previousOptionId: previousAnswer?.option_id ?? null,
+          previousOptionLabel: previousAnswer?.option_label ?? null,
+          currentOptionId: currentAnswer?.option_id ?? null,
+          currentOptionLabel: currentAnswer?.option_label ?? null,
+        };
+      });
+
+    const currentScores = parseObject(current.category_scores);
+    const previousScores = parseObject(previous.category_scores);
+    const careerIds = [
+      ...new Set([
+        ...Object.keys(currentScores),
+        ...Object.keys(previousScores),
+      ]),
+    ];
+    const scoreChanges = careerIds
+      .map((careerId) => {
+        const previousScore = Number(previousScores[careerId] ?? 0);
+        const currentScore = Number(currentScores[careerId] ?? 0);
+        return {
+          careerId,
+          previousScore,
+          currentScore,
+          delta: roundedDelta(currentScore - previousScore),
+        };
+      })
+      .filter((change) => change.delta !== 0)
+      .sort(
+        (left, right) =>
+          Math.abs(right.delta) - Math.abs(left.delta) ||
+          left.careerId.localeCompare(right.careerId),
+      );
+    const currentTop = parseStringArray(current.top_career_ids);
+    const previousTop = parseStringArray(previous.top_career_ids);
+    const topCareerChanges = {
+      added: currentTop.filter((careerId) => !previousTop.includes(careerId)),
+      removed: previousTop.filter((careerId) => !currentTop.includes(careerId)),
+    };
+    const currentQuestionBankVersion = Number(
+      current.question_bank_version ?? 1,
+    );
+    const previousQuestionBankVersion = Number(
+      previous.question_bank_version ?? 1,
+    );
+    const explanation =
+      changedAnswers.length === 0
+        ? ["No answer selections changed between these assessment results."]
+        : [
+            `${changedAnswers.length} answer${changedAnswers.length === 1 ? "" : "s"} changed; score differences reflect those selections and the pinned question-bank version.`,
+          ];
+    if (
+      !currentQuestionBankVersion ||
+      !previousQuestionBankVersion ||
+      currentQuestionBankVersion !== previousQuestionBankVersion
+    ) {
+      explanation.push(
+        "These results use different question-bank versions, so compare the direction of change cautiously.",
+      );
+    }
+    if (
+      topCareerChanges.added.length > 0 ||
+      topCareerChanges.removed.length > 0
+    ) {
+      explanation.push(
+        "The top-career set changed; review the supporting signals and skill gaps before making decisions.",
+      );
+    } else {
+      explanation.push(
+        "The top-career set is unchanged; the score changes show movement within the same leading paths.",
+      );
+    }
+    return {
+      currentResultId: current.id,
+      previousResultId: previous.id,
+      currentCompletedAt: toIsoDate(current.completed_at),
+      previousCompletedAt: toIsoDate(previous.completed_at),
+      currentQuestionBankVersion,
+      previousQuestionBankVersion,
+      questionBankVersionMatches:
+        currentQuestionBankVersion === previousQuestionBankVersion,
+      changedAnswers,
+      scoreChanges,
+      topCareerChanges,
+      explanation,
+    };
   } finally {
     client.release();
   }
@@ -430,7 +649,7 @@ export async function getAssessmentResult(
   const client = await database.connect();
   try {
     const result = await client.query<ResultRow>(
-      `SELECT id, assessment_id, completed_at, category_scores, top_career_ids
+      `SELECT id, assessment_id, completed_at, category_scores, top_career_ids, question_bank_version
        FROM assessment_results
        WHERE id = $1 AND user_id = $2`,
       [resultId, userId],
@@ -442,10 +661,7 @@ export async function getAssessmentResult(
         "assessment_result_not_found",
         "The requested assessment result was not found.",
       );
-    const completedAt =
-      row.completed_at instanceof Date
-        ? row.completed_at.toISOString()
-        : new Date(row.completed_at).toISOString();
+    const completedAt = toIsoDate(row.completed_at);
     const categoryScores = parseObject(row.category_scores);
     const topCareerIds = parseStringArray(row.top_career_ids);
     const evidenceResult = await client.query<AnswerEvidenceRow>(
