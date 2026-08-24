@@ -38,6 +38,478 @@ interface ProfileFormState {
 type ProfileField = keyof ProfileFormState;
 type ProfileErrors = Partial<Record<ProfileField | 'form', string>>;
 
+type RadioOption = {
+  value: string;
+  label: string;
+  description: string;
+};
+
+const interestOptions: RadioOption[] = [
+  {
+    value: 'AI and machine learning',
+    label: 'AI & machine learning',
+    description: 'Build intelligent tools and models.',
+  },
+  {
+    value: 'Data and analytics',
+    label: 'Data & analytics',
+    description: 'Find patterns and explain evidence.',
+  },
+  {
+    value: 'Software and web development',
+    label: 'Software development',
+    description: 'Create apps, services, and digital products.',
+  },
+  {
+    value: 'Cybersecurity and privacy',
+    label: 'Cybersecurity',
+    description: 'Protect systems, people, and information.',
+  },
+  {
+    value: 'Product and business',
+    label: 'Product & business',
+    description: 'Shape strategy, products, and outcomes.',
+  },
+  {
+    value: 'Design and user experience',
+    label: 'Design & UX',
+    description: 'Make useful, accessible experiences.',
+  },
+  {
+    value: 'Research and education',
+    label: 'Research & education',
+    description: 'Learn deeply and help others learn.',
+  },
+  {
+    value: 'Communication and media',
+    label: 'Communication & media',
+    description: 'Tell stories and connect audiences.',
+  },
+];
+
+const skillOptions: RadioOption[] = [
+  {
+    value: 'Programming and Python',
+    label: 'Programming & Python',
+    description: 'You can write or understand code.',
+  },
+  {
+    value: 'Data analysis and spreadsheets',
+    label: 'Data analysis',
+    description: 'You work with tables, metrics, or reports.',
+  },
+  {
+    value: 'Machine learning and AI',
+    label: 'Machine learning & AI',
+    description: 'You have explored models or intelligent systems.',
+  },
+  {
+    value: 'Writing and presentation',
+    label: 'Writing & presentation',
+    description: 'You communicate ideas clearly.',
+  },
+  {
+    value: 'Research and problem solving',
+    label: 'Research & problem solving',
+    description: 'You investigate questions and find solutions.',
+  },
+  {
+    value: 'Design and creative tools',
+    label: 'Design & creative tools',
+    description: 'You use visual or creative software.',
+  },
+  {
+    value: 'Collaboration and leadership',
+    label: 'Collaboration & leadership',
+    description: 'You organize work and support a team.',
+  },
+  {
+    value: 'Starting from the basics',
+    label: 'Starting from the basics',
+    description: 'You are building your first professional skills.',
+  },
+];
+
+const goalOptions: RadioOption[] = [
+  {
+    value: 'Explore career options',
+    label: 'Explore career options',
+    description: 'Understand which paths fit me.',
+  },
+  {
+    value: 'Build a portfolio',
+    label: 'Build a portfolio',
+    description: 'Create projects that show my ability.',
+  },
+  {
+    value: 'Land my first role',
+    label: 'Land my first role',
+    description: 'Prepare for an entry-level opportunity.',
+  },
+  {
+    value: 'Change careers',
+    label: 'Change careers',
+    description: 'Move into a new professional direction.',
+  },
+  {
+    value: 'Upskill in my current role',
+    label: 'Upskill in my current role',
+    description: 'Become stronger in the work I already do.',
+  },
+  {
+    value: 'Prepare for interviews',
+    label: 'Prepare for interviews',
+    description: 'Build confidence for applications and interviews.',
+  },
+  {
+    value: 'Freelance or work independently',
+    label: 'Freelance independently',
+    description: 'Develop skills for flexible client work.',
+  },
+  {
+    value: 'Pursue advanced study',
+    label: 'Pursue advanced study',
+    description: 'Prepare for deeper academic learning.',
+  },
+];
+
+const constraintOptions: RadioOption[] = [
+  {
+    value: 'Limited weekly time',
+    label: 'Limited weekly time',
+    description: 'I need a compact, realistic plan.',
+  },
+  {
+    value: 'Budget-conscious resources',
+    label: 'Budget-conscious resources',
+    description: 'Prefer free or low-cost learning.',
+  },
+  {
+    value: 'Need remote access',
+    label: 'Need remote access',
+    description: 'My learning must work from home.',
+  },
+  {
+    value: 'Accessibility needs',
+    label: 'Accessibility needs',
+    description: 'I need accessible formats or pacing.',
+  },
+  {
+    value: 'Limited prior experience',
+    label: 'Limited prior experience',
+    description: 'I need a beginner-friendly starting point.',
+  },
+  {
+    value: 'Balancing work, study, or caregiving',
+    label: 'Balancing other commitments',
+    description: 'My schedule changes around responsibilities.',
+  },
+  {
+    value: 'Inconsistent schedule',
+    label: 'Inconsistent schedule',
+    description: 'I need flexible checkpoints and catch-up time.',
+  },
+  {
+    value: 'No major constraints',
+    label: 'No major constraints',
+    description: 'I can follow a typical learning plan.',
+  },
+];
+
+const workConditionOptions: RadioOption[] = [
+  {
+    value: 'Remote-first',
+    label: 'Remote-first',
+    description: 'I prefer working primarily online.',
+  },
+  { value: 'Hybrid', label: 'Hybrid', description: 'I like a mix of remote and in-person work.' },
+  { value: 'On-site', label: 'On-site', description: 'I prefer a shared physical workplace.' },
+  {
+    value: 'Flexible schedule',
+    label: 'Flexible schedule',
+    description: 'I value control over when I work.',
+  },
+  {
+    value: 'Structured routine',
+    label: 'Structured routine',
+    description: 'Clear hours and expectations help me.',
+  },
+  {
+    value: 'Collaborative team',
+    label: 'Collaborative team',
+    description: 'I do my best work with regular teamwork.',
+  },
+  {
+    value: 'Independent focus',
+    label: 'Independent focus',
+    description: 'I prefer long periods of focused work.',
+  },
+  {
+    value: 'Mission-driven environment',
+    label: 'Mission-driven environment',
+    description: 'Purpose and impact matter most to me.',
+  },
+];
+
+const experienceOptions: RadioOption[] = [
+  {
+    value: 'No formal experience yet',
+    label: 'No formal experience yet',
+    description: 'I am starting without professional experience.',
+  },
+  {
+    value: 'Exploring as a student',
+    label: 'Exploring as a student',
+    description: 'I am learning and testing possible directions.',
+  },
+  {
+    value: 'Coursework or certification',
+    label: 'Coursework or certification',
+    description: 'I have completed structured learning.',
+  },
+  {
+    value: 'Personal projects',
+    label: 'Personal projects',
+    description: 'I have practiced through self-directed work.',
+  },
+  {
+    value: 'Internship or apprenticeship',
+    label: 'Internship or apprenticeship',
+    description: 'I have had supervised practical exposure.',
+  },
+  {
+    value: '0–2 years of experience',
+    label: '0–2 years',
+    description: 'I am early in my professional journey.',
+  },
+  {
+    value: '3–5 years of experience',
+    label: '3–5 years',
+    description: 'I have several years of relevant experience.',
+  },
+  {
+    value: '5+ years of experience',
+    label: '5+ years',
+    description: 'I bring substantial professional experience.',
+  },
+];
+
+const educationOptions: RadioOption[] = [
+  { value: '', label: 'Prefer not to say', description: 'Keep this optional context private.' },
+  { value: 'secondary', label: 'Secondary education', description: 'High school or equivalent.' },
+  {
+    value: 'vocational',
+    label: 'Vocational or trade',
+    description: 'Career-focused technical training.',
+  },
+  {
+    value: 'undergraduate',
+    label: 'Undergraduate',
+    description: 'Currently studying or completed a degree.',
+  },
+  { value: 'graduate', label: 'Graduate', description: 'Postgraduate study or degree.' },
+  {
+    value: 'career-changer',
+    label: 'Career changer',
+    description: 'Moving from another professional field.',
+  },
+  {
+    value: 'working-professional',
+    label: 'Working professional',
+    description: 'Currently established in a career.',
+  },
+  {
+    value: 'self-taught-or-other',
+    label: 'Self-taught or other',
+    description: 'A different learning path.',
+  },
+];
+
+const locationOptions: RadioOption[] = [
+  {
+    value: 'Remote-first or anywhere',
+    label: 'Remote-first / anywhere',
+    description: 'Location flexibility is important.',
+  },
+  {
+    value: 'Hybrid near home',
+    label: 'Hybrid near home',
+    description: 'Prefer a mix close to where I live.',
+  },
+  {
+    value: 'On-site locally',
+    label: 'On-site locally',
+    description: 'Prefer opportunities in my local area.',
+  },
+  {
+    value: 'Willing to relocate',
+    label: 'Willing to relocate',
+    description: 'Open to moving for the right path.',
+  },
+  {
+    value: 'Global and asynchronous',
+    label: 'Global / asynchronous',
+    description: 'Time-zone flexibility works well for me.',
+  },
+  {
+    value: 'Prefer the same time zone',
+    label: 'Same time zone',
+    description: 'Prefer work aligned with my local hours.',
+  },
+  {
+    value: 'Specific region needed',
+    label: 'Specific region needed',
+    description: 'I need guidance for a particular region.',
+  },
+  {
+    value: 'Prefer not to say',
+    label: 'Prefer not to say',
+    description: 'Keep location context private.',
+  },
+];
+
+const timeBudgetOptions: RadioOption[] = [
+  { value: '30', label: '30 minutes', description: 'A small daily or weekly commitment.' },
+  { value: '60', label: '1 hour', description: 'A light, consistent learning block.' },
+  { value: '120', label: '2 hours', description: 'A focused short plan.' },
+  { value: '180', label: '3 hours', description: 'Several manageable sessions.' },
+  { value: '300', label: '5 hours', description: 'A steady weekly routine.' },
+  { value: '420', label: '7 hours', description: 'About one hour per day.' },
+  { value: '600', label: '10 hours', description: 'A substantial weekly plan.' },
+  { value: '900', label: '15 hours', description: 'An intensive learning schedule.' },
+];
+
+const learningPreferenceOptions: RadioOption[] = [
+  {
+    value: 'Video lessons',
+    label: 'Video lessons',
+    description: 'Learn through demonstrations and talks.',
+  },
+  {
+    value: 'Reading and documentation',
+    label: 'Reading & documentation',
+    description: 'Prefer guides, books, and reference material.',
+  },
+  {
+    value: 'Interactive exercises',
+    label: 'Interactive exercises',
+    description: 'Learn by answering and practicing.',
+  },
+  {
+    value: 'Project-based learning',
+    label: 'Project-based learning',
+    description: 'Build something real from the start.',
+  },
+  {
+    value: 'Instructor-led sessions',
+    label: 'Instructor-led sessions',
+    description: 'Prefer live or guided teaching.',
+  },
+  {
+    value: 'Peer and community learning',
+    label: 'Peer & community learning',
+    description: 'Learn with feedback from others.',
+  },
+  {
+    value: 'Short daily sessions',
+    label: 'Short daily sessions',
+    description: 'Prefer small, frequent learning blocks.',
+  },
+  {
+    value: 'Flexible self-paced learning',
+    label: 'Flexible self-paced',
+    description: 'Choose my own timing and sequence.',
+  },
+];
+
+function selectedListValue(value: string): string {
+  return toList(value)[0] ?? '';
+}
+
+function learningPreferenceStyle(value: string): string {
+  try {
+    const parsed: unknown = JSON.parse(value || '{}');
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const style = (parsed as Record<string, unknown>).style;
+      return typeof style === 'string' ? style : '';
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
+function updateLearningPreferenceStyle(value: string, style: string): string {
+  let preferences: Record<string, unknown> = {};
+  try {
+    const parsed: unknown = JSON.parse(value || '{}');
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      preferences = parsed as Record<string, unknown>;
+    }
+  } catch {
+    preferences = {};
+  }
+  return JSON.stringify({ ...preferences, style }, null, 2);
+}
+
+function RadioChoiceGroup({
+  id,
+  label,
+  name,
+  value,
+  options,
+  hint,
+  error,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  name: string;
+  value: string;
+  options: RadioOption[];
+  hint: string;
+  error?: string;
+  onChange: (value: string) => void;
+}) {
+  const selectedValue = value === '' ? '' : selectedListValue(value);
+
+  return (
+    <fieldset
+      className={`profile-choice-group ${error ? 'profile-choice-group--error' : ''}`.trim()}
+    >
+      <legend className="profile-choice-group__legend" id={`${id}-legend`}>
+        {label}
+      </legend>
+      <p className="profile-choice-group__hint">{hint}</p>
+      <div className="profile-choice-grid" aria-labelledby={`${id}-legend`}>
+        {options.map((option) => (
+          <label
+            className={`profile-choice ${selectedValue === option.value ? 'profile-choice--selected' : ''}`.trim()}
+            key={option.value}
+          >
+            <input
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={selectedValue === option.value}
+              onChange={() => onChange(option.value)}
+            />
+            <span className="profile-choice__copy">
+              <strong>{option.label}</strong>
+              <small>{option.description}</small>
+            </span>
+          </label>
+        ))}
+      </div>
+      {error && (
+        <p className="ui-field__error" id={`${id}-error`} role="alert">
+          {error}
+        </p>
+      )}
+    </fieldset>
+  );
+}
+
 function toFormState(response: ProfileResponse): ProfileFormState {
   return {
     name: response.user.name,
@@ -500,151 +972,111 @@ export function ProfilePage() {
                 hint="This is the email connected to your Pathfinder account."
                 autoComplete="email"
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-interests"
-                label="Interests"
-                name="interests"
+                label="Primary interest"
+                name="profile-interest"
                 value={form.interests}
-                onChange={(event) => updateField('interests', event.target.value)}
+                options={interestOptions}
+                hint="Choose the career domain you are most curious about right now."
                 error={errors.interests}
-                hint="Separate interests with commas, for example design, research, or teaching."
+                onChange={(value) => updateField('interests', value)}
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-skills"
-                label="Current skills"
-                name="currentSkills"
+                label="Strongest current skill area"
+                name="profile-skill"
                 value={form.currentSkills}
-                onChange={(event) => updateField('currentSkills', event.target.value)}
+                options={skillOptions}
+                hint="Choose the skill area that best describes your current starting point."
                 error={errors.currentSkills}
-                hint="Separate skills with commas, for example Python, writing, or teamwork."
+                onChange={(value) => updateField('currentSkills', value)}
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-goals"
-                label="Learner goals"
-                name="goals"
+                label="Learner goal"
+                name="profile-goal"
                 value={form.goals}
-                onChange={(event) => updateField('goals', event.target.value)}
+                options={goalOptions}
+                hint="Choose the outcome you want Pathfinder to prioritize."
                 error={errors.goals}
-                hint="Optional goals help prioritize guidance. Separate multiple goals with commas."
+                onChange={(value) => updateField('goals', value)}
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-constraints"
-                label="Constraints"
-                name="constraints"
+                label="Biggest constraint"
+                name="profile-constraint"
                 value={form.constraints}
-                onChange={(event) => updateField('constraints', event.target.value)}
+                options={constraintOptions}
+                hint="Choose the factor that Pathfinder should respect when shaping guidance."
                 error={errors.constraints}
-                hint="Optional constraints such as schedule, access, or budget limitations."
+                onChange={(value) => updateField('constraints', value)}
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-work-conditions"
                 label="Preferred work conditions"
-                name="preferredWorkConditions"
+                name="profile-work-condition"
                 value={form.preferredWorkConditions}
-                onChange={(event) => updateField('preferredWorkConditions', event.target.value)}
+                options={workConditionOptions}
+                hint="Choose the environment in which you expect to do your best work."
                 error={errors.preferredWorkConditions}
-                hint="Optional conditions such as remote, collaborative, or structured work."
+                onChange={(value) => updateField('preferredWorkConditions', value)}
               />
-              <div className="profile-form__field">
-                <label className="ui-field__label" htmlFor="profile-experience">
-                  Experience
-                </label>
-                <textarea
-                  id="profile-experience"
-                  className={`profile-form__textarea ${errors.experience ? 'profile-form__textarea--error' : ''}`.trim()}
-                  name="experience"
-                  value={form.experience}
-                  onChange={(event) => updateField('experience', event.target.value)}
-                  aria-invalid={errors.experience ? true : undefined}
-                  aria-describedby="profile-experience-hint profile-experience-error"
-                  rows={5}
-                />
-                <p className="ui-field__hint" id="profile-experience-hint">
-                  Share your background, projects, or experience level in a few sentences.
-                </p>
-                {errors.experience && (
-                  <p className="ui-field__error" id="profile-experience-error" role="alert">
-                    {errors.experience}
-                  </p>
-                )}
-              </div>
-              <div className="profile-form__field">
-                <label className="ui-field__label" htmlFor="profile-education-stage">
-                  Education or career stage
-                </label>
-                <select
-                  id="profile-education-stage"
-                  className={`ui-input ${errors.educationStage ? 'ui-input--error' : ''}`.trim()}
-                  name="educationStage"
-                  value={form.educationStage}
-                  onChange={(event) => updateField('educationStage', event.target.value)}
-                  aria-invalid={errors.educationStage ? true : undefined}
-                  aria-describedby="profile-education-stage-hint profile-education-stage-error"
-                >
-                  <option value="">Prefer not to say</option>
-                  <option value="secondary">Secondary education</option>
-                  <option value="undergraduate">Undergraduate</option>
-                  <option value="graduate">Graduate</option>
-                  <option value="career-changer">Career changer</option>
-                  <option value="working-professional">Working professional</option>
-                  <option value="other">Other</option>
-                </select>
-                <p className="ui-field__hint" id="profile-education-stage-hint">
-                  This optional context supports relevant explanations; it is not a qualification
-                  assessment.
-                </p>
-                {errors.educationStage && (
-                  <p className="ui-field__error" id="profile-education-stage-error" role="alert">
-                    {errors.educationStage}
-                  </p>
-                )}
-              </div>
-              <Input
+              <RadioChoiceGroup
+                id="profile-experience"
+                label="Experience level"
+                name="profile-experience"
+                value={form.experience}
+                options={experienceOptions}
+                hint="Choose the description that best matches your current experience."
+                error={errors.experience}
+                onChange={(value) => updateField('experience', value)}
+              />
+              <RadioChoiceGroup
+                id="profile-education-stage"
+                label="Education or career stage"
+                name="profile-education-stage"
+                value={form.educationStage}
+                options={educationOptions}
+                hint="This optional context supports relevant explanations; it is not a qualification assessment."
+                error={errors.educationStage}
+                onChange={(value) => updateField('educationStage', value)}
+              />
+              <RadioChoiceGroup
                 id="profile-location"
                 label="Location preference"
-                name="locationPreference"
+                name="profile-location"
                 value={form.locationPreference}
-                onChange={(event) => updateField('locationPreference', event.target.value)}
+                options={locationOptions}
+                hint="Choose the location pattern that best fits your career search."
                 error={errors.locationPreference}
-                hint="Optional context such as a region, time zone, or remote preference."
+                onChange={(value) => updateField('locationPreference', value)}
               />
-              <Input
+              <RadioChoiceGroup
                 id="profile-time-budget"
-                label="Weekly learning time (minutes)"
-                name="weeklyTimeBudgetMinutes"
-                type="number"
-                min={30}
-                max={10080}
-                step={30}
+                label="Weekly learning time"
+                name="profile-time-budget"
                 value={form.weeklyTimeBudgetMinutes}
-                onChange={(event) => updateField('weeklyTimeBudgetMinutes', event.target.value)}
+                options={timeBudgetOptions}
+                hint="Choose a realistic weekly learning budget so future roadmaps can respect your time."
                 error={errors.weeklyTimeBudgetMinutes}
-                hint="Optional; enter 30 to 10,080 minutes so future roadmaps can respect your available time."
+                onChange={(value) => updateField('weeklyTimeBudgetMinutes', value)}
               />
-              <div className="profile-form__field">
-                <label className="ui-field__label" htmlFor="profile-preferences">
-                  Learning preferences
-                </label>
-                <textarea
-                  id="profile-preferences"
-                  className={`profile-form__textarea profile-form__textarea--code ${errors.learningPreferences ? 'profile-form__textarea--error' : ''}`.trim()}
-                  name="learningPreferences"
-                  value={form.learningPreferences}
-                  onChange={(event) => updateField('learningPreferences', event.target.value)}
-                  aria-invalid={errors.learningPreferences ? true : undefined}
-                  aria-describedby="profile-preferences-hint profile-preferences-error"
-                  rows={6}
-                  spellCheck={false}
-                />
-                <p className="ui-field__hint" id="profile-preferences-hint">
-                  Store preferences as JSON, for example {`{ "pace": "steady" }`}.
-                </p>
-                {errors.learningPreferences && (
-                  <p className="ui-field__error" id="profile-preferences-error" role="alert">
-                    {errors.learningPreferences}
-                  </p>
-                )}
-              </div>
+              <RadioChoiceGroup
+                id="profile-preferences"
+                label="Learning preferences"
+                name="profile-learning-preference"
+                value={learningPreferenceStyle(form.learningPreferences)}
+                options={learningPreferenceOptions}
+                hint="Choose the learning style Pathfinder should prioritize in future guidance."
+                error={errors.learningPreferences}
+                onChange={(value) =>
+                  updateField(
+                    'learningPreferences',
+                    updateLearningPreferenceStyle(form.learningPreferences, value),
+                  )
+                }
+              />
               {errors.form && (
                 <p className="ui-field__error" role="alert">
                   {errors.form}
