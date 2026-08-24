@@ -35,7 +35,6 @@ The product specification, success metrics and privacy-safe event vocabulary, AP
 - [ ] Add canonical IDs, aliases, related skills, proficiency levels, prerequisites, transferable skills, domains, education pathways, and evidence sources for each career and skill.
 - [ ] Add a scheduled, reviewable catalog-refresh pipeline with source version, imported-at time, license metadata, diff report, rollback, and manual approval before publication.
 - [ ] Add career comparison for two or more careers, including skills, work activities, learning effort, environment, transferable skills, and uncertainty.
-- [ ] Add an admin-only catalog validation report for duplicate skills, orphaned relationships, invalid IDs, missing descriptions, and incompatible roadmap references.
 - [ ] Add labor-market or education-resource adapters only after source licensing, freshness, privacy, and cost are approved. Keep external data optional and cacheable.
 
 **Acceptance evidence:** A versioned import fixture, ontology migration, diff report, explanation snapshot, career comparison contract, and tests proving the existing MVP catalog still works.
