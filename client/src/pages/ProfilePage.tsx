@@ -466,7 +466,6 @@ function ProfileSelect({
   label,
   value,
   options,
-  hint,
   error,
   onChange,
 }: {
@@ -474,7 +473,6 @@ function ProfileSelect({
   label: string;
   value: string;
   options: RadioOption[];
-  hint: string;
   error?: string;
   onChange: (value: string) => void;
 }) {
@@ -490,7 +488,6 @@ function ProfileSelect({
       <div className="profile-choice-group__copy">
         <label htmlFor={id}>
           <strong>{label}</strong>
-          <small>{hint}</small>
         </label>
       </div>
       <div className="profile-choice-group__select-wrap">
@@ -994,7 +991,6 @@ export function ProfilePage() {
                   label="Primary interest"
                   value={form.interests}
                   options={interestOptions}
-                  hint="Choose the career domain you are most curious about right now."
                   error={errors.interests}
                   onChange={(value) => updateField('interests', value)}
                 />
@@ -1003,7 +999,6 @@ export function ProfilePage() {
                   label="Strongest current skill area"
                   value={form.currentSkills}
                   options={skillOptions}
-                  hint="Choose the skill area that best describes your current starting point."
                   error={errors.currentSkills}
                   onChange={(value) => updateField('currentSkills', value)}
                 />
@@ -1012,7 +1007,6 @@ export function ProfilePage() {
                   label="Learner goal"
                   value={form.goals}
                   options={goalOptions}
-                  hint="Choose the outcome you want Pathfinder to prioritize."
                   error={errors.goals}
                   onChange={(value) => updateField('goals', value)}
                 />
@@ -1021,7 +1015,6 @@ export function ProfilePage() {
                   label="Biggest constraint"
                   value={form.constraints}
                   options={constraintOptions}
-                  hint="Choose the factor that Pathfinder should respect when shaping guidance."
                   error={errors.constraints}
                   onChange={(value) => updateField('constraints', value)}
                 />
@@ -1030,7 +1023,6 @@ export function ProfilePage() {
                   label="Preferred work conditions"
                   value={form.preferredWorkConditions}
                   options={workConditionOptions}
-                  hint="Choose the environment in which you expect to do your best work."
                   error={errors.preferredWorkConditions}
                   onChange={(value) => updateField('preferredWorkConditions', value)}
                 />
@@ -1039,7 +1031,6 @@ export function ProfilePage() {
                   label="Experience level"
                   value={form.experience}
                   options={experienceOptions}
-                  hint="Choose the description that best matches your current experience."
                   error={errors.experience}
                   onChange={(value) => updateField('experience', value)}
                 />
@@ -1048,7 +1039,6 @@ export function ProfilePage() {
                   label="Education or career stage"
                   value={form.educationStage}
                   options={educationOptions}
-                  hint="This optional context supports relevant explanations; it is not a qualification assessment."
                   error={errors.educationStage}
                   onChange={(value) => updateField('educationStage', value)}
                 />
@@ -1057,7 +1047,6 @@ export function ProfilePage() {
                   label="Location preference"
                   value={form.locationPreference}
                   options={locationOptions}
-                  hint="Choose the location pattern that best fits your career search."
                   error={errors.locationPreference}
                   onChange={(value) => updateField('locationPreference', value)}
                 />
@@ -1066,7 +1055,6 @@ export function ProfilePage() {
                   label="Weekly learning time"
                   value={form.weeklyTimeBudgetMinutes}
                   options={timeBudgetOptions}
-                  hint="Choose a realistic weekly learning budget so future roadmaps can respect your time."
                   error={errors.weeklyTimeBudgetMinutes}
                   onChange={(value) => updateField('weeklyTimeBudgetMinutes', value)}
                 />
@@ -1075,7 +1063,6 @@ export function ProfilePage() {
                   label="Learning preferences"
                   value={learningPreferenceStyle(form.learningPreferences)}
                   options={learningPreferenceOptions}
-                  hint="Choose the learning style Pathfinder should prioritize in future guidance."
                   error={errors.learningPreferences}
                   onChange={(value) =>
                     updateField(
