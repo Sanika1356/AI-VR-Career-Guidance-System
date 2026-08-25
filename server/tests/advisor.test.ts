@@ -385,9 +385,14 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
   const previousKey = env.geminiApiKey;
   const previousModel = env.geminiModel;
   const originalFetch = globalThis.fetch;
+  const originalInfo = console.info;
   const requests: string[] = [];
+  const logs: string[] = [];
   env.geminiApiKey = "test-gemini-key";
   env.geminiModel = "gemini-2.5-flash";
+  console.info = (...args: unknown[]) => {
+    logs.push(args.map(String).join(" "));
+  };
   globalThis.fetch = (async (input, init) => {
     const url = String(input);
     requests.push(`${init?.method ?? "GET"} ${url}`);
@@ -403,6 +408,10 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
         ok: true,
         json: async () => ({
           models: [
+            {
+              name: "models/gemini-2.5-flash-preview-tts",
+              supportedGenerationMethods: ["generateContent"],
+            },
             {
               name: "models/gemini-2.5-flash",
               supportedGenerationMethods: ["generateContent"],
@@ -445,9 +454,20 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
       "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
     ]);
     assert.doesNotMatch(requests.join("\\n"), /test-gemini-key/);
+    const discoveryLog = logs
+      .map((entry) => JSON.parse(entry) as Record<string, unknown>)
+      .find((entry) => entry.event === "advisor_provider_model_discovered");
+    assert.equal(discoveryLog?.selectedModel, "gemini-2.5-flash-lite");
+    assert.equal(
+      discoveryLog?.endpointPath,
+      "/v1beta/models/gemini-2.5-flash-lite:generateContent",
+    );
+    assert.doesNotMatch(logs.join("\\n"), /preview-tts/);
+    assert.doesNotMatch(logs.join("\\n"), /test-gemini-key/);
   } finally {
     env.geminiApiKey = previousKey;
     env.geminiModel = previousModel;
+    console.info = originalInfo;
     globalThis.fetch = originalFetch;
   }
 });
