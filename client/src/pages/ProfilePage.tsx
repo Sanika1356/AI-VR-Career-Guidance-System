@@ -461,10 +461,9 @@ function updateLearningPreferenceStyle(value: string, style: string): string {
   return JSON.stringify({ ...preferences, style }, null, 2);
 }
 
-function RadioChoiceGroup({
+function ProfileSelect({
   id,
   label,
-  name,
   value,
   options,
   hint,
@@ -473,84 +472,52 @@ function RadioChoiceGroup({
 }: {
   id: string;
   label: string;
-  name: string;
   value: string;
   options: RadioOption[];
   hint: string;
   error?: string;
   onChange: (value: string) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const selectedValue = value === '' ? '' : selectedListValue(value);
   const selectedOption = options.find((option) => {
     const submittedValue = option.apiValue ?? option.value;
     return selectedValue === option.value || submittedValue === selectedValue;
   });
+  const selectValue = selectedOption?.value ?? selectedValue;
 
   return (
-    <details
-      className={`profile-choice-group ${error ? 'profile-choice-group--error' : ''}`.trim()}
-      open={isOpen}
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
-    >
-      <summary className="profile-choice-group__summary">
-        <span className="profile-choice-group__summary-copy">
+    <div className={`profile-choice-group ${error ? 'profile-choice-group--error' : ''}`.trim()}>
+      <div className="profile-choice-group__copy">
+        <label htmlFor={id}>
           <strong>{label}</strong>
-          <small>{selectedOption?.label ?? 'Choose an option'}</small>
-        </span>
-        <span className="profile-choice-group__chevron" aria-hidden="true">
-          {isOpen ? '−' : '+'}
-        </span>
-      </summary>
-      {isOpen && (
-        <>
-          <p className="profile-choice-group__hint" id={`${id}-hint`}>
-            {hint}
-          </p>
-          <div
-            className="profile-choice-grid"
-            id={`${id}-options`}
-            role="radiogroup"
-            aria-label={label}
-          >
-            {options.map((option) => {
-              const isCanonicalApiValue = !option.apiValue || option.apiValue === option.value;
-              const isSelected =
-                selectedValue === option.value ||
-                (isCanonicalApiValue && selectedValue === (option.apiValue ?? option.value));
-              const submittedValue = option.apiValue ?? option.value;
-
-              return (
-                <label
-                  className={`profile-choice ${isSelected ? 'profile-choice--selected' : ''}`.trim()}
-                  key={option.value}
-                >
-                  <input
-                    type="radio"
-                    name={name}
-                    value={option.value}
-                    checked={isSelected}
-                    onChange={() => {
-                      onChange(submittedValue);
-                      setIsOpen(false);
-                    }}
-                  />
-                  <span className="profile-choice__copy">
-                    <strong>{option.label}</strong>
-                    <small>{option.description}</small>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </>
-      )}
+          <small>{hint}</small>
+        </label>
+      </div>
+      <div className="profile-choice-group__select-wrap">
+        <select
+          id={id}
+          className="profile-choice-group__select"
+          value={selectValue}
+          aria-describedby={error ? `${id}-error` : undefined}
+          onChange={(event) => {
+            const option = options.find((candidate) => candidate.value === event.target.value);
+            onChange(option?.apiValue ?? event.target.value);
+          }}
+        >
+          <option value="">Choose an option</option>
+          {options.map((option) => (
+            <option value={option.value} key={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
       {error && (
         <p className="ui-field__error" id={`${id}-error`} role="alert">
           {error}
         </p>
       )}
-    </details>
+    </div>
   );
 }
 
@@ -1016,100 +983,90 @@ export function ProfilePage() {
                 hint="This is the email connected to your Pathfinder account."
                 autoComplete="email"
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-interests"
                 label="Primary interest"
-                name="profile-interest"
                 value={form.interests}
                 options={interestOptions}
                 hint="Choose the career domain you are most curious about right now."
                 error={errors.interests}
                 onChange={(value) => updateField('interests', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-skills"
                 label="Strongest current skill area"
-                name="profile-skill"
                 value={form.currentSkills}
                 options={skillOptions}
                 hint="Choose the skill area that best describes your current starting point."
                 error={errors.currentSkills}
                 onChange={(value) => updateField('currentSkills', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-goals"
                 label="Learner goal"
-                name="profile-goal"
                 value={form.goals}
                 options={goalOptions}
                 hint="Choose the outcome you want Pathfinder to prioritize."
                 error={errors.goals}
                 onChange={(value) => updateField('goals', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-constraints"
                 label="Biggest constraint"
-                name="profile-constraint"
                 value={form.constraints}
                 options={constraintOptions}
                 hint="Choose the factor that Pathfinder should respect when shaping guidance."
                 error={errors.constraints}
                 onChange={(value) => updateField('constraints', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-work-conditions"
                 label="Preferred work conditions"
-                name="profile-work-condition"
                 value={form.preferredWorkConditions}
                 options={workConditionOptions}
                 hint="Choose the environment in which you expect to do your best work."
                 error={errors.preferredWorkConditions}
                 onChange={(value) => updateField('preferredWorkConditions', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-experience"
                 label="Experience level"
-                name="profile-experience"
                 value={form.experience}
                 options={experienceOptions}
                 hint="Choose the description that best matches your current experience."
                 error={errors.experience}
                 onChange={(value) => updateField('experience', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-education-stage"
                 label="Education or career stage"
-                name="profile-education-stage"
                 value={form.educationStage}
                 options={educationOptions}
                 hint="This optional context supports relevant explanations; it is not a qualification assessment."
                 error={errors.educationStage}
                 onChange={(value) => updateField('educationStage', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-location"
                 label="Location preference"
-                name="profile-location"
                 value={form.locationPreference}
                 options={locationOptions}
                 hint="Choose the location pattern that best fits your career search."
                 error={errors.locationPreference}
                 onChange={(value) => updateField('locationPreference', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-time-budget"
                 label="Weekly learning time"
-                name="profile-time-budget"
                 value={form.weeklyTimeBudgetMinutes}
                 options={timeBudgetOptions}
                 hint="Choose a realistic weekly learning budget so future roadmaps can respect your time."
                 error={errors.weeklyTimeBudgetMinutes}
                 onChange={(value) => updateField('weeklyTimeBudgetMinutes', value)}
               />
-              <RadioChoiceGroup
+              <ProfileSelect
                 id="profile-preferences"
                 label="Learning preferences"
-                name="profile-learning-preference"
                 value={learningPreferenceStyle(form.learningPreferences)}
                 options={learningPreferenceOptions}
                 hint="Choose the learning style Pathfinder should prioritize in future guidance."
