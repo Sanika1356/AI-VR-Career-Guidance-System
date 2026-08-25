@@ -66,7 +66,24 @@ export function clearAdvisorHistory(conversationId: string): Promise<ClearAdviso
   );
 }
 
+async function waitForAdvisorBackend(): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await authenticatedRequest<unknown>('/health');
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 2) {
+        await new Promise((resolve) => window.setTimeout(resolve, 1000 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('The advisor backend is not ready.');
+}
+
 export async function chatAdvisor(input: AdvisorChatRequest): Promise<AdvisorChatResponse> {
+  await waitForAdvisorBackend();
   const response = await authenticatedRequest<unknown>('/advisor/chat', {
     method: 'POST',
     body: JSON.stringify(input),
