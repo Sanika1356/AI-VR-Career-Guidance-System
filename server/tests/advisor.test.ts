@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import test from "node:test";
 import { app } from "../src/app.js";
+import { env } from "../src/config/env.js";
 import {
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
+  GeminiAdvisorProvider,
   OllamaAdvisorProvider,
   type AdvisorProvider,
 } from "../src/services/advisor.service.js";
@@ -142,6 +144,7 @@ test("advisor enriches the local provider prompt with profile, assessment, caree
     response.answer,
     "Use a small machine-learning project to build confidence.",
   );
+  assert.equal(response.mode, "provider");
   assert.match(provider.prompt, /Asha/);
   assert.match(provider.prompt, /career_ai_engineer/);
   assert.match(provider.prompt, /Machine Learning/);
@@ -188,6 +191,24 @@ test("advisor does not use private profile context when personalized AI consent 
   assert.doesNotMatch(response.answer, /Machine Learning/);
 });
 
+test("advisor returns detailed fallback when no provider is enabled", async () => {
+  const previous = env.ollamaEnabled;
+  env.ollamaEnabled = false;
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn first?", careerId: "career_ai_engineer" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.match(response.answer, /## Short answer/);
+    assert.match(response.answer, /## How to make the decision yours/);
+    assert.ok(response.answer.length > 600);
+  } finally {
+    env.ollamaEnabled = previous;
+  }
+});
+
 test("advisor returns deterministic fallback text when local Ollama fails", async () => {
   const response = await chatAdvisor(
     "user_asha",
@@ -199,6 +220,10 @@ test("advisor returns deterministic fallback text when local Ollama fails", asyn
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /Machine Learning/);
   assert.match(response.answer, /general guidance, not a guarantee/);
+  assert.equal(response.mode, "deterministic_fallback");
+  assert.match(response.answer, /## Short answer/);
+  assert.match(response.answer, /## A practical sequence/);
+  assert.match(response.answer, /1\. Spend one short study session/);
 });
 
 test("advisor uses safe fallback text when a provider returns an empty answer", async () => {
@@ -211,6 +236,7 @@ test("advisor uses safe fallback text when a provider returns an empty answer", 
 
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /general guidance, not a guarantee/);
+  assert.equal(response.mode, "deterministic_fallback");
 });
 
 test("advisor falls back when Ollama returns a malformed payload", async () => {
@@ -228,7 +254,129 @@ test("advisor falls back when Ollama returns a malformed payload", async () => {
       new OllamaAdvisorProvider(),
     );
     assert.match(response.answer, /I can help you plan your next career step/);
+    assert.equal(response.mode, "deterministic_fallback");
   } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gemini advisor provider sends a grounded text request and parses generated content", async () => {
+  const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
+  const previousBaseUrl = env.geminiBaseUrl;
+  const originalFetch = globalThis.fetch;
+  let requestUrl = "";
+  let requestBody = "";
+  let requestHeaders: HeadersInit | undefined;
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash";
+  env.geminiBaseUrl = "https://generativelanguage.googleapis.com";
+  globalThis.fetch = (async (input, init) => {
+    requestUrl = String(input);
+    requestBody = String(init?.body ?? "");
+    requestHeaders = init?.headers;
+    return {
+      ok: true,
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: "## Recommendation\\n\\nStart with SQL and statistics.",
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    };
+  }) as typeof fetch;
+
+  try {
+    const answer = await new GeminiAdvisorProvider().generate(
+      "Explain which career path fits this learner.",
+    );
+    assert.equal(
+      answer,
+      "## Recommendation\\n\\nStart with SQL and statistics.",
+    );
+    assert.match(requestUrl, /models\/gemini-2\.5-flash:generateContent/);
+    assert.doesNotMatch(requestUrl, /test-gemini-key/);
+    assert.equal(
+      new Headers(requestHeaders).get("x-goog-api-key"),
+      "test-gemini-key",
+    );
+    assert.match(requestBody, /Explain which career path fits this learner/);
+  } finally {
+    env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
+    env.geminiBaseUrl = previousBaseUrl;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("advisor selects Gemini when the hosted provider is enabled", async () => {
+  const previousEnabled = env.geminiEnabled;
+  const previousKey = env.geminiApiKey;
+  const previousOllama = env.ollamaEnabled;
+  const originalFetch = globalThis.fetch;
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.ollamaEnabled = false;
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: "## Fit\\n\\nYour strongest next step is a statistics project.",
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  })) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "Which career fits me best?" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "provider");
+    assert.match(response.answer, /Your strongest next step/);
+  } finally {
+    env.geminiEnabled = previousEnabled;
+    env.geminiApiKey = previousKey;
+    env.ollamaEnabled = previousOllama;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("advisor falls back when Gemini returns no candidates", async () => {
+  const previousKey = env.geminiApiKey;
+  const originalFetch = globalThis.fetch;
+  env.geminiApiKey = "test-gemini-key";
+  globalThis.fetch = (async () => ({
+    ok: true,
+    json: async () => ({ candidates: [] }),
+  })) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "How do I start?", careerId: "career_ai_engineer" },
+      new FakePool(),
+      new GeminiAdvisorProvider(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.match(response.answer, /## A practical sequence/);
+  } finally {
+    env.geminiApiKey = previousKey;
     globalThis.fetch = originalFetch;
   }
 });

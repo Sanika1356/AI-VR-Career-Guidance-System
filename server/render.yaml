@@ -31,10 +31,24 @@ services:
         value: "60000"
       - key: AI_RATE_LIMIT_MAX
         value: "20"
+      - key: AI_ADVISOR_ENABLED
+        value: "true"
+      - key: OLLAMA_ENABLED
+        value: "false"
       - key: OLLAMA_BASE_URL
         value: http://localhost:11434
       - key: OLLAMA_MODEL
         value: llama3.2:3b
+      - key: GEMINI_ENABLED
+        value: "true"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_BASE_URL
+        value: https://generativelanguage.googleapis.com
+      - key: GEMINI_MAX_OUTPUT_TOKENS
+        value: "900"
       - key: AI_REQUEST_TIMEOUT_MS
         value: "30000"
       - key: AI_MAX_RESPONSE_CHARS
