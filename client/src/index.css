@@ -3368,3 +3368,22 @@ em {
   line-height: 1.5;
   margin-top: 4px;
 }
+
+.advisor-local-fallback {
+  background: #f1f3e9;
+  border-left: 3px solid #829d31;
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 14px 16px;
+}
+.advisor-local-fallback strong {
+  color: #4d5546;
+  font-size: 13px;
+}
+.advisor-local-fallback p {
+  color: #5f665c;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
