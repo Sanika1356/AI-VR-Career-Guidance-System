@@ -533,6 +533,19 @@ function isConversationalGeminiModel(model: string): boolean {
   );
 }
 
+function geminiThinkingConfig(
+  model: string,
+): { thinkingBudget: number } | { thinkingLevel: "low" } | undefined {
+  if (/^gemini-2\.5-/i.test(model)) return { thinkingBudget: 0 };
+  if (
+    model === "gemini-flash-latest" ||
+    /^gemini-3(?:\.\d+)?-.*flash/i.test(model)
+  ) {
+    return { thinkingLevel: "low" };
+  }
+  return undefined;
+}
+
 function geminiFallbackModelPriority(model: string): number {
   if (model === "gemini-flash-latest") return 0;
   if (/gemini-.*flash-lite/i.test(model)) return 1;
@@ -664,8 +677,8 @@ async function requestGeminiGenerateContent(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: env.geminiMaxOutputTokens,
-          ...(/^gemini-2\.5-/i.test(model)
-            ? { thinkingConfig: { thinkingBudget: 0 } }
+          ...(geminiThinkingConfig(model)
+            ? { thinkingConfig: geminiThinkingConfig(model) }
             : {}),
         },
         store: false,
