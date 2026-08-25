@@ -176,7 +176,11 @@ function normalizeSkill(value: string): string {
   return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
 }
 
-function safeContextText(value: unknown, fallback = "Not provided"): string {
+function safeContextText(
+  value: unknown,
+  fallback = "Not provided",
+  maxLength = 500,
+): string {
   let text: string;
   if (typeof value === "string") {
     text = value;
@@ -195,14 +199,18 @@ function safeContextText(value: unknown, fallback = "Not provided"): string {
     .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  return normalized.slice(0, 500) || fallback;
+  return normalized.slice(0, maxLength) || fallback;
 }
 
-function safeContextArray(values: string[]): string[] {
+function safeContextArray(
+  values: string[],
+  maxItems = 20,
+  maxLength = 500,
+): string[] {
   return values
-    .map((value) => safeContextText(value, ""))
+    .map((value) => safeContextText(value, "", maxLength))
     .filter(Boolean)
-    .slice(0, 20);
+    .slice(0, maxItems);
 }
 
 function groupCareerRows(rows: CareerRow[]): {
@@ -333,11 +341,19 @@ function buildPrompt(
   conversationHistory: ConversationMessageRow[],
 ): string {
   const profileData = {
-    name: safeContextText(profile?.name),
-    interests: safeContextArray(parseArray(profile?.interests ?? [])),
-    currentSkills: safeContextArray(parseArray(profile?.current_skills ?? [])),
-    experience: safeContextText(profile?.experience),
-    learningPreferences: safeContextText(profile?.learning_preferences),
+    name: safeContextText(profile?.name, "Not provided", 120),
+    interests: safeContextArray(parseArray(profile?.interests ?? []), 10, 120),
+    currentSkills: safeContextArray(
+      parseArray(profile?.current_skills ?? []),
+      15,
+      120,
+    ),
+    experience: safeContextText(profile?.experience, "Not provided", 300),
+    learningPreferences: safeContextText(
+      profile?.learning_preferences,
+      "Not provided",
+      300,
+    ),
   };
   return [
     "You are a cautious career guidance advisor. Give a detailed but focused explanation in four short sections: short answer, why it fits the supplied context, practical sequence, and how to personalize or verify it. Aim for roughly 250-500 words when the question needs explanation, but never invent facts.",
@@ -351,14 +367,26 @@ function buildPrompt(
             categoryScores: parseObject(assessment?.category_scores ?? null),
             topCareerIds: safeContextArray(
               parseArray(assessment?.top_career_ids ?? []),
+              10,
+              120,
             ),
           })
         : "Not shared by the user."
     }`,
-    `Selected career context (untrusted catalog data): ${JSON.stringify(career ?? { selected: false })}`,
-    `Missing skills for the selected career: ${JSON.stringify(allowPersonalization ? safeContextArray(missingSkills) : [])}`,
-    `Roadmap progress context (untrusted data): ${allowPersonalization ? JSON.stringify(roadmap.map((step) => ({ title: safeContextText(step.title), skill: safeContextText(step.skill), completed: step.completed }))) : "Not shared by the user."}`,
-    `Recent conversation history (untrusted data): ${JSON.stringify(conversationHistory.slice(-12).map((entry) => ({ role: entry.role, content: safeContextText(entry.content) })))}`,
+    `Selected career context (untrusted catalog data): ${JSON.stringify(
+      career
+        ? {
+            id: safeContextText(career.id, "", 120),
+            name: safeContextText(career.name, "", 160),
+            description: safeContextText(career.description, "", 600),
+            skills: safeContextArray(career.skills, 15, 120),
+            sourceReferences: safeContextArray(career.sourceReferences, 6, 250),
+          }
+        : { selected: false },
+    )}`,
+    `Missing skills for the selected career: ${JSON.stringify(allowPersonalization ? safeContextArray(missingSkills, 12, 120) : [])}`,
+    `Roadmap progress context (untrusted data): ${allowPersonalization ? JSON.stringify(roadmap.slice(0, 10).map((step) => ({ title: safeContextText(step.title, "", 160), skill: safeContextText(step.skill, "", 160), completed: Boolean(step.completed) }))) : "Not shared by the user."}`,
+    `Recent conversation history (untrusted data): ${JSON.stringify(conversationHistory.slice(-6).map((entry) => ({ role: entry.role, content: safeContextText(entry.content, "", 300) })))}`,
     "Use plain text or simple Markdown headings and numbered steps. Explain the reasoning, name assumptions, and end with concrete next steps. Do not merely repeat the question or give a one-sentence answer. Treat the current user question as the request to answer; use history only to maintain continuity.",
   ].join("\n");
 }
@@ -505,11 +533,11 @@ function isConversationalGeminiModel(model: string): boolean {
   );
 }
 
-async function discoverGeminiGenerateContentModels(
+async function discoverGeminiGenerateContentModel(
   apiKey: string,
   signal: AbortSignal,
   excludedModel?: string,
-): Promise<string[]> {
+): Promise<string | undefined> {
   const response = await fetch(buildGeminiModelsUrl(env.geminiBaseUrl), {
     method: "GET",
     headers: {
@@ -517,13 +545,13 @@ async function discoverGeminiGenerateContentModels(
     },
     signal,
   });
-  if (!response.ok) return [];
+  if (!response.ok) return undefined;
 
   let payload: unknown;
   try {
     payload = await response.json();
   } catch {
-    return [];
+    return undefined;
   }
   const models = (
     payload as {
@@ -533,7 +561,7 @@ async function discoverGeminiGenerateContentModels(
       }>;
     }
   ).models;
-  if (!Array.isArray(models)) return [];
+  if (!Array.isArray(models)) return undefined;
 
   const supportedModels = models
     .filter(
@@ -544,7 +572,7 @@ async function discoverGeminiGenerateContentModels(
     .map((model) => (typeof model.name === "string" ? model.name : ""))
     .filter(Boolean)
     .map(normalizeGeminiModel);
-  if (supportedModels.length === 0) return [];
+  if (supportedModels.length === 0) return undefined;
 
   const requestedModel = normalizeGeminiModel(env.geminiModel);
   const excluded = excludedModel
@@ -555,7 +583,7 @@ async function discoverGeminiGenerateContentModels(
     supportedModels.includes(requestedModel) &&
     isConversationalGeminiModel(requestedModel)
   ) {
-    return [requestedModel];
+    return requestedModel;
   }
 
   const alternatives = (
@@ -563,10 +591,47 @@ async function discoverGeminiGenerateContentModels(
       ? supportedModels.filter((model) => model !== excluded)
       : supportedModels
   ).filter(isConversationalGeminiModel);
-  return alternatives.sort((left, right) => {
+  const orderedAlternatives = alternatives.sort((left, right) => {
     const leftFlash = /gemini-.*flash/i.test(left) ? 0 : 1;
     const rightFlash = /gemini-.*flash/i.test(right) ? 0 : 1;
     return leftFlash - rightFlash;
+  });
+  return orderedAlternatives[0];
+}
+
+function geminiFailureCategory(
+  statusCode: number,
+): Exclude<AdvisorProviderFailureCategory, "configuration" | "unknown"> {
+  return statusCode === 401 || statusCode === 403
+    ? "authentication"
+    : statusCode === 429
+      ? "quota"
+      : statusCode === 400
+        ? "request_schema"
+        : statusCode === 404
+          ? "model_or_endpoint_not_found"
+          : "upstream_http";
+}
+
+function logGeminiRequestFailure(
+  model: string,
+  startedAt: number,
+  failure: {
+    category: AdvisorProviderFailureCategory;
+    statusCode?: number;
+    providerErrorCode?: string;
+  },
+): void {
+  logAdvisorProviderEvent("advisor_gemini_request_failed", {
+    model,
+    durationMs: Date.now() - startedAt,
+    category: failure.category,
+    ...(failure.statusCode === undefined
+      ? {}
+      : { statusCode: failure.statusCode }),
+    ...(failure.providerErrorCode === undefined
+      ? {}
+      : { providerErrorCode: failure.providerErrorCode }),
   });
 }
 
@@ -576,75 +641,105 @@ async function requestGeminiGenerateContent(
   apiKey: string,
   signal: AbortSignal,
 ): Promise<string> {
+  const startedAt = Date.now();
   const endpoint = buildGeminiGenerateContentUrl(env.geminiBaseUrl, model);
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: env.geminiMaxOutputTokens,
-      },
-      store: false,
-    }),
-    signal,
-  });
-  if (!response.ok) {
-    const providerErrorCode = await safeGeminiErrorCode(response);
-    const category =
-      response.status === 401 || response.status === 403
-        ? "authentication"
-        : response.status === 429
-          ? "quota"
-          : response.status === 400
-            ? "request_schema"
-            : response.status === 404
-              ? "model_or_endpoint_not_found"
-              : "upstream_http";
-    throw new AdvisorProviderError(
-      "gemini",
-      category,
-      `Gemini returned HTTP ${response.status}`,
-      response.status,
-      providerErrorCode,
-    );
-  }
-
-  let payload: unknown;
+  logAdvisorProviderEvent("advisor_gemini_request_started", { model });
   try {
-    payload = await response.json();
-  } catch {
-    throw new AdvisorProviderError(
-      "gemini",
-      "response_shape",
-      "Gemini returned invalid JSON",
-    );
-  }
-  const candidates = (
-    payload as {
-      candidates?: Array<{
-        content?: { parts?: Array<{ text?: unknown }> };
-      }>;
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: env.geminiMaxOutputTokens,
+          ...(/^gemini-2\.5-/i.test(model)
+            ? { thinkingConfig: { thinkingBudget: 0 } }
+            : {}),
+        },
+        store: false,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const providerErrorCode = await safeGeminiErrorCode(response);
+      const category = geminiFailureCategory(response.status);
+      const error = new AdvisorProviderError(
+        "gemini",
+        category,
+        `Gemini returned HTTP ${response.status}`,
+        response.status,
+        providerErrorCode,
+      );
+      logGeminiRequestFailure(model, startedAt, {
+        category,
+        statusCode: response.status,
+        providerErrorCode,
+      });
+      throw error;
     }
-  ).candidates;
-  const content = Array.isArray(candidates?.[0]?.content?.parts)
-    ? candidates[0].content.parts
-        .map((part) => (typeof part.text === "string" ? part.text : ""))
-        .join("\n")
-        .trim()
-    : "";
-  if (!content) {
-    throw new AdvisorProviderError(
-      "gemini",
-      "empty_response",
-      "Gemini returned no usable text",
-    );
+
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      const error = new AdvisorProviderError(
+        "gemini",
+        "response_shape",
+        "Gemini returned invalid JSON",
+      );
+      logGeminiRequestFailure(model, startedAt, { category: error.category });
+      throw error;
+    }
+    const candidates = (
+      payload as {
+        candidates?: Array<{
+          content?: { parts?: Array<{ text?: unknown }> };
+        }>;
+      }
+    ).candidates;
+    const content = Array.isArray(candidates?.[0]?.content?.parts)
+      ? candidates[0].content.parts
+          .map((part) => (typeof part.text === "string" ? part.text : ""))
+          .join("\n")
+          .trim()
+      : "";
+    if (!content) {
+      const error = new AdvisorProviderError(
+        "gemini",
+        "empty_response",
+        "Gemini returned no usable text",
+      );
+      logGeminiRequestFailure(model, startedAt, { category: error.category });
+      throw error;
+    }
+    logAdvisorProviderEvent("advisor_gemini_request_completed", {
+      model,
+      durationMs: Date.now() - startedAt,
+      statusCode: response.status,
+    });
+    return content;
+  } catch (error) {
+    if (error instanceof AdvisorProviderError) throw error;
+    const failure: AdvisorProviderError =
+      (error instanceof DOMException && error.name === "AbortError") ||
+      (error instanceof Error && error.name === "AbortError")
+        ? new AdvisorProviderError(
+            "gemini",
+            "timeout",
+            "Gemini request timed out",
+          )
+        : new AdvisorProviderError(
+            "gemini",
+            "network",
+            "Gemini request failed",
+          );
+    logGeminiRequestFailure(model, startedAt, { category: failure.category });
+    throw failure;
   }
-  return content;
 }
 
 export class GeminiAdvisorProvider implements AdvisorProvider {
@@ -680,39 +775,25 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           throw error;
         }
 
-        const discoveredModels = await discoverGeminiGenerateContentModels(
+        const discoveredModel = await discoverGeminiGenerateContentModel(
           apiKey,
           controller.signal,
           requestedModel,
         );
-        let lastModelError: AdvisorProviderError = error;
-        for (const discoveredModel of discoveredModels) {
-          if (discoveredModel === requestedModel) continue;
+        if (!discoveredModel || discoveredModel === requestedModel) throw error;
 
-          logAdvisorProviderEvent("advisor_provider_model_discovered", {
-            provider: "gemini",
-            requestedModel,
-            selectedModel: discoveredModel,
-            endpointPath: safeGeminiEndpointPath(discoveredModel),
-          });
-          try {
-            return await requestGeminiGenerateContent(
-              prompt,
-              discoveredModel,
-              apiKey,
-              controller.signal,
-            );
-          } catch (discoveredError) {
-            if (
-              !(discoveredError instanceof AdvisorProviderError) ||
-              discoveredError.category !== "model_or_endpoint_not_found"
-            ) {
-              throw discoveredError;
-            }
-            lastModelError = discoveredError;
-          }
-        }
-        throw lastModelError;
+        logAdvisorProviderEvent("advisor_provider_model_discovered", {
+          provider: "gemini",
+          requestedModel,
+          selectedModel: discoveredModel,
+          endpointPath: safeGeminiEndpointPath(discoveredModel),
+        });
+        return await requestGeminiGenerateContent(
+          prompt,
+          discoveredModel,
+          apiKey,
+          controller.signal,
+        );
       }
     } catch (error) {
       if (error instanceof AdvisorProviderError) throw error;

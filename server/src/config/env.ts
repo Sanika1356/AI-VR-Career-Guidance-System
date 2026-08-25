@@ -50,7 +50,7 @@ export const env = {
     process.env.GEMINI_BASE_URL ?? "https://generativelanguage.googleapis.com",
   geminiMaxOutputTokens: Math.max(
     256,
-    Math.floor(numberFromEnv(process.env.GEMINI_MAX_OUTPUT_TOKENS, 900)),
+    Math.floor(numberFromEnv(process.env.GEMINI_MAX_OUTPUT_TOKENS, 600)),
   ),
   aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 15_000),
   aiMaxResponseChars: Math.max(

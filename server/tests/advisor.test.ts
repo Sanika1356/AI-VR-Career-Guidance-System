@@ -324,18 +324,24 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
   const previousModel = env.geminiModel;
   const previousBaseUrl = env.geminiBaseUrl;
   const originalFetch = globalThis.fetch;
+  const originalInfo = console.info;
+  const logs: string[] = [];
   let requestUrl = "";
   let requestBody = "";
   let requestHeaders: HeadersInit | undefined;
   env.geminiApiKey = "test-gemini-key";
   env.geminiModel = "gemini-2.5-flash";
   env.geminiBaseUrl = "https://generativelanguage.googleapis.com";
+  console.info = (...args: unknown[]) => {
+    logs.push(args.map(String).join(" "));
+  };
   globalThis.fetch = (async (input, init) => {
     requestUrl = String(input);
     requestBody = String(init?.body ?? "");
     requestHeaders = init?.headers;
     return {
       ok: true,
+      status: 200,
       json: async () => ({
         candidates: [
           {
@@ -369,6 +375,30 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
       new Headers(requestHeaders).get("x-goog-api-key"),
       "test-gemini-key",
     );
+    const parsedLogs = logs.map(
+      (entry) => JSON.parse(entry) as Record<string, unknown>,
+    );
+    assert.equal(
+      parsedLogs.some(
+        (entry) =>
+          entry.event === "advisor_gemini_request_started" &&
+          entry.model === "gemini-2.5-flash",
+      ),
+      true,
+    );
+    assert.equal(
+      parsedLogs.some(
+        (entry) =>
+          entry.event === "advisor_gemini_request_completed" &&
+          entry.model === "gemini-2.5-flash" &&
+          entry.statusCode === 200,
+      ),
+      true,
+    );
+    assert.doesNotMatch(
+      logs.join("\n"),
+      /test-gemini-key|Explain which career path/,
+    );
     assert.deepEqual(JSON.parse(requestBody), {
       contents: [
         {
@@ -379,6 +409,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
       generationConfig: {
         temperature: 0.2,
         maxOutputTokens: env.geminiMaxOutputTokens,
+        thinkingConfig: { thinkingBudget: 0 },
       },
       store: false,
     });
@@ -387,6 +418,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
     env.geminiModel = previousModel;
     env.geminiBaseUrl = previousBaseUrl;
     globalThis.fetch = originalFetch;
+    console.info = originalInfo;
   }
 });
 
@@ -481,7 +513,7 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
   }
 });
 
-test("Gemini provider tries later conversational models after multiple 404 responses", async () => {
+test("Gemini 503 does not trigger model discovery", async () => {
   const previousKey = env.geminiApiKey;
   const previousModel = env.geminiModel;
   const originalFetch = globalThis.fetch;
@@ -489,68 +521,22 @@ test("Gemini provider tries later conversational models after multiple 404 respo
   env.geminiApiKey = "test-gemini-key";
   env.geminiModel = "gemini-2.5-flash-lite";
   globalThis.fetch = (async (input, init) => {
-    const url = String(input);
-    requests.push(`${init?.method ?? "GET"} ${url}`);
-    if (
-      url.endsWith("/v1beta/models/gemini-2.5-flash-lite:generateContent") ||
-      url.endsWith("/v1beta/models/gemini-2.5-flash:generateContent")
-    ) {
-      return {
-        ok: false,
-        status: 404,
-        json: async () => ({ error: { status: "NOT_FOUND" } }),
-      };
-    }
-    if (url.endsWith("/v1beta/models")) {
-      return {
-        ok: true,
-        json: async () => ({
-          models: [
-            {
-              name: "models/gemini-2.5-flash-lite",
-              supportedGenerationMethods: ["generateContent"],
-            },
-            {
-              name: "models/gemini-2.5-flash",
-              supportedGenerationMethods: ["generateContent"],
-            },
-            {
-              name: "models/gemini-2.5-pro",
-              supportedGenerationMethods: ["generateContent"],
-            },
-          ],
-        }),
-      };
-    }
-    if (url.endsWith("/v1beta/models/gemini-2.5-pro:generateContent")) {
-      return {
-        ok: true,
-        json: async () => ({
-          candidates: [
-            {
-              content: {
-                parts: [{ text: "Later accessible Gemini model answered." }],
-              },
-            },
-          ],
-        }),
-      };
-    }
-    throw new Error("unexpected test URL");
+    requests.push(`${init?.method ?? "GET"} ${String(input)}`);
+    return {
+      ok: false,
+      status: 503,
+      json: async () => ({ error: { status: "UNAVAILABLE" } }),
+    };
   }) as typeof fetch;
 
   try {
-    assert.equal(
-      await new GeminiAdvisorProvider().generate(
-        "Try all accessible conversational models.",
-      ),
-      "Later accessible Gemini model answered.",
+    await assert.rejects(
+      () =>
+        new GeminiAdvisorProvider().generate("Give a practical career plan."),
+      /Gemini returned HTTP 503/,
     );
     assert.deepEqual(requests, [
       "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
-      "GET https://generativelanguage.googleapis.com/v1beta/models",
-      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent",
     ]);
   } finally {
     env.geminiApiKey = previousKey;
