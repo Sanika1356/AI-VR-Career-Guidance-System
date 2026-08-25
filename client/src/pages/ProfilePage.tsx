@@ -635,6 +635,7 @@ export function ProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isProfileDirty, setIsProfileDirty] = useState(false);
   const [privacyConsent, setPrivacyConsent] = useState<PrivacyConsent | null>(null);
   const [privacyError, setPrivacyError] = useState<string | null>(null);
   const [privacyMessage, setPrivacyMessage] = useState<string | null>(null);
@@ -651,6 +652,7 @@ export function ProfilePage() {
         if (!active) return;
         setProfile(response);
         setForm(toFormState(response));
+        setIsProfileDirty(false);
       })
       .catch((error: unknown) => {
         if (!active) return;
@@ -687,6 +689,7 @@ export function ProfilePage() {
   const updateField = (field: ProfileField, value: string) => {
     setForm((current) => (current ? { ...current, [field]: value } : current));
     setErrors((current) => ({ ...current, [field]: undefined, form: undefined }));
+    setIsProfileDirty(true);
     setSaveError(null);
     setSuccessMessage(null);
   };
@@ -694,6 +697,7 @@ export function ProfilePage() {
   const handleReset = () => {
     if (!profile) return;
     setForm(toFormState(profile));
+    setIsProfileDirty(false);
     setErrors({});
     setSaveError(null);
     setSuccessMessage(null);
@@ -714,6 +718,7 @@ export function ProfilePage() {
       const response = await updateProfile(result.payload);
       setProfile(response);
       setForm(toFormState(response));
+      setIsProfileDirty(false);
       setSuccessMessage('Your profile has been updated.');
     } catch (error: unknown) {
       setSaveError(error instanceof Error ? error.message : 'We could not save your profile.');
@@ -963,121 +968,123 @@ export function ProfilePage() {
             )}
 
             <form className="profile-form" onSubmit={handleSubmit} noValidate>
-              <Input
-                id="profile-name"
-                label="Full name"
-                name="name"
-                value={form.name}
-                onChange={(event) => updateField('name', event.target.value)}
-                error={errors.name}
-                required
-                autoComplete="name"
-              />
-              <Input
-                id="profile-email"
-                label="Email address"
-                name="email"
-                type="email"
-                value={form.email}
-                readOnly
-                hint="This is the email connected to your Pathfinder account."
-                autoComplete="email"
-              />
-              <ProfileSelect
-                id="profile-interests"
-                label="Primary interest"
-                value={form.interests}
-                options={interestOptions}
-                hint="Choose the career domain you are most curious about right now."
-                error={errors.interests}
-                onChange={(value) => updateField('interests', value)}
-              />
-              <ProfileSelect
-                id="profile-skills"
-                label="Strongest current skill area"
-                value={form.currentSkills}
-                options={skillOptions}
-                hint="Choose the skill area that best describes your current starting point."
-                error={errors.currentSkills}
-                onChange={(value) => updateField('currentSkills', value)}
-              />
-              <ProfileSelect
-                id="profile-goals"
-                label="Learner goal"
-                value={form.goals}
-                options={goalOptions}
-                hint="Choose the outcome you want Pathfinder to prioritize."
-                error={errors.goals}
-                onChange={(value) => updateField('goals', value)}
-              />
-              <ProfileSelect
-                id="profile-constraints"
-                label="Biggest constraint"
-                value={form.constraints}
-                options={constraintOptions}
-                hint="Choose the factor that Pathfinder should respect when shaping guidance."
-                error={errors.constraints}
-                onChange={(value) => updateField('constraints', value)}
-              />
-              <ProfileSelect
-                id="profile-work-conditions"
-                label="Preferred work conditions"
-                value={form.preferredWorkConditions}
-                options={workConditionOptions}
-                hint="Choose the environment in which you expect to do your best work."
-                error={errors.preferredWorkConditions}
-                onChange={(value) => updateField('preferredWorkConditions', value)}
-              />
-              <ProfileSelect
-                id="profile-experience"
-                label="Experience level"
-                value={form.experience}
-                options={experienceOptions}
-                hint="Choose the description that best matches your current experience."
-                error={errors.experience}
-                onChange={(value) => updateField('experience', value)}
-              />
-              <ProfileSelect
-                id="profile-education-stage"
-                label="Education or career stage"
-                value={form.educationStage}
-                options={educationOptions}
-                hint="This optional context supports relevant explanations; it is not a qualification assessment."
-                error={errors.educationStage}
-                onChange={(value) => updateField('educationStage', value)}
-              />
-              <ProfileSelect
-                id="profile-location"
-                label="Location preference"
-                value={form.locationPreference}
-                options={locationOptions}
-                hint="Choose the location pattern that best fits your career search."
-                error={errors.locationPreference}
-                onChange={(value) => updateField('locationPreference', value)}
-              />
-              <ProfileSelect
-                id="profile-time-budget"
-                label="Weekly learning time"
-                value={form.weeklyTimeBudgetMinutes}
-                options={timeBudgetOptions}
-                hint="Choose a realistic weekly learning budget so future roadmaps can respect your time."
-                error={errors.weeklyTimeBudgetMinutes}
-                onChange={(value) => updateField('weeklyTimeBudgetMinutes', value)}
-              />
-              <ProfileSelect
-                id="profile-preferences"
-                label="Learning preferences"
-                value={learningPreferenceStyle(form.learningPreferences)}
-                options={learningPreferenceOptions}
-                hint="Choose the learning style Pathfinder should prioritize in future guidance."
-                error={errors.learningPreferences}
-                onChange={(value) =>
-                  updateField(
-                    'learningPreferences',
-                    updateLearningPreferenceStyle(form.learningPreferences, value),
-                  )
-                }
-              />
+              <div className="profile-form__fields">
+                <Input
+                  id="profile-name"
+                  label="Full name"
+                  name="name"
+                  value={form.name}
+                  onChange={(event) => updateField('name', event.target.value)}
+                  error={errors.name}
+                  required
+                  autoComplete="name"
+                />
+                <Input
+                  id="profile-email"
+                  label="Email address"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  readOnly
+                  hint="This is the email connected to your Pathfinder account."
+                  autoComplete="email"
+                />
+                <ProfileSelect
+                  id="profile-interests"
+                  label="Primary interest"
+                  value={form.interests}
+                  options={interestOptions}
+                  hint="Choose the career domain you are most curious about right now."
+                  error={errors.interests}
+                  onChange={(value) => updateField('interests', value)}
+                />
+                <ProfileSelect
+                  id="profile-skills"
+                  label="Strongest current skill area"
+                  value={form.currentSkills}
+                  options={skillOptions}
+                  hint="Choose the skill area that best describes your current starting point."
+                  error={errors.currentSkills}
+                  onChange={(value) => updateField('currentSkills', value)}
+                />
+                <ProfileSelect
+                  id="profile-goals"
+                  label="Learner goal"
+                  value={form.goals}
+                  options={goalOptions}
+                  hint="Choose the outcome you want Pathfinder to prioritize."
+                  error={errors.goals}
+                  onChange={(value) => updateField('goals', value)}
+                />
+                <ProfileSelect
+                  id="profile-constraints"
+                  label="Biggest constraint"
+                  value={form.constraints}
+                  options={constraintOptions}
+                  hint="Choose the factor that Pathfinder should respect when shaping guidance."
+                  error={errors.constraints}
+                  onChange={(value) => updateField('constraints', value)}
+                />
+                <ProfileSelect
+                  id="profile-work-conditions"
+                  label="Preferred work conditions"
+                  value={form.preferredWorkConditions}
+                  options={workConditionOptions}
+                  hint="Choose the environment in which you expect to do your best work."
+                  error={errors.preferredWorkConditions}
+                  onChange={(value) => updateField('preferredWorkConditions', value)}
+                />
+                <ProfileSelect
+                  id="profile-experience"
+                  label="Experience level"
+                  value={form.experience}
+                  options={experienceOptions}
+                  hint="Choose the description that best matches your current experience."
+                  error={errors.experience}
+                  onChange={(value) => updateField('experience', value)}
+                />
+                <ProfileSelect
+                  id="profile-education-stage"
+                  label="Education or career stage"
+                  value={form.educationStage}
+                  options={educationOptions}
+                  hint="This optional context supports relevant explanations; it is not a qualification assessment."
+                  error={errors.educationStage}
+                  onChange={(value) => updateField('educationStage', value)}
+                />
+                <ProfileSelect
+                  id="profile-location"
+                  label="Location preference"
+                  value={form.locationPreference}
+                  options={locationOptions}
+                  hint="Choose the location pattern that best fits your career search."
+                  error={errors.locationPreference}
+                  onChange={(value) => updateField('locationPreference', value)}
+                />
+                <ProfileSelect
+                  id="profile-time-budget"
+                  label="Weekly learning time"
+                  value={form.weeklyTimeBudgetMinutes}
+                  options={timeBudgetOptions}
+                  hint="Choose a realistic weekly learning budget so future roadmaps can respect your time."
+                  error={errors.weeklyTimeBudgetMinutes}
+                  onChange={(value) => updateField('weeklyTimeBudgetMinutes', value)}
+                />
+                <ProfileSelect
+                  id="profile-preferences"
+                  label="Learning preferences"
+                  value={learningPreferenceStyle(form.learningPreferences)}
+                  options={learningPreferenceOptions}
+                  hint="Choose the learning style Pathfinder should prioritize in future guidance."
+                  error={errors.learningPreferences}
+                  onChange={(value) =>
+                    updateField(
+                      'learningPreferences',
+                      updateLearningPreferenceStyle(form.learningPreferences, value),
+                    )
+                  }
+                />
+              </div>
               {errors.form && (
                 <p className="ui-field__error" role="alert">
                   {errors.form}
@@ -1087,9 +1094,11 @@ export function ProfilePage() {
                 <Button type="button" variant="ghost" onClick={handleReset} disabled={isSaving}>
                   Reset changes
                 </Button>
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? 'Saving changes…' : 'Save changes'}
-                </Button>
+                {isProfileDirty && (
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? 'Saving changes…' : 'Save changes'}
+                  </Button>
+                )}
               </div>
             </form>
           </Card>
