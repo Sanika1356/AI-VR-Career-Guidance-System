@@ -4,7 +4,8 @@ import test from "node:test";
 import { app } from "../src/app.js";
 import { env } from "../src/config/env.js";
 import {
-  buildGeminiGenerateContentUrl,
+  buildGeminiInteractionsUrl,
+  normalizeGeminiModel,
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
   GeminiAdvisorProvider,
@@ -281,31 +282,36 @@ test("advisor falls back when Ollama returns a malformed payload", async () => {
   }
 });
 
-test("Gemini URL builder targets the supported v1beta model resource path", () => {
+test("Gemini Interactions URL builder targets the supported v1beta endpoint", () => {
   assert.equal(
-    buildGeminiGenerateContentUrl(
-      "https://generativelanguage.googleapis.com",
-      "gemini-2.5-flash",
-    ),
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    buildGeminiInteractionsUrl("https://generativelanguage.googleapis.com"),
+    "https://generativelanguage.googleapis.com/v1beta/interactions",
   );
   assert.equal(
-    buildGeminiGenerateContentUrl(
+    buildGeminiInteractionsUrl(
       "https://generativelanguage.googleapis.com/v1beta/",
-      "models/gemini-2.5-flash",
     ),
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/interactions",
   );
   assert.equal(
-    buildGeminiGenerateContentUrl(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
-      "gemini-2.5-flash",
+    buildGeminiInteractionsUrl(
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
     ),
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/interactions",
+  );
+  assert.equal(
+    buildGeminiInteractionsUrl(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+    ),
+    "https://generativelanguage.googleapis.com/v1beta/interactions",
+  );
+  assert.equal(
+    normalizeGeminiModel("models/gemini-2.5-flash"),
+    "gemini-2.5-flash",
   );
 });
 
-test("Gemini advisor provider sends a grounded text request and parses generated content", async () => {
+test("Gemini advisor provider sends an Interactions request and parses model output", async () => {
   const previousKey = env.geminiApiKey;
   const previousModel = env.geminiModel;
   const previousBaseUrl = env.geminiBaseUrl;
@@ -323,15 +329,15 @@ test("Gemini advisor provider sends a grounded text request and parses generated
     return {
       ok: true,
       json: async () => ({
-        candidates: [
+        steps: [
           {
-            content: {
-              parts: [
-                {
-                  text: "## Recommendation\\n\\nStart with SQL and statistics.",
-                },
-              ],
-            },
+            type: "model_output",
+            content: [
+              {
+                type: "text",
+                text: "## Recommendation\\n\\nStart with SQL and statistics.",
+              },
+            ],
           },
         ],
       }),
@@ -346,13 +352,23 @@ test("Gemini advisor provider sends a grounded text request and parses generated
       answer,
       "## Recommendation\\n\\nStart with SQL and statistics.",
     );
-    assert.match(requestUrl, /models\/gemini-2\.5-flash:generateContent/);
+    assert.equal(
+      requestUrl,
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
+    );
     assert.doesNotMatch(requestUrl, /test-gemini-key/);
     assert.equal(
       new Headers(requestHeaders).get("x-goog-api-key"),
       "test-gemini-key",
     );
-    assert.match(requestBody, /Explain which career path fits this learner/);
+    assert.deepEqual(JSON.parse(requestBody), {
+      model: "gemini-2.5-flash",
+      input: "Explain which career path fits this learner.",
+      store: false,
+      generation_config: {
+        max_tokens: env.geminiMaxOutputTokens,
+      },
+    });
   } finally {
     env.geminiApiKey = previousKey;
     env.geminiModel = previousModel;
@@ -372,15 +388,15 @@ test("advisor selects Gemini when the hosted provider is enabled", async () => {
   globalThis.fetch = (async () => ({
     ok: true,
     json: async () => ({
-      candidates: [
+      steps: [
         {
-          content: {
-            parts: [
-              {
-                text: "## Fit\\n\\nYour strongest next step is a statistics project.",
-              },
-            ],
-          },
+          type: "model_output",
+          content: [
+            {
+              type: "text",
+              text: "## Fit\\n\\nYour strongest next step is a statistics project.",
+            },
+          ],
         },
       ],
     }),
@@ -437,10 +453,7 @@ test("advisor logs sanitized Gemini authentication failures without secret value
     assert.equal(selectionLog?.provider, "gemini");
     assert.equal(selectionLog?.geminiKeyConfigured, true);
     assert.equal(selectionLog?.geminiModel, "gemini-2.5-flash");
-    assert.equal(
-      selectionLog?.geminiEndpointPath,
-      "/v1beta/models/gemini-2.5-flash:generateContent",
-    );
+    assert.equal(selectionLog?.geminiEndpointPath, "/v1beta/interactions");
     assert.equal(fallbackLog?.provider, "gemini");
     assert.equal(fallbackLog?.category, "authentication");
     assert.equal(fallbackLog?.statusCode, 401);
@@ -481,7 +494,7 @@ test("advisor falls back when Gemini returns no candidates", async () => {
   env.geminiApiKey = "test-gemini-key";
   globalThis.fetch = (async () => ({
     ok: true,
-    json: async () => ({ candidates: [] }),
+    json: async () => ({ steps: [] }),
   })) as typeof fetch;
 
   try {
