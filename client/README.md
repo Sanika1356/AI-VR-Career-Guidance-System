@@ -4,7 +4,7 @@ The client is the React and TypeScript browser application owned primarily by Me
 
 ## Local setup
 
-From the repository root, install workspace dependencies with `pnpm install`. Before starting the client, copy `.env.example` to `.env.local` inside this directory. Local development uses `VITE_API_BASE_URL=/api`, which Vite proxies to the backend at `http://localhost:4000`; set an absolute URL only when using an approved remote API. The template contains no credentials, and browser-exposed `VITE_*` variables must never contain secrets.
+From the repository root, install workspace dependencies with `pnpm install`. Before starting the client, copy `.env.example` to `.env.local` inside this directory. Local development always uses the same-origin `/api` proxy to reach `http://localhost:4000`, even if an old remote URL remains in `VITE_API_BASE_URL`. Set `VITE_USE_REMOTE_API=true` only when intentionally testing the deployed API from local Vite; otherwise leave it `false`. The template contains no credentials, and browser-exposed `VITE_*` variables must never contain secrets.
 
 Start the browser client with `pnpm dev:client`; it runs at `http://localhost:5173` by default. The client and authentication services use the same resolved API base, so login, health checks, and advisor requests cannot silently target different hosts.
 
