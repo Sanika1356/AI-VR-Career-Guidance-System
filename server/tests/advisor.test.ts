@@ -696,6 +696,7 @@ test("Gemini quota failure fails over once to Groq and returns provider mode", a
   const previousSecondaryProvider = env.secondaryAiProvider;
   const previousGroqKey = env.groqApiKey;
   const previousGroqModel = env.groqModel;
+  const configuredGroqModel = env.groqModel;
   const previousGroqBaseUrl = env.groqBaseUrl;
   const previousOllama = env.ollamaEnabled;
   const previousCircuitThreshold = env.aiCircuitFailureThreshold;
@@ -707,7 +708,7 @@ test("Gemini quota failure fails over once to Groq and returns provider mode", a
   env.secondaryAiEnabled = true;
   env.secondaryAiProvider = "groq";
   env.groqApiKey = "test-groq-key";
-  env.groqModel = "llama-3.3-70b-versatile";
+  env.groqModel = configuredGroqModel;
   env.groqBaseUrl = "https://api.groq.com/openai/v1";
   env.ollamaEnabled = false;
   env.aiCircuitFailureThreshold = 1000;
@@ -767,7 +768,7 @@ test("Gemini quota failure fails over once to Groq and returns provider mode", a
       max_completion_tokens?: number;
       stream?: boolean;
     };
-    assert.equal(body.model, "llama-3.3-70b-versatile");
+    assert.equal(body.model, configuredGroqModel);
     assert.equal(body.messages?.[0]?.role, "user");
     assert.match(body.messages?.[0]?.content ?? "", /Data Analyst/);
     assert.equal(body.max_completion_tokens, 600);

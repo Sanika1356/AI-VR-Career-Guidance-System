@@ -58,7 +58,7 @@ services:
       - key: GROQ_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-20b
       - key: GROQ_MAX_OUTPUT_TOKENS
         value: "600"
       - key: SECONDARY_AI_TIMEOUT_MS

@@ -56,7 +56,7 @@ export const env = {
   secondaryAiProvider: process.env.SECONDARY_AI_PROVIDER ?? "groq",
   groqApiKey: process.env.GROQ_API_KEY,
   groqBaseUrl: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
-  groqModel: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+  groqModel: process.env.GROQ_MODEL ?? "openai/gpt-oss-20b",
   groqMaxOutputTokens: Math.max(
     256,
     Math.floor(numberFromEnv(process.env.GROQ_MAX_OUTPUT_TOKENS, 600)),
