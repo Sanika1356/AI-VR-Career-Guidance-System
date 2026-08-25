@@ -41,6 +41,7 @@ function normalizeAdvisorMarkdown(value: string): string {
       /^\*\*(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\*\*\s*:?[ \t]*/gim,
       '## $1\n\n',
     )
+    .replace(/^##\s+Short answer\s*\n*/gim, '')
     .trim();
 }
 
@@ -155,7 +156,12 @@ function renderAdvisorAnswer(answer: string) {
       const ordered = /^\d+[.)]\s+/.test(line);
       const items: string[] = [];
       while (index < lines.length && isListLine(lines[index] ?? '')) {
-        items.push((lines[index] ?? '').replace(ordered ? /^\d+[.)]\s+/ : /^[-*]\s+/, '').trim());
+        items.push(
+          (lines[index] ?? '')
+            .replace(ordered ? /^\d+[.)]\s+/ : /^[-*]\s+/, '')
+            .replace(/^[-*]\s+/, '')
+            .trim(),
+        );
         index += 1;
       }
       const List = ordered ? 'ol' : 'ul';
@@ -364,14 +370,6 @@ export function AdvisorPage() {
                   <time className="advisor-message__time" dateTime={item.createdAt}>
                     {formatTimestamp(item.createdAt)}
                   </time>
-                )}
-                {isEndOfSenderGroup && item.confidence && (
-                  <small className="advisor-message__confidence">
-                    {item.confidence} context confidence
-                  </small>
-                )}
-                {isEndOfSenderGroup && item.caveat && (
-                  <small className="advisor-message__caveat">{item.caveat}</small>
                 )}
                 {isEndOfSenderGroup && item.mode === 'deterministic_fallback' && (
                   <small className="advisor-message__mode">

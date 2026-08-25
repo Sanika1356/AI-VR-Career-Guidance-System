@@ -2865,8 +2865,6 @@ em {
 }
 .advisor-message__time,
 .advisor-message__sources,
-.advisor-message__confidence,
-.advisor-message__caveat,
 .advisor-status {
   color: #777b73;
   display: block;
@@ -2874,23 +2872,11 @@ em {
   line-height: 1.5;
   margin: 12px 0 0;
 }
-.advisor-message__sources,
-.advisor-message__confidence,
-.advisor-message__caveat {
+.advisor-message__sources {
   margin-top: 4px;
 }
-.advisor-message__confidence {
-  color: #5e7d26;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-.advisor-message__caveat {
-  color: #8a642c;
-}
 .advisor-message--user .advisor-message__time,
-.advisor-message--user .advisor-message__sources,
-.advisor-message--user .advisor-message__confidence,
-.advisor-message--user .advisor-message__caveat {
+.advisor-message--user .advisor-message__sources {
   color: #c8d0bf;
 }
 .advisor-card__actions {
