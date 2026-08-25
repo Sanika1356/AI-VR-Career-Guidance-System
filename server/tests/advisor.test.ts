@@ -296,6 +296,13 @@ test("Gemini URL builder targets the supported v1beta model resource path", () =
     ),
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
   );
+  assert.equal(
+    buildGeminiGenerateContentUrl(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "gemini-2.5-flash",
+    ),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  );
 });
 
 test("Gemini advisor provider sends a grounded text request and parses generated content", async () => {
@@ -429,6 +436,11 @@ test("advisor logs sanitized Gemini authentication failures without secret value
       .find((entry) => entry.event === "advisor_provider_fallback");
     assert.equal(selectionLog?.provider, "gemini");
     assert.equal(selectionLog?.geminiKeyConfigured, true);
+    assert.equal(selectionLog?.geminiModel, "gemini-2.5-flash");
+    assert.equal(
+      selectionLog?.geminiEndpointPath,
+      "/v1beta/models/gemini-2.5-flash:generateContent",
+    );
     assert.equal(fallbackLog?.provider, "gemini");
     assert.equal(fallbackLog?.category, "authentication");
     assert.equal(fallbackLog?.statusCode, 401);
@@ -438,6 +450,27 @@ test("advisor logs sanitized Gemini authentication failures without secret value
     env.geminiApiKey = previousKey;
     env.ollamaEnabled = previousOllama;
     console.info = originalInfo;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("advisor classifies Gemini 404 responses as a model or endpoint failure", async () => {
+  const previousKey = env.geminiApiKey;
+  const originalFetch = globalThis.fetch;
+  env.geminiApiKey = "test-gemini-key";
+  globalThis.fetch = (async () => ({
+    ok: false,
+    status: 404,
+    json: async () => ({ error: { status: "NOT_FOUND" } }),
+  })) as typeof fetch;
+
+  try {
+    await assert.rejects(
+      () => new GeminiAdvisorProvider().generate("Explain this career path."),
+      /Gemini returned HTTP 404/,
+    );
+  } finally {
+    env.geminiApiKey = previousKey;
     globalThis.fetch = originalFetch;
   }
 });

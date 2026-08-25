@@ -63,6 +63,7 @@ type AdvisorProviderFailureCategory =
   | "configuration"
   | "authentication"
   | "quota"
+  | "model_or_endpoint_not_found"
   | "upstream_http"
   | "timeout"
   | "network"
@@ -413,9 +414,22 @@ export function buildGeminiGenerateContentUrl(
   const normalizedBaseUrl = baseUrl
     .trim()
     .replace(/\/+$/, "")
-    .replace(/\/v1(?:beta)?$/i, "");
+    .replace(
+      /\/v1(?:beta)?(?:\/models(?:\/[^/]+(?::generateContent)?)?)?$/i,
+      "",
+    );
   const normalizedModel = model.trim().replace(/^models\//i, "");
   return `${normalizedBaseUrl}/v1beta/models/${encodeURIComponent(normalizedModel)}:generateContent`;
+}
+
+function safeGeminiEndpointPath(): string {
+  try {
+    return new URL(
+      buildGeminiGenerateContentUrl(env.geminiBaseUrl, env.geminiModel),
+    ).pathname;
+  } catch {
+    return "invalid";
+  }
 }
 
 export class GeminiAdvisorProvider implements AdvisorProvider {
@@ -460,7 +474,9 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
             ? "authentication"
             : response.status === 429
               ? "quota"
-              : "upstream_http";
+              : response.status === 404
+                ? "model_or_endpoint_not_found"
+                : "upstream_http";
         throw new AdvisorProviderError(
           "gemini",
           category,
@@ -672,6 +688,8 @@ export async function chatAdvisor(
       provider: providerName,
       geminiEnabled: env.geminiEnabled,
       geminiKeyConfigured: Boolean(env.geminiApiKey?.trim()),
+      geminiModel: env.geminiModel.trim().replace(/^models\//i, ""),
+      geminiEndpointPath: safeGeminiEndpointPath(),
       ollamaEnabled: env.ollamaEnabled,
     });
     const aiStartedAt = Date.now();
