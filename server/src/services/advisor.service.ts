@@ -63,6 +63,7 @@ type AdvisorProviderFailureCategory =
   | "configuration"
   | "authentication"
   | "quota"
+  | "request_schema"
   | "model_or_endpoint_not_found"
   | "upstream_http"
   | "timeout"
@@ -77,6 +78,7 @@ class AdvisorProviderError extends Error {
     readonly category: AdvisorProviderFailureCategory,
     message: string,
     readonly statusCode?: number,
+    readonly providerErrorCode?: string,
   ) {
     super(message);
     this.name = "AdvisorProviderError";
@@ -86,6 +88,7 @@ class AdvisorProviderError extends Error {
 function providerFailureDetails(error: unknown): {
   category: AdvisorProviderFailureCategory;
   statusCode?: number;
+  providerErrorCode?: string;
 } {
   if (error instanceof AdvisorProviderError) {
     return {
@@ -93,6 +96,9 @@ function providerFailureDetails(error: unknown): {
       ...(error.statusCode === undefined
         ? {}
         : { statusCode: error.statusCode }),
+      ...(error.providerErrorCode === undefined
+        ? {}
+        : { providerErrorCode: error.providerErrorCode }),
     };
   }
   if (
@@ -422,6 +428,22 @@ export function buildGeminiInteractionsUrl(baseUrl: string): string {
   return `${normalizedBaseUrl}/v1beta/interactions`;
 }
 
+async function safeGeminiErrorCode(
+  response: Response,
+): Promise<string | undefined> {
+  try {
+    const payload = (await response.json()) as {
+      error?: { status?: unknown };
+    };
+    const status = payload.error?.status;
+    return typeof status === "string" && /^[A-Z][A-Z0-9_]{0,63}$/.test(status)
+      ? status
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function safeGeminiEndpointPath(): string {
   try {
     return new URL(buildGeminiInteractionsUrl(env.geminiBaseUrl)).pathname;
@@ -459,25 +481,29 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           input: prompt,
           store: false,
           generation_config: {
-            max_tokens: env.geminiMaxOutputTokens,
+            max_output_tokens: env.geminiMaxOutputTokens,
           },
         }),
         signal: controller.signal,
       });
       if (!response.ok) {
+        const providerErrorCode = await safeGeminiErrorCode(response);
         const category =
           response.status === 401 || response.status === 403
             ? "authentication"
             : response.status === 429
               ? "quota"
-              : response.status === 404
-                ? "model_or_endpoint_not_found"
-                : "upstream_http";
+              : response.status === 400
+                ? "request_schema"
+                : response.status === 404
+                  ? "model_or_endpoint_not_found"
+                  : "upstream_http";
         throw new AdvisorProviderError(
           "gemini",
           category,
           `Gemini returned HTTP ${response.status}`,
           response.status,
+          providerErrorCode,
         );
       }
       let payload: unknown;
@@ -724,6 +750,9 @@ export async function chatAdvisor(
         ...(failure.statusCode === undefined
           ? {}
           : { statusCode: failure.statusCode }),
+        ...(failure.providerErrorCode === undefined
+          ? {}
+          : { providerErrorCode: failure.providerErrorCode }),
       });
       observeAiRequest({
         success: false,

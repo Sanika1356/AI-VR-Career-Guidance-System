@@ -366,13 +366,59 @@ test("Gemini advisor provider sends an Interactions request and parses model out
       input: "Explain which career path fits this learner.",
       store: false,
       generation_config: {
-        max_tokens: env.geminiMaxOutputTokens,
+        max_output_tokens: env.geminiMaxOutputTokens,
       },
     });
   } finally {
     env.geminiApiKey = previousKey;
     env.geminiModel = previousModel;
     env.geminiBaseUrl = previousBaseUrl;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gemini provider avoids the legacy max_tokens schema that causes HTTP 400", async () => {
+  const previousKey = env.geminiApiKey;
+  const previousMaxTokens = env.geminiMaxOutputTokens;
+  const originalFetch = globalThis.fetch;
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiMaxOutputTokens = 900;
+  globalThis.fetch = (async (_input, init) => {
+    const body = JSON.parse(String(init?.body ?? "{}")) as {
+      generation_config?: Record<string, unknown>;
+    };
+    if (body.generation_config?.max_tokens !== undefined) {
+      return {
+        ok: false,
+        status: 400,
+        json: async () => ({
+          error: { status: "INVALID_ARGUMENT" },
+        }),
+      };
+    }
+    return {
+      ok: true,
+      json: async () => ({
+        steps: [
+          {
+            type: "model_output",
+            content: [{ type: "text", text: "Gemini schema accepted." }],
+          },
+        ],
+      }),
+    };
+  }) as typeof fetch;
+
+  try {
+    assert.equal(
+      await new GeminiAdvisorProvider().generate(
+        "Validate the request schema.",
+      ),
+      "Gemini schema accepted.",
+    );
+  } finally {
+    env.geminiApiKey = previousKey;
+    env.geminiMaxOutputTokens = previousMaxTokens;
     globalThis.fetch = originalFetch;
   }
 });
@@ -458,6 +504,55 @@ test("advisor logs sanitized Gemini authentication failures without secret value
     assert.equal(fallbackLog?.category, "authentication");
     assert.equal(fallbackLog?.statusCode, 401);
     assert.doesNotMatch(logs.join("\\n"), /test-gemini-key/);
+  } finally {
+    env.geminiEnabled = previousEnabled;
+    env.geminiApiKey = previousKey;
+    env.ollamaEnabled = previousOllama;
+    console.info = originalInfo;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("advisor logs a sanitized Gemini schema failure category and code", async () => {
+  const previousEnabled = env.geminiEnabled;
+  const previousKey = env.geminiApiKey;
+  const previousOllama = env.ollamaEnabled;
+  const originalFetch = globalThis.fetch;
+  const originalInfo = console.info;
+  const logs: string[] = [];
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.ollamaEnabled = false;
+  console.info = (...args: unknown[]) => {
+    logs.push(args.map(String).join(" "));
+  };
+  globalThis.fetch = (async () => ({
+    ok: false,
+    status: 400,
+    json: async () => ({
+      error: {
+        status: "INVALID_ARGUMENT",
+        message: "This body contains an unsupported field.",
+      },
+    }),
+  })) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "How do I start?", careerId: "career_ai_engineer" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    const fallbackLog = logs
+      .map((entry) => JSON.parse(entry) as Record<string, unknown>)
+      .find((entry) => entry.event === "advisor_provider_fallback");
+    assert.equal(fallbackLog?.provider, "gemini");
+    assert.equal(fallbackLog?.category, "request_schema");
+    assert.equal(fallbackLog?.statusCode, 400);
+    assert.equal(fallbackLog?.providerErrorCode, "INVALID_ARGUMENT");
+    assert.doesNotMatch(logs.join("\\n"), /test-gemini-key/);
+    assert.doesNotMatch(logs.join("\\n"), /unsupported field/);
   } finally {
     env.geminiEnabled = previousEnabled;
     env.geminiApiKey = previousKey;
