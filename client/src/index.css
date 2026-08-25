@@ -3322,11 +3322,11 @@ em {
 }
 
 .profile-choice-group {
-  align-items: center;
+  align-items: stretch;
   border-bottom: 1px solid #e2e4dc;
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 0.82fr);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-width: 0;
   padding: 18px 0;
 }
@@ -3342,8 +3342,7 @@ em {
 }
 .profile-choice-group__copy label {
   cursor: pointer;
-  display: grid;
-  gap: 6px;
+  display: block;
 }
 .profile-choice-group__copy strong {
   color: #202222;
@@ -3359,6 +3358,7 @@ em {
 .profile-choice-group__select-wrap {
   min-width: 0;
   position: relative;
+  width: 100%;
 }
 .profile-choice-group__select-wrap::after {
   border-bottom: 2px solid #596c23;
@@ -3409,9 +3409,7 @@ em {
 }
 @media (max-width: 760px) {
   .profile-choice-group {
-    align-items: stretch;
     gap: 10px;
-    grid-template-columns: 1fr;
     padding: 16px 0;
   }
   .profile-choice-group__select {
