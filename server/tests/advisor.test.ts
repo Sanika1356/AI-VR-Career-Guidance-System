@@ -166,10 +166,11 @@ test("advisor enriches the local provider prompt with profile, assessment, caree
 
   assert.equal(response.conversationId.startsWith("conversation_"), true);
   assert.deepEqual(response.sources, ["local://catalog/career_ai_engineer"]);
-  assert.equal(
+  assert.match(
     response.answer,
-    "Use a small machine-learning project to build confidence.",
+    /^Use a small machine-learning project to build confidence\./,
   );
+  assert.match(response.answer, /## Recommended resources/);
   assert.equal(response.mode, "provider");
   assert.match(provider.prompt, /Asha/);
   assert.match(provider.prompt, /career_ai_engineer/);
@@ -1127,7 +1128,8 @@ test("advisor retries one transient provider failure and caps long responses", a
       retryProvider,
     );
     assert.equal(retryProvider.attempts, 2);
-    assert.equal(retried.answer, "The provider recovered after one retry.");
+    assert.match(retried.answer, /^The provider recovered after one retry\./);
+    assert.match(retried.answer, /## Recommended resources/);
 
     const limited = await chatAdvisor(
       "user_asha",
@@ -1136,7 +1138,8 @@ test("advisor retries one transient provider failure and caps long responses", a
       new LongProvider(),
     );
     assert.equal(limited.answer.length, 4000);
-    assert.equal(limited.answer.endsWith("…"), true);
+    assert.equal(limited.answer.includes("…"), true);
+    assert.match(limited.answer, /## Recommended resources/);
   } finally {
     env.aiRetryAttempts = previousRetries;
   }

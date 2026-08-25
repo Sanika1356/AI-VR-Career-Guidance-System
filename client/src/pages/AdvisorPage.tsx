@@ -1,15 +1,10 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import type { ChatMessage } from '../types/domain';
-import {
-  chatAdvisor,
-  clearAdvisorHistory,
-  getAdvisorCareerId,
-  submitAdvisorFeedback,
-} from '../services/advisor';
+import { chatAdvisor, clearAdvisorHistory, getAdvisorCareerId } from '../services/advisor';
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_MESSAGE_LENGTH = 3;
@@ -38,26 +33,159 @@ function buildClientFallbackAnswer(message: string): string {
   ].join('\n\n');
 }
 
+function normalizeAdvisorMarkdown(value: string): string {
+  return value
+    .replace(/\\([*_`\[\]\\])/g, '$1')
+    .replace(/\r\n?/g, '\n')
+    .replace(
+      /^\*\*(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\*\*\s*:?[ \t]*/gim,
+      '## $1\n\n',
+    )
+    .trim();
+}
+
+function renderInlineMarkdown(value: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const pattern = /(\[([^\]]+)\]\((https?:\/\/[^)\s]+)\))|(\*\*([^*]+)\*\*)|(`([^`]+)`)/g;
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = pattern.exec(value)) !== null) {
+    if (match.index > cursor) nodes.push(value.slice(cursor, match.index));
+    if (match[2] && match[3]) {
+      nodes.push(
+        <a key={`link-${key++}`} href={match[3]} target="_blank" rel="noreferrer noopener">
+          {match[2]}
+        </a>,
+      );
+    } else if (match[5]) {
+      nodes.push(<strong key={`strong-${key++}`}>{match[5]}</strong>);
+    } else if (match[7]) {
+      nodes.push(<code key={`code-${key++}`}>{match[7]}</code>);
+    }
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < value.length) nodes.push(value.slice(cursor));
+  return nodes;
+}
+
+function splitTableRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(line.trim());
+}
+
+function isListLine(line: string): boolean {
+  return /^(?:[-*]\s+|\d+[.)]\s+)/.test(line.trim());
+}
+
 function renderAdvisorAnswer(answer: string) {
-  const blocks = answer
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
-  return (
-    <div className="advisor-message__answer">
-      {blocks.map((block, index) => {
-        const heading = block.match(/^#{1,3}\s+(.+?)\n([\s\S]+)$/);
-        return heading ? (
-          <section key={`${heading[1]}-${index}`}>
-            <h3>{heading[1]}</h3>
-            <p>{heading[2]}</p>
-          </section>
-        ) : (
-          <p key={`answer-${index}`}>{block}</p>
-        );
-      })}
-    </div>
-  );
+  const lines = normalizeAdvisorMarkdown(answer).split('\n');
+  const blocks: ReactNode[] = [];
+  let index = 0;
+  let blockKey = 0;
+
+  while (index < lines.length) {
+    const line = lines[index]?.trim() ?? '';
+    if (!line) {
+      index += 1;
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      const Heading = heading[1].length === 1 ? 'h3' : heading[1].length === 2 ? 'h4' : 'h5';
+      blocks.push(
+        <Heading key={`heading-${blockKey++}`}>{renderInlineMarkdown(heading[2])}</Heading>,
+      );
+      index += 1;
+      continue;
+    }
+
+    if (line === '---' || line === '***') {
+      blocks.push(<hr key={`rule-${blockKey++}`} />);
+      index += 1;
+      continue;
+    }
+
+    if (line.includes('|') && isTableSeparator(lines[index + 1] ?? '')) {
+      const headers = splitTableRow(line);
+      const rows: string[][] = [];
+      index += 2;
+      while (index < lines.length && lines[index]?.includes('|')) {
+        rows.push(splitTableRow(lines[index] ?? ''));
+        index += 1;
+      }
+      blocks.push(
+        <div className="advisor-message__table-wrap" key={`table-${blockKey++}`}>
+          <table>
+            <thead>
+              <tr>
+                {headers.map((header) => (
+                  <th key={header}>{renderInlineMarkdown(header)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={`row-${rowIndex}`}>
+                  {headers.map((_, columnIndex) => (
+                    <td key={`cell-${rowIndex}-${columnIndex}`}>
+                      {renderInlineMarkdown(row[columnIndex] ?? '')}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
+
+    if (isListLine(line)) {
+      const ordered = /^\d+[.)]\s+/.test(line);
+      const items: string[] = [];
+      while (index < lines.length && isListLine(lines[index] ?? '')) {
+        items.push((lines[index] ?? '').replace(ordered ? /^\d+[.)]\s+/ : /^[-*]\s+/, '').trim());
+        index += 1;
+      }
+      const List = ordered ? 'ol' : 'ul';
+      blocks.push(
+        <List key={`list-${blockKey++}`}>
+          {items.map((item, itemIndex) => (
+            <li key={`item-${itemIndex}`}>{renderInlineMarkdown(item)}</li>
+          ))}
+        </List>,
+      );
+      continue;
+    }
+
+    const paragraph: string[] = [line];
+    index += 1;
+    while (
+      index < lines.length &&
+      lines[index]?.trim() &&
+      !/^(#{1,3})\s+/.test(lines[index]?.trim() ?? '') &&
+      !isListLine(lines[index]?.trim() ?? '') &&
+      lines[index]?.trim() !== '---' &&
+      lines[index]?.trim() !== '***'
+    ) {
+      paragraph.push(lines[index]?.trim() ?? '');
+      index += 1;
+    }
+    blocks.push(<p key={`paragraph-${blockKey++}`}>{renderInlineMarkdown(paragraph.join(' '))}</p>);
+  }
+
+  return <div className="advisor-message__answer">{blocks}</div>;
 }
 
 function isProviderFailure(error: unknown): boolean {
@@ -144,25 +272,6 @@ export function AdvisorPage() {
     } finally {
       sendingRef.current = false;
       setIsSending(false);
-    }
-  }
-
-  async function handleFeedback(index: number, helpful: boolean, messageCreatedAt: string) {
-    if (!conversationId) return;
-    try {
-      await submitAdvisorFeedback({
-        conversationId,
-        messageCreatedAt,
-        helpful,
-        reason: helpful ? 'actionable' : 'other',
-      });
-      setMessages((current) =>
-        current.map((item, itemIndex) =>
-          itemIndex === index ? { ...item, feedbackHelpful: helpful } : item,
-        ),
-      );
-    } catch (error: unknown) {
-      setErrorMessage(error instanceof Error ? error.message : 'Feedback could not be saved.');
     }
   }
 
@@ -274,32 +383,6 @@ export function AdvisorPage() {
                   <small className="advisor-message__sources">
                     Context: {item.sources.join(' · ')}
                   </small>
-                )}
-                {isEndOfSenderGroup && item.role === 'advisor' && conversationId && (
-                  <div
-                    className="advisor-message__feedback"
-                    aria-label="Rate this advisor response"
-                  >
-                    <span>Was this useful?</span>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => void handleFeedback(index, true, item.createdAt)}
-                      disabled={item.feedbackHelpful === false}
-                      aria-pressed={item.feedbackHelpful === true}
-                    >
-                      Yes
-                    </Button>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => void handleFeedback(index, false, item.createdAt)}
-                      disabled={item.feedbackHelpful === true}
-                      aria-pressed={item.feedbackHelpful === false}
-                    >
-                      No
-                    </Button>
-                  </div>
                 )}
               </div>
             );
