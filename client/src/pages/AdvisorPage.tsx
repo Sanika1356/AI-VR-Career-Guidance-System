@@ -38,6 +38,10 @@ function normalizeAdvisorMarkdown(value: string): string {
     .replace(/\\([*_`\[\]\\])/g, '$1')
     .replace(/\r\n?/g, '\n')
     .replace(
+      /^(#{1,6})\s+\d+[.)]\s+(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\s*$/gim,
+      '## $2',
+    )
+    .replace(
       /^\*\*(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\*\*\s*:?[ \t]*/gim,
       '## $1\n\n',
     )
@@ -101,7 +105,7 @@ function renderAdvisorAnswer(answer: string) {
       continue;
     }
 
-    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (heading) {
       const Heading = heading[1].length === 1 ? 'h3' : heading[1].length === 2 ? 'h4' : 'h5';
       blocks.push(
@@ -180,7 +184,7 @@ function renderAdvisorAnswer(answer: string) {
     while (
       index < lines.length &&
       lines[index]?.trim() &&
-      !/^(#{1,3})\s+/.test(lines[index]?.trim() ?? '') &&
+      !/^(#{1,6})\s+/.test(lines[index]?.trim() ?? '') &&
       !isListLine(lines[index]?.trim() ?? '') &&
       lines[index]?.trim() !== '---' &&
       lines[index]?.trim() !== '***'
