@@ -527,6 +527,17 @@ async function safeGeminiErrorCode(
   }
 }
 
+const CURRENT_GROQ_CHAT_MODEL = "openai/gpt-oss-20b";
+const RETIRED_GROQ_CHAT_MODELS = new Set(["llama-3.3-70b-versatile"]);
+
+export function normalizeGroqModel(model: string): string {
+  const configuredModel = model.trim();
+  if (!configuredModel || RETIRED_GROQ_CHAT_MODELS.has(configuredModel)) {
+    return CURRENT_GROQ_CHAT_MODEL;
+  }
+  return configuredModel;
+}
+
 export function buildGroqChatCompletionsUrl(baseUrl: string): string {
   return `${baseUrl.trim().replace(/\/+$/, "")}/chat/completions`;
 }
@@ -929,7 +940,7 @@ export class GroqAdvisorProvider implements AdvisorProvider {
     try {
       return await requestGroqChatCompletions(
         prompt,
-        env.groqModel,
+        normalizeGroqModel(env.groqModel),
         apiKey,
         controller.signal,
       );
@@ -1185,6 +1196,7 @@ export async function chatAdvisor(
       secondaryAiEnabled: env.secondaryAiEnabled,
       secondaryAiProvider: env.secondaryAiProvider,
       groqKeyConfigured: Boolean(env.groqApiKey?.trim()),
+      groqModel: normalizeGroqModel(env.groqModel),
       ollamaEnabled: env.ollamaEnabled,
     });
     const aiStartedAt = Date.now();
