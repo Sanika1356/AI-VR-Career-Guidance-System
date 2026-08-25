@@ -48,6 +48,12 @@ test("Render and Neon deployment templates keep credentials as private placehold
   assert.match(renderManifest, /healthCheckPath: \/api\/health/);
   assert.match(renderManifest, /key: AI_ADVISOR_ENABLED\n\s+value: "true"/);
   assert.match(renderManifest, /key: OLLAMA_ENABLED\n\s+value: "false"/);
+  assert.match(renderManifest, /key: GEMINI_ENABLED\n\s+value: "true"/);
+  assert.match(renderManifest, /key: GEMINI_API_KEY\n\s+sync: false/);
+  assert.match(
+    renderManifest,
+    /key: GEMINI_MODEL\n\s+value: gemini-2\.5-flash/,
+  );
   assert.match(renderManifest, /key: DATABASE_URL\n\s+sync: false/);
   assert.match(renderManifest, /key: RUN_SEED_DATA\n\s+value: "true"/);
   assert.match(
