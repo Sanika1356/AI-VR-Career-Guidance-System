@@ -55,10 +55,10 @@ export interface AdvisorResponse {
 }
 
 export interface AdvisorProvider {
-  generate(prompt: string): Promise<string>;
+  generate(prompt: string, timeoutMs?: number): Promise<string>;
 }
 
-type AdvisorProviderName = "gemini" | "ollama" | "custom" | "none";
+type AdvisorProviderName = "gemini" | "groq" | "ollama" | "custom" | "none";
 type AdvisorProviderFailureCategory =
   | "configuration"
   | "authentication"
@@ -137,6 +137,13 @@ function selectedProviderName(
 ): AdvisorProviderName {
   if (injectedProvider) return "custom";
   if (env.geminiEnabled && Boolean(env.geminiApiKey?.trim())) return "gemini";
+  if (
+    env.secondaryAiEnabled &&
+    env.secondaryAiProvider === "groq" &&
+    Boolean(env.groqApiKey?.trim())
+  ) {
+    return "groq";
+  }
   if (env.ollamaEnabled) return "ollama";
   return "none";
 }
@@ -283,12 +290,19 @@ function isRetryableProviderFailure(error: unknown): boolean {
   return ["timeout", "network", "upstream_http"].includes(error.category);
 }
 
+function isTemporaryProviderFailure(error: unknown): boolean {
+  if (!(error instanceof AdvisorProviderError)) return true;
+  return ["quota", "timeout", "network", "upstream_http"].includes(
+    error.category,
+  );
+}
+
 async function generateWithRetry(
   provider: AdvisorProvider,
   prompt: string,
+  deadlineAt = Date.now() + Math.max(1, env.aiRequestTimeoutMs),
 ): Promise<string> {
   let lastError: unknown;
-  const deadlineAt = Date.now() + Math.max(1, env.aiRequestTimeoutMs);
 
   for (let attempt = 0; attempt <= env.aiRetryAttempts; attempt += 1) {
     const remainingMs = deadlineAt - Date.now();
@@ -299,7 +313,7 @@ async function generateWithRetry(
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const providerRequest = provider.generate(prompt);
+      const providerRequest = provider.generate(prompt, remainingMs);
       const deadline = new Promise<never>((_, reject) => {
         timer = setTimeout(
           () => reject(new AdvisorProviderTimeoutError()),
@@ -403,7 +417,7 @@ export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
     } = {},
   ) {}
 
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, timeoutMs?: number): Promise<string> {
     const failureThreshold = Math.max(
       1,
       this.options.failureThreshold ?? env.aiCircuitFailureThreshold,
@@ -421,7 +435,7 @@ export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
     }
 
     try {
-      const answer = await this.provider.generate(prompt);
+      const answer = await this.provider.generate(prompt, timeoutMs);
       this.consecutiveFailures = 0;
       return answer;
     } catch (error) {
@@ -435,11 +449,14 @@ export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
 }
 
 export class OllamaAdvisorProvider implements AdvisorProvider {
-  async generate(prompt: string): Promise<string> {
+  async generate(
+    prompt: string,
+    timeoutMs = env.aiRequestTimeoutMs,
+  ): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
-      env.aiRequestTimeoutMs,
+      Math.max(1, timeoutMs),
     );
     try {
       const response = await fetch(
@@ -508,6 +525,41 @@ async function safeGeminiErrorCode(
   } catch {
     return undefined;
   }
+}
+
+export function buildGroqChatCompletionsUrl(baseUrl: string): string {
+  return `${baseUrl.trim().replace(/\/+$/, "")}/chat/completions`;
+}
+
+async function safeGroqErrorCode(
+  response: Response,
+): Promise<string | undefined> {
+  try {
+    const payload = (await response.json()) as {
+      error?: { code?: unknown; type?: unknown };
+    };
+    const code = payload.error?.code ?? payload.error?.type;
+    return typeof code === "string" &&
+      /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(code)
+      ? code
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function groqFailureCategory(
+  statusCode: number,
+): Exclude<AdvisorProviderFailureCategory, "configuration" | "unknown"> {
+  return statusCode === 401 || statusCode === 403
+    ? "authentication"
+    : statusCode === 429
+      ? "quota"
+      : statusCode === 400
+        ? "request_schema"
+        : statusCode === 404
+          ? "model_or_endpoint_not_found"
+          : "upstream_http";
 }
 
 function safeGeminiEndpointPath(model = env.geminiModel): string {
@@ -763,8 +815,135 @@ async function requestGeminiGenerateContent(
   }
 }
 
+async function requestGroqChatCompletions(
+  prompt: string,
+  model: string,
+  apiKey: string,
+  signal: AbortSignal,
+): Promise<string> {
+  const startedAt = Date.now();
+  const endpoint = buildGroqChatCompletionsUrl(env.groqBaseUrl);
+  const maxCompletionTokens = Math.min(600, env.groqMaxOutputTokens);
+  logAdvisorProviderEvent("advisor_secondary_request_started", {
+    provider: "groq",
+    model,
+  });
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        max_completion_tokens: maxCompletionTokens,
+        stream: false,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const providerErrorCode = await safeGroqErrorCode(response);
+      const category = groqFailureCategory(response.status);
+      const error = new AdvisorProviderError(
+        "groq",
+        category,
+        `Groq returned HTTP ${response.status}`,
+        response.status,
+        providerErrorCode,
+      );
+      logAdvisorProviderEvent("advisor_secondary_request_failed", {
+        provider: "groq",
+        model,
+        durationMs: Date.now() - startedAt,
+        category,
+        statusCode: response.status,
+        ...(providerErrorCode === undefined ? {} : { providerErrorCode }),
+      });
+      throw error;
+    }
+
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: unknown } }>;
+    };
+    const content = payload.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || content.trim().length === 0) {
+      const error = new AdvisorProviderError(
+        "groq",
+        "empty_response",
+        "Groq returned no usable text",
+      );
+      logAdvisorProviderEvent("advisor_secondary_request_failed", {
+        provider: "groq",
+        model,
+        durationMs: Date.now() - startedAt,
+        category: error.category,
+      });
+      throw error;
+    }
+    logAdvisorProviderEvent("advisor_secondary_request_completed", {
+      provider: "groq",
+      model,
+      durationMs: Date.now() - startedAt,
+      statusCode: response.status,
+    });
+    return content.trim();
+  } catch (error) {
+    if (error instanceof AdvisorProviderError) throw error;
+    const failure =
+      (error instanceof DOMException && error.name === "AbortError") ||
+      (error instanceof Error && error.name === "AbortError")
+        ? new AdvisorProviderError("groq", "timeout", "Groq request timed out")
+        : new AdvisorProviderError("groq", "network", "Groq request failed");
+    logAdvisorProviderEvent("advisor_secondary_request_failed", {
+      provider: "groq",
+      model,
+      durationMs: Date.now() - startedAt,
+      category: failure.category,
+    });
+    throw failure;
+  }
+}
+
+export class GroqAdvisorProvider implements AdvisorProvider {
+  async generate(
+    prompt: string,
+    timeoutMs = env.aiRequestTimeoutMs,
+  ): Promise<string> {
+    const apiKey = env.groqApiKey?.trim();
+    if (!apiKey) {
+      throw new AdvisorProviderError(
+        "groq",
+        "configuration",
+        "Groq API key is not configured",
+      );
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      Math.max(1, timeoutMs),
+    );
+    try {
+      return await requestGroqChatCompletions(
+        prompt,
+        env.groqModel,
+        apiKey,
+        controller.signal,
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
 export class GeminiAdvisorProvider implements AdvisorProvider {
-  async generate(prompt: string): Promise<string> {
+  async generate(
+    prompt: string,
+    timeoutMs = env.aiRequestTimeoutMs,
+  ): Promise<string> {
     const apiKey = env.geminiApiKey?.trim();
     if (!apiKey) {
       throw new AdvisorProviderError(
@@ -777,7 +956,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
-      env.aiRequestTimeoutMs,
+      Math.max(1, timeoutMs),
     );
     try {
       const requestedModel = normalizeGeminiModel(env.geminiModel);
@@ -861,6 +1040,9 @@ export class FallbackAdvisorProvider implements AdvisorProvider {
 // Injected providers remain unwrapped so tests and explicit callers retain control.
 const geminiCircuitBreaker = new CircuitBreakerAdvisorProvider(
   new GeminiAdvisorProvider(),
+);
+const groqCircuitBreaker = new CircuitBreakerAdvisorProvider(
+  new GroqAdvisorProvider(),
 );
 const ollamaCircuitBreaker = new CircuitBreakerAdvisorProvider(
   new OllamaAdvisorProvider(),
@@ -982,29 +1164,52 @@ export async function chatAdvisor(
       conversationHistory,
     );
 
-    let answer: string;
+    let answer: string | undefined;
     let mode: AdvisorResponse["mode"] = "deterministic_fallback";
     const providerName = selectedProviderName(provider);
     const selectedProvider =
       provider ??
       (providerName === "gemini"
         ? geminiCircuitBreaker
-        : providerName === "ollama"
-          ? ollamaCircuitBreaker
-          : undefined);
+        : providerName === "groq"
+          ? groqCircuitBreaker
+          : providerName === "ollama"
+            ? ollamaCircuitBreaker
+            : undefined);
     logAdvisorProviderEvent("advisor_provider_selected", {
       provider: providerName,
       geminiEnabled: env.geminiEnabled,
       geminiKeyConfigured: Boolean(env.geminiApiKey?.trim()),
       geminiModel: normalizeGeminiModel(env.geminiModel),
       geminiEndpointPath: safeGeminiEndpointPath(),
+      secondaryAiEnabled: env.secondaryAiEnabled,
+      secondaryAiProvider: env.secondaryAiProvider,
+      groqKeyConfigured: Boolean(env.groqApiKey?.trim()),
       ollamaEnabled: env.ollamaEnabled,
     });
     const aiStartedAt = Date.now();
+    const aiDeadlineAt = aiStartedAt + Math.max(1, env.aiRequestTimeoutMs);
+    const canUseGroqFailover =
+      providerName === "gemini" &&
+      env.secondaryAiEnabled &&
+      env.secondaryAiProvider.trim().toLowerCase() === "groq" &&
+      Boolean(env.groqApiKey?.trim());
+    const secondaryBudgetMs = canUseGroqFailover
+      ? Math.min(
+          Math.max(1_000, env.secondaryAiTimeoutMs),
+          Math.max(1_000, env.aiRequestTimeoutMs - 1_000),
+        )
+      : 0;
+    const primaryDeadlineAt = aiDeadlineAt - secondaryBudgetMs;
+    let finalError: unknown;
     try {
       if (!selectedProvider)
         throw new Error("No advisor provider is configured");
-      answer = await generateWithRetry(selectedProvider, prompt);
+      answer = await generateWithRetry(
+        selectedProvider,
+        prompt,
+        primaryDeadlineAt,
+      );
       mode = "provider";
       logAdvisorProviderEvent("advisor_provider_succeeded", {
         provider: providerName,
@@ -1016,29 +1221,64 @@ export async function chatAdvisor(
         durationMs: Date.now() - aiStartedAt,
       });
     } catch (error) {
-      const failure = providerFailureDetails(error);
-      logAdvisorProviderEvent("advisor_provider_fallback", {
-        provider: providerName,
-        category: failure.category,
-        ...(failure.statusCode === undefined
-          ? {}
-          : { statusCode: failure.statusCode }),
-        ...(failure.providerErrorCode === undefined
-          ? {}
-          : { providerErrorCode: failure.providerErrorCode }),
-      });
-      observeAiRequest({
-        success: false,
-        fallback: true,
-        durationMs: Date.now() - aiStartedAt,
-      });
-      answer = limitAdvisorOutput(
-        await new FallbackAdvisorProvider({
-          message: input.message,
-          careerName: career?.name,
-          missingSkills: allowPersonalization ? missingSkills : [],
-        }).generate(),
-      );
+      finalError = error;
+      const canFailOverToGroq =
+        canUseGroqFailover && isTemporaryProviderFailure(error);
+      if (canFailOverToGroq) {
+        logAdvisorProviderEvent("advisor_secondary_provider_selected", {
+          primaryProvider: "gemini",
+          provider: "groq",
+        });
+        try {
+          const secondaryDeadlineAt = Math.min(
+            aiDeadlineAt,
+            Date.now() + secondaryBudgetMs,
+          );
+          answer = await generateWithRetry(
+            groqCircuitBreaker,
+            prompt,
+            secondaryDeadlineAt,
+          );
+          mode = "provider";
+          logAdvisorProviderEvent("advisor_provider_succeeded", {
+            provider: "groq",
+            failoverFrom: "gemini",
+            durationMs: Date.now() - aiStartedAt,
+          });
+          observeAiRequest({
+            success: true,
+            fallback: false,
+            durationMs: Date.now() - aiStartedAt,
+          });
+        } catch (secondaryError) {
+          finalError = secondaryError;
+        }
+      }
+      if (!answer) {
+        const failure = providerFailureDetails(finalError);
+        logAdvisorProviderEvent("advisor_provider_fallback", {
+          provider: providerName,
+          category: failure.category,
+          ...(failure.statusCode === undefined
+            ? {}
+            : { statusCode: failure.statusCode }),
+          ...(failure.providerErrorCode === undefined
+            ? {}
+            : { providerErrorCode: failure.providerErrorCode }),
+        });
+        observeAiRequest({
+          success: false,
+          fallback: true,
+          durationMs: Date.now() - aiStartedAt,
+        });
+        answer = limitAdvisorOutput(
+          await new FallbackAdvisorProvider({
+            message: input.message,
+            careerName: career?.name,
+            missingSkills: allowPersonalization ? missingSkills : [],
+          }).generate(),
+        );
+      }
     }
 
     await client.query("BEGIN");

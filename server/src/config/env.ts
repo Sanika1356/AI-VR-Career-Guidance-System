@@ -52,6 +52,19 @@ export const env = {
     256,
     Math.floor(numberFromEnv(process.env.GEMINI_MAX_OUTPUT_TOKENS, 600)),
   ),
+  secondaryAiEnabled: booleanFromEnv(process.env.SECONDARY_AI_ENABLED, false),
+  secondaryAiProvider: process.env.SECONDARY_AI_PROVIDER ?? "groq",
+  groqApiKey: process.env.GROQ_API_KEY,
+  groqBaseUrl: process.env.GROQ_BASE_URL ?? "https://api.groq.com/openai/v1",
+  groqModel: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
+  groqMaxOutputTokens: Math.max(
+    256,
+    Math.floor(numberFromEnv(process.env.GROQ_MAX_OUTPUT_TOKENS, 600)),
+  ),
+  secondaryAiTimeoutMs: Math.max(
+    1_000,
+    Math.floor(numberFromEnv(process.env.SECONDARY_AI_TIMEOUT_MS, 8_000)),
+  ),
   aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 15_000),
   aiMaxResponseChars: Math.max(
     200,

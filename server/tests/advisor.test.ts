@@ -5,10 +5,12 @@ import { app } from "../src/app.js";
 import { env } from "../src/config/env.js";
 import {
   buildGeminiGenerateContentUrl,
+  buildGroqChatCompletionsUrl,
   normalizeGeminiModel,
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
   GeminiAdvisorProvider,
+  GroqAdvisorProvider,
   OllamaAdvisorProvider,
   type AdvisorProvider,
 } from "../src/services/advisor.service.js";
@@ -675,6 +677,199 @@ test("Gemini provider uses the GenerateContent maxOutputTokens schema", async ()
   } finally {
     env.geminiApiKey = previousKey;
     env.geminiMaxOutputTokens = previousMaxTokens;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Groq builds the documented chat-completions URL", () => {
+  assert.equal(
+    buildGroqChatCompletionsUrl("https://api.groq.com/openai/v1/"),
+    "https://api.groq.com/openai/v1/chat/completions",
+  );
+});
+
+test("Gemini quota failure fails over once to Groq and returns provider mode", async () => {
+  const previousGeminiEnabled = env.geminiEnabled;
+  const previousGeminiKey = env.geminiApiKey;
+  const previousGeminiModel = env.geminiModel;
+  const previousSecondaryEnabled = env.secondaryAiEnabled;
+  const previousSecondaryProvider = env.secondaryAiProvider;
+  const previousGroqKey = env.groqApiKey;
+  const previousGroqModel = env.groqModel;
+  const previousGroqBaseUrl = env.groqBaseUrl;
+  const previousOllama = env.ollamaEnabled;
+  const previousCircuitThreshold = env.aiCircuitFailureThreshold;
+  const originalFetch = globalThis.fetch;
+  const requests: Array<{ url: string; init?: RequestInit }> = [];
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash-lite";
+  env.secondaryAiEnabled = true;
+  env.secondaryAiProvider = "groq";
+  env.groqApiKey = "test-groq-key";
+  env.groqModel = "llama-3.3-70b-versatile";
+  env.groqBaseUrl = "https://api.groq.com/openai/v1";
+  env.ollamaEnabled = false;
+  env.aiCircuitFailureThreshold = 1000;
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    requests.push({ url, init });
+    if (url.endsWith("/v1beta/models/gemini-2.5-flash-lite:generateContent")) {
+      return {
+        ok: false,
+        status: 429,
+        json: async () => ({ error: { status: "RESOURCE_EXHAUSTED" } }),
+      };
+    }
+    if (url.endsWith("/chat/completions")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content:
+                  "Groq generated this grounded Data Analyst learning plan.",
+              },
+            },
+          ],
+        }),
+      };
+    }
+    throw new Error("unexpected secondary-provider URL");
+  }) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next for a Data Analyst career?" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "provider");
+    assert.match(response.answer, /Groq generated/);
+    assert.deepEqual(
+      requests.map((request) => request.url),
+      [
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+        "https://api.groq.com/openai/v1/chat/completions",
+      ],
+    );
+    const secondaryRequest = requests[1];
+    assert.ok(secondaryRequest);
+    assert.equal(
+      new Headers(secondaryRequest.init?.headers).get("authorization"),
+      "Bearer test-groq-key",
+    );
+    const body = JSON.parse(String(secondaryRequest.init?.body ?? "{}")) as {
+      model?: string;
+      messages?: Array<{ role?: string; content?: string }>;
+      max_completion_tokens?: number;
+      stream?: boolean;
+    };
+    assert.equal(body.model, "llama-3.3-70b-versatile");
+    assert.equal(body.messages?.[0]?.role, "user");
+    assert.match(body.messages?.[0]?.content ?? "", /Data Analyst/);
+    assert.equal(body.max_completion_tokens, 600);
+    assert.equal(body.stream, false);
+  } finally {
+    env.geminiEnabled = previousGeminiEnabled;
+    env.geminiApiKey = previousGeminiKey;
+    env.geminiModel = previousGeminiModel;
+    env.secondaryAiEnabled = previousSecondaryEnabled;
+    env.secondaryAiProvider = previousSecondaryProvider;
+    env.groqApiKey = previousGroqKey;
+    env.groqModel = previousGroqModel;
+    env.groqBaseUrl = previousGroqBaseUrl;
+    env.ollamaEnabled = previousOllama;
+    env.aiCircuitFailureThreshold = previousCircuitThreshold;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Groq quota failure preserves deterministic fallback after Gemini quota failure", async () => {
+  const previousGeminiEnabled = env.geminiEnabled;
+  const previousGeminiKey = env.geminiApiKey;
+  const previousSecondaryEnabled = env.secondaryAiEnabled;
+  const previousSecondaryProvider = env.secondaryAiProvider;
+  const previousGroqKey = env.groqApiKey;
+  const previousOllama = env.ollamaEnabled;
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.secondaryAiEnabled = true;
+  env.secondaryAiProvider = "groq";
+  env.groqApiKey = "test-groq-key";
+  env.ollamaEnabled = false;
+  globalThis.fetch = (async (input) => {
+    const url = String(input);
+    requests.push(url);
+    return {
+      ok: false,
+      status: 429,
+      json: async () => ({ error: { status: "RESOURCE_EXHAUSTED" } }),
+    };
+  }) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next?" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.equal(requests.length, 2);
+    assert.match(response.answer, /I can help you plan your next career step/);
+  } finally {
+    env.geminiEnabled = previousGeminiEnabled;
+    env.geminiApiKey = previousGeminiKey;
+    env.secondaryAiEnabled = previousSecondaryEnabled;
+    env.secondaryAiProvider = previousSecondaryProvider;
+    env.groqApiKey = previousGroqKey;
+    env.ollamaEnabled = previousOllama;
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Gemini 503 does not trigger model discovery when Groq is disabled", async () => {
+  const previousGeminiEnabled = env.geminiEnabled;
+  const previousGeminiKey = env.geminiApiKey;
+  const previousSecondaryEnabled = env.secondaryAiEnabled;
+  const previousOllama = env.ollamaEnabled;
+  const previousCircuitThreshold = env.aiCircuitFailureThreshold;
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.secondaryAiEnabled = false;
+  env.ollamaEnabled = false;
+  env.aiCircuitFailureThreshold = 1000;
+  globalThis.fetch = (async (input) => {
+    requests.push(String(input));
+    return {
+      ok: false,
+      status: 503,
+      json: async () => ({ error: { status: "UNAVAILABLE" } }),
+    };
+  }) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next?" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.deepEqual(requests, [
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+    ]);
+  } finally {
+    env.geminiEnabled = previousGeminiEnabled;
+    env.geminiApiKey = previousGeminiKey;
+    env.secondaryAiEnabled = previousSecondaryEnabled;
+    env.ollamaEnabled = previousOllama;
+    env.aiCircuitFailureThreshold = previousCircuitThreshold;
     globalThis.fetch = originalFetch;
   }
 });

@@ -49,6 +49,20 @@ services:
         value: https://generativelanguage.googleapis.com
       - key: GEMINI_MAX_OUTPUT_TOKENS
         value: "600"
+      - key: SECONDARY_AI_ENABLED
+        value: "false"
+      - key: SECONDARY_AI_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_MAX_OUTPUT_TOKENS
+        value: "600"
+      - key: SECONDARY_AI_TIMEOUT_MS
+        value: "8000"
       - key: AI_REQUEST_TIMEOUT_MS
         value: "15000"
       - key: AI_MAX_RESPONSE_CHARS
