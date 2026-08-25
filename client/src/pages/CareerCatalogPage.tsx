@@ -135,11 +135,15 @@ export function CareerCatalogPage({ onNavigate }: CareerCatalogPageProps) {
                 {career.skills.length > 4 && <Badge>+{career.skills.length - 4} more</Badge>}
               </div>
               <button
-                className="text-link career-card__link"
+                className="career-card__details-button"
                 type="button"
+                aria-label={`View details for ${career.name}`}
                 onClick={() => onNavigate(`/careers/${encodeURIComponent(career.id)}`)}
               >
-                View career details <span aria-hidden="true">↗</span>
+                <span>View career details</span>
+                <span className="career-card__details-arrow" aria-hidden="true">
+                  ↗
+                </span>
               </button>
             </Card>
           ))}
