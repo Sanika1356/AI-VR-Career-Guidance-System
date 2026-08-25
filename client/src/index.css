@@ -1046,6 +1046,9 @@ em {
   margin: 0;
   padding-top: 16px;
 }
+.profile-page__form-card {
+  grid-column: 1 / -1;
+}
 .profile-form {
   display: grid;
   gap: 20px;
@@ -1054,7 +1057,7 @@ em {
 .profile-form__fields {
   display: grid;
   gap: 20px 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .profile-form__fields > .profile-choice-group,
 .profile-form__fields > .ui-field {
@@ -1096,6 +1099,11 @@ em {
   gap: 12px;
   justify-content: flex-end;
   padding-top: 4px;
+}
+@media (max-width: 1020px) {
+  .profile-form__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 @media (max-width: 760px) {
   .profile-page {
