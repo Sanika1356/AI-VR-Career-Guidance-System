@@ -41,7 +41,8 @@ type ProfileErrors = Partial<Record<ProfileField | 'form', string>>;
 type RadioOption = {
   value: string;
   label: string;
-  description: string;
+  description?: string;
+  apiValue?: string;
 };
 
 const interestOptions: RadioOption[] = [
@@ -298,9 +299,9 @@ const educationOptions: RadioOption[] = [
   { value: '', label: 'Prefer not to say', description: 'Keep this optional context private.' },
   { value: 'secondary', label: 'Secondary education', description: 'High school or equivalent.' },
   {
-    value: 'vocational',
-    label: 'Vocational or trade',
-    description: 'Career-focused technical training.',
+    value: 'other',
+    label: 'Vocational, self-taught, or other',
+    description: 'A career-focused or alternative learning path.',
   },
   {
     value: 'undergraduate',
@@ -317,11 +318,6 @@ const educationOptions: RadioOption[] = [
     value: 'working-professional',
     label: 'Working professional',
     description: 'Currently established in a career.',
-  },
-  {
-    value: 'self-taught-or-other',
-    label: 'Self-taught or other',
-    description: 'A different learning path.',
   },
 ];
 
@@ -482,24 +478,31 @@ function RadioChoiceGroup({
       </legend>
       <p className="profile-choice-group__hint">{hint}</p>
       <div className="profile-choice-grid" aria-labelledby={`${id}-legend`}>
-        {options.map((option) => (
-          <label
-            className={`profile-choice ${selectedValue === option.value ? 'profile-choice--selected' : ''}`.trim()}
-            key={option.value}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={selectedValue === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span className="profile-choice__copy">
-              <strong>{option.label}</strong>
-              <small>{option.description}</small>
-            </span>
-          </label>
-        ))}
+        {options.map((option) => {
+          const isCanonicalApiValue = !option.apiValue || option.apiValue === option.value;
+          const isSelected =
+            selectedValue === option.value ||
+            (isCanonicalApiValue && selectedValue === (option.apiValue ?? option.value));
+          const submittedValue = option.apiValue ?? option.value;
+
+          return (
+            <label
+              className={`profile-choice ${isSelected ? 'profile-choice--selected' : ''}`.trim()}
+              key={option.value}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={option.value}
+                checked={isSelected}
+                onChange={() => onChange(submittedValue)}
+              />
+              <span className="profile-choice__copy">
+                <strong>{option.label}</strong>
+              </span>
+            </label>
+          );
+        })}
       </div>
       {error && (
         <p className="ui-field__error" id={`${id}-error`} role="alert">
