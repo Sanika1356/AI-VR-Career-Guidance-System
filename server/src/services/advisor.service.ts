@@ -681,7 +681,6 @@ async function requestGeminiGenerateContent(
             ? { thinkingConfig: geminiThinkingConfig(model) }
             : {}),
         },
-        store: false,
       }),
       signal,
     });
