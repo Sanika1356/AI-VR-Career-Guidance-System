@@ -1,6 +1,5 @@
 import type { UserSummary } from '../types/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { API_BASE_URL } from './apiBase';
 const SESSION_STORAGE_KEY = 'pathfinder.auth.session';
 const SESSION_EXPIRED_EVENT = 'pathfinder:session-expired';
 
