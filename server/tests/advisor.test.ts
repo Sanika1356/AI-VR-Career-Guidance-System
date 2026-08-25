@@ -7,6 +7,7 @@ import {
   buildGeminiGenerateContentUrl,
   buildGroqChatCompletionsUrl,
   normalizeGeminiModel,
+  normalizeGroqModel,
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
   GeminiAdvisorProvider,
@@ -16,6 +17,18 @@ import {
 } from "../src/services/advisor.service.js";
 import type { DatabaseClient, DatabasePool } from "../src/db/types.js";
 import { validateAdvisorChatInput } from "../src/validators/advisor.js";
+
+test("Groq model normalization replaces only the previously retired default", () => {
+  assert.equal(
+    normalizeGroqModel("llama-3.3-70b-versatile"),
+    "openai/gpt-oss-20b",
+  );
+  assert.equal(
+    normalizeGroqModel("custom-supported-model"),
+    "custom-supported-model",
+  );
+  assert.equal(normalizeGroqModel(""), "openai/gpt-oss-20b");
+});
 
 class FakeClient implements DatabaseClient {
   readonly queries: string[] = [];
