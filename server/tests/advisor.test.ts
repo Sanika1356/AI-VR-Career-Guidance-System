@@ -130,6 +130,15 @@ class LongProvider implements AdvisorProvider {
   }
 }
 
+class HangingProvider implements AdvisorProvider {
+  attempts = 0;
+
+  async generate(): Promise<string> {
+    this.attempts += 1;
+    return new Promise<string>(() => undefined);
+  }
+}
+
 test("advisor enriches the local provider prompt with profile, assessment, career, skill gap, and roadmap context", async () => {
   const database = new FakePool();
   const provider = new RecordingProvider();
@@ -719,6 +728,31 @@ test("advisor circuit breaker opens after repeated failures and recovers after c
   await assert.rejects(() => breaker.generate("first"), /local Ollama/);
   await assert.rejects(() => breaker.generate("second"), /local Ollama/);
   await assert.rejects(() => breaker.generate("third"), /circuit is open/);
+});
+
+test("advisor bounds a provider that never settles and returns fallback", async () => {
+  const previousTimeout = env.aiRequestTimeoutMs;
+  const previousRetries = env.aiRetryAttempts;
+  const provider = new HangingProvider();
+  env.aiRequestTimeoutMs = 25;
+  env.aiRetryAttempts = 1;
+
+  try {
+    const startedAt = Date.now();
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next?" },
+      new FakePool(),
+      provider,
+    );
+
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.equal(provider.attempts, 1);
+    assert.ok(Date.now() - startedAt < 500);
+  } finally {
+    env.aiRequestTimeoutMs = previousTimeout;
+    env.aiRetryAttempts = previousRetries;
+  }
 });
 
 test("advisor retries one transient provider failure and caps long responses", async () => {
