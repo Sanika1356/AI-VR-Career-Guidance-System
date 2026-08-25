@@ -58,6 +58,73 @@ export interface AdvisorProvider {
   generate(prompt: string): Promise<string>;
 }
 
+type AdvisorProviderName = "gemini" | "ollama" | "custom" | "none";
+type AdvisorProviderFailureCategory =
+  | "configuration"
+  | "authentication"
+  | "quota"
+  | "upstream_http"
+  | "timeout"
+  | "network"
+  | "response_shape"
+  | "empty_response"
+  | "unknown";
+
+class AdvisorProviderError extends Error {
+  constructor(
+    readonly provider: Exclude<AdvisorProviderName, "none" | "custom">,
+    readonly category: AdvisorProviderFailureCategory,
+    message: string,
+    readonly statusCode?: number,
+  ) {
+    super(message);
+    this.name = "AdvisorProviderError";
+  }
+}
+
+function providerFailureDetails(error: unknown): {
+  category: AdvisorProviderFailureCategory;
+  statusCode?: number;
+} {
+  if (error instanceof AdvisorProviderError) {
+    return {
+      category: error.category,
+      ...(error.statusCode === undefined
+        ? {}
+        : { statusCode: error.statusCode }),
+    };
+  }
+  if (
+    (error instanceof DOMException && error.name === "AbortError") ||
+    (error instanceof Error && error.name === "AbortError")
+  ) {
+    return { category: "timeout" };
+  }
+  if (error instanceof TypeError) return { category: "network" };
+  return { category: "unknown" };
+}
+
+function logAdvisorProviderEvent(
+  event: string,
+  fields: Record<string, unknown>,
+): void {
+  console.info(
+    JSON.stringify({
+      event,
+      ...fields,
+    }),
+  );
+}
+
+function selectedProviderName(
+  injectedProvider: AdvisorProvider | undefined,
+): AdvisorProviderName {
+  if (injectedProvider) return "custom";
+  if (env.geminiEnabled && Boolean(env.geminiApiKey?.trim())) return "gemini";
+  if (env.ollamaEnabled) return "ollama";
+  return "none";
+}
+
 function parseArray(value: string[] | string | null): string[] {
   if (Array.isArray(value))
     return value.filter((item): item is string => typeof item === "string");
@@ -341,7 +408,14 @@ export class OllamaAdvisorProvider implements AdvisorProvider {
 
 export class GeminiAdvisorProvider implements AdvisorProvider {
   async generate(prompt: string): Promise<string> {
-    if (!env.geminiApiKey) throw new Error("Gemini API key is not configured");
+    const apiKey = env.geminiApiKey?.trim();
+    if (!apiKey) {
+      throw new AdvisorProviderError(
+        "gemini",
+        "configuration",
+        "Gemini API key is not configured",
+      );
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(
@@ -354,7 +428,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-goog-api-key": env.geminiApiKey,
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -365,9 +439,30 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
         }),
         signal: controller.signal,
       });
-      if (!response.ok)
-        throw new Error(`Gemini returned HTTP ${response.status}`);
-      const payload: unknown = await response.json();
+      if (!response.ok) {
+        const category =
+          response.status === 401 || response.status === 403
+            ? "authentication"
+            : response.status === 429
+              ? "quota"
+              : "upstream_http";
+        throw new AdvisorProviderError(
+          "gemini",
+          category,
+          `Gemini returned HTTP ${response.status}`,
+          response.status,
+        );
+      }
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch {
+        throw new AdvisorProviderError(
+          "gemini",
+          "response_shape",
+          "Gemini returned invalid JSON",
+        );
+      }
       const parts = (
         payload as {
           candidates?: Array<{
@@ -381,8 +476,31 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
             .join("\n")
             .trim()
         : "";
-      if (!content) throw new Error("Gemini returned an empty answer");
+      if (!content) {
+        throw new AdvisorProviderError(
+          "gemini",
+          "empty_response",
+          "Gemini returned no usable text",
+        );
+      }
       return content;
+    } catch (error) {
+      if (error instanceof AdvisorProviderError) throw error;
+      if (
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && error.name === "AbortError")
+      ) {
+        throw new AdvisorProviderError(
+          "gemini",
+          "timeout",
+          "Gemini request timed out",
+        );
+      }
+      throw new AdvisorProviderError(
+        "gemini",
+        "network",
+        "Gemini request failed",
+      );
     } finally {
       clearTimeout(timeout);
     }
@@ -527,25 +645,44 @@ export async function chatAdvisor(
 
     let answer: string;
     let mode: AdvisorResponse["mode"] = "deterministic_fallback";
+    const providerName = selectedProviderName(provider);
     const selectedProvider =
       provider ??
-      (env.geminiEnabled && env.geminiApiKey
+      (providerName === "gemini"
         ? new CircuitBreakerAdvisorProvider(new GeminiAdvisorProvider())
-        : env.ollamaEnabled
+        : providerName === "ollama"
           ? new CircuitBreakerAdvisorProvider(new OllamaAdvisorProvider())
           : undefined);
+    logAdvisorProviderEvent("advisor_provider_selected", {
+      provider: providerName,
+      geminiEnabled: env.geminiEnabled,
+      geminiKeyConfigured: Boolean(env.geminiApiKey?.trim()),
+      ollamaEnabled: env.ollamaEnabled,
+    });
     const aiStartedAt = Date.now();
     try {
       if (!selectedProvider)
         throw new Error("No advisor provider is configured");
       answer = await generateWithRetry(selectedProvider, prompt);
       mode = "provider";
+      logAdvisorProviderEvent("advisor_provider_succeeded", {
+        provider: providerName,
+        durationMs: Date.now() - aiStartedAt,
+      });
       observeAiRequest({
         success: true,
         fallback: false,
         durationMs: Date.now() - aiStartedAt,
       });
-    } catch {
+    } catch (error) {
+      const failure = providerFailureDetails(error);
+      logAdvisorProviderEvent("advisor_provider_fallback", {
+        provider: providerName,
+        category: failure.category,
+        ...(failure.statusCode === undefined
+          ? {}
+          : { statusCode: failure.statusCode }),
+      });
       observeAiRequest({
         success: false,
         fallback: true,

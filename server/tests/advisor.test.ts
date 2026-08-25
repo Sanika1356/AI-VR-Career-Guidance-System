@@ -377,6 +377,53 @@ test("advisor selects Gemini when the hosted provider is enabled", async () => {
   }
 });
 
+test("advisor logs sanitized Gemini authentication failures without secret values", async () => {
+  const previousEnabled = env.geminiEnabled;
+  const previousKey = env.geminiApiKey;
+  const previousOllama = env.ollamaEnabled;
+  const originalFetch = globalThis.fetch;
+  const originalInfo = console.info;
+  const logs: string[] = [];
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.ollamaEnabled = false;
+  console.info = (...args: unknown[]) => {
+    logs.push(args.map(String).join(" "));
+  };
+  globalThis.fetch = (async () => ({
+    ok: false,
+    status: 401,
+    json: async () => ({ error: { status: "UNAUTHENTICATED" } }),
+  })) as typeof fetch;
+
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "How do I start?", careerId: "career_ai_engineer" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    const selectionLog = logs
+      .map((entry) => JSON.parse(entry) as Record<string, unknown>)
+      .find((entry) => entry.event === "advisor_provider_selected");
+    const fallbackLog = logs
+      .map((entry) => JSON.parse(entry) as Record<string, unknown>)
+      .find((entry) => entry.event === "advisor_provider_fallback");
+    assert.equal(selectionLog?.provider, "gemini");
+    assert.equal(selectionLog?.geminiKeyConfigured, true);
+    assert.equal(fallbackLog?.provider, "gemini");
+    assert.equal(fallbackLog?.category, "authentication");
+    assert.equal(fallbackLog?.statusCode, 401);
+    assert.doesNotMatch(logs.join("\\n"), /test-gemini-key/);
+  } finally {
+    env.geminiEnabled = previousEnabled;
+    env.geminiApiKey = previousKey;
+    env.ollamaEnabled = previousOllama;
+    console.info = originalInfo;
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("advisor falls back when Gemini returns no candidates", async () => {
   const previousKey = env.geminiApiKey;
   const originalFetch = globalThis.fetch;
