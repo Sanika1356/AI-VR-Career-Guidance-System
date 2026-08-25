@@ -404,6 +404,10 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
         json: async () => ({
           models: [
             {
+              name: "models/gemini-2.5-flash",
+              supportedGenerationMethods: ["generateContent"],
+            },
+            {
               name: "models/gemini-2.5-flash-lite",
               supportedGenerationMethods: ["generateContent"],
             },

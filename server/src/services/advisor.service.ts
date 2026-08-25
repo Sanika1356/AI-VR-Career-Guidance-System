@@ -467,6 +467,7 @@ function buildGeminiModelsUrl(baseUrl: string): string {
 async function discoverGeminiGenerateContentModel(
   apiKey: string,
   signal: AbortSignal,
+  excludedModel?: string,
 ): Promise<string | undefined> {
   const response = await fetch(buildGeminiModelsUrl(env.geminiBaseUrl), {
     method: "GET",
@@ -505,11 +506,18 @@ async function discoverGeminiGenerateContentModel(
   if (supportedModels.length === 0) return undefined;
 
   const requestedModel = normalizeGeminiModel(env.geminiModel);
-  if (supportedModels.includes(requestedModel)) return requestedModel;
+  const excluded = excludedModel
+    ? normalizeGeminiModel(excludedModel)
+    : undefined;
+  if (!excluded && supportedModels.includes(requestedModel))
+    return requestedModel;
 
+  const alternatives = excluded
+    ? supportedModels.filter((model) => model !== excluded)
+    : supportedModels;
   return (
-    supportedModels.find((model) => /gemini-.*flash(?!.*image)/i.test(model)) ??
-    supportedModels.find((model) => /gemini/i.test(model))
+    alternatives.find((model) => /gemini-.*flash(?!.*image)/i.test(model)) ??
+    alternatives.find((model) => /gemini/i.test(model))
   );
 }
 
@@ -626,6 +634,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
         const discoveredModel = await discoverGeminiGenerateContentModel(
           apiKey,
           controller.signal,
+          requestedModel,
         );
         if (!discoveredModel || discoveredModel === requestedModel) throw error;
 
