@@ -72,7 +72,7 @@ type AdvisorProviderFailureCategory =
   | "empty_response"
   | "unknown";
 
-class AdvisorProviderError extends Error {
+export class AdvisorProviderError extends Error {
   constructor(
     readonly provider: Exclude<AdvisorProviderName, "none" | "custom">,
     readonly category: AdvisorProviderFailureCategory,
