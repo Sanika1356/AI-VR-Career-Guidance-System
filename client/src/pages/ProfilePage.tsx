@@ -479,62 +479,74 @@ function RadioChoiceGroup({
   error?: string;
   onChange: (value: string) => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   const selectedValue = value === '' ? '' : selectedListValue(value);
+  const selectedOption = options.find((option) => {
+    const submittedValue = option.apiValue ?? option.value;
+    return selectedValue === option.value || submittedValue === selectedValue;
+  });
 
   return (
     <fieldset
-      className={`profile-choice-group ${error ? 'profile-choice-group--error' : ''}`.trim()}
+      className={`profile-choice-group ${isOpen ? 'profile-choice-group--open' : ''} ${error ? 'profile-choice-group--error' : ''}`.trim()}
     >
-      <legend className="profile-choice-group__legend" id={`${id}-legend`}>
-        {label}
+      <legend className="profile-choice-group__legend">
+        <button
+          type="button"
+          className="profile-choice-group__toggle"
+          aria-controls={`${id}-options`}
+          aria-expanded={isOpen}
+          aria-describedby={isOpen ? `${id}-hint` : undefined}
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <span className="profile-choice-group__toggle-copy">
+            <strong>{label}</strong>
+            <small>{selectedOption?.label ?? 'Choose an option'}</small>
+          </span>
+          <span className="profile-choice-group__chevron" aria-hidden="true">
+            {isOpen ? '−' : '+'}
+          </span>
+        </button>
       </legend>
-      <p className="profile-choice-group__hint">{hint}</p>
-      <div className="profile-choice-grid" aria-labelledby={`${id}-legend`}>
-        {options.map((option) => {
-          const isCanonicalApiValue = !option.apiValue || option.apiValue === option.value;
-          const isSelected =
-            selectedValue === option.value ||
-            (isCanonicalApiValue && selectedValue === (option.apiValue ?? option.value));
-          const submittedValue = option.apiValue ?? option.value;
-
-          return (
-            <label
-              className={`profile-choice ${isSelected ? 'profile-choice--selected' : ''}`.trim()}
-              key={option.value}
-            >
-              <input
-                type="radio"
-                name={name}
-                value={option.value}
-                checked={isSelected}
-                onChange={() => onChange(submittedValue)}
-              />
-              <span className="profile-choice__copy">
-                <strong>{option.label}</strong>
-              </span>
-            </label>
-          );
-        })}
-
-        {options.map((option) => (
-          <label
-            className={`profile-choice ${selectedValue === option.value ? 'profile-choice--selected' : ''}`.trim()}
-            key={option.value}
+      {isOpen && (
+        <>
+          <p className="profile-choice-group__hint" id={`${id}-hint`}>
+            {hint}
+          </p>
+          <div
+            className="profile-choice-grid"
+            id={`${id}-options`}
+            role="radiogroup"
+            aria-label={label}
           >
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={selectedValue === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span className="profile-choice__copy">
-              <strong>{option.label}</strong>
-              <small>{option.description}</small>
-            </span>
-          </label>
-        ))}
-      </div>
+            {options.map((option) => {
+              const isCanonicalApiValue = !option.apiValue || option.apiValue === option.value;
+              const isSelected =
+                selectedValue === option.value ||
+                (isCanonicalApiValue && selectedValue === (option.apiValue ?? option.value));
+              const submittedValue = option.apiValue ?? option.value;
+
+              return (
+                <label
+                  className={`profile-choice ${isSelected ? 'profile-choice--selected' : ''}`.trim()}
+                  key={option.value}
+                >
+                  <input
+                    type="radio"
+                    name={name}
+                    value={option.value}
+                    checked={isSelected}
+                    onChange={() => onChange(submittedValue)}
+                  />
+                  <span className="profile-choice__copy">
+                    <strong>{option.label}</strong>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </>
+      )}
       {error && (
         <p className="ui-field__error" id={`${id}-error`} role="alert">
           {error}
