@@ -38,14 +38,14 @@ function normalizeAdvisorMarkdown(value: string): string {
     .replace(/\\([*_`\[\]\\])/g, '$1')
     .replace(/\r\n?/g, '\n')
     .replace(
-      /^(#{1,6})\s+\d+[.)]\s+(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\s*$/gim,
+      /^(#{1,6})\s+(?:\d+[.)]\s+)?(Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\s*$/gim,
       '## $2',
     )
     .replace(
       /^\*\*(Short answer|Why this fits your context|Why it fits your context|Practical sequence|How to personalize or verify it|Recommended resources)\*\*\s*:?[ \t]*/gim,
       '## $1\n\n',
     )
-    .replace(/^##\s+Short answer\s*\n*/gim, '')
+    .replace(/^#{1,6}\s+(?:\d+[.)]\s+)?Short answer\s*\n*/gim, '')
     .trim();
 }
 
