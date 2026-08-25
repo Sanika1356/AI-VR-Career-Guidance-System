@@ -534,10 +534,12 @@ test("Gemini provider uses the GenerateContent maxOutputTokens schema", async ()
 test("advisor selects Gemini when the hosted provider is enabled", async () => {
   const previousEnabled = env.geminiEnabled;
   const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
   const previousOllama = env.ollamaEnabled;
   const originalFetch = globalThis.fetch;
   env.geminiEnabled = true;
   env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash-lite";
   env.ollamaEnabled = false;
   globalThis.fetch = (async () => ({
     ok: true,
@@ -567,6 +569,7 @@ test("advisor selects Gemini when the hosted provider is enabled", async () => {
   } finally {
     env.geminiEnabled = previousEnabled;
     env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
     env.ollamaEnabled = previousOllama;
     globalThis.fetch = originalFetch;
   }
@@ -606,10 +609,10 @@ test("advisor logs sanitized Gemini authentication failures without secret value
       .find((entry) => entry.event === "advisor_provider_fallback");
     assert.equal(selectionLog?.provider, "gemini");
     assert.equal(selectionLog?.geminiKeyConfigured, true);
-    assert.equal(selectionLog?.geminiModel, "gemini-2.5-flash");
+    assert.equal(selectionLog?.geminiModel, "gemini-2.5-flash-lite");
     assert.equal(
       selectionLog?.geminiEndpointPath,
-      "/v1beta/models/gemini-2.5-flash:generateContent",
+      "/v1beta/models/gemini-2.5-flash-lite:generateContent",
     );
     assert.equal(fallbackLog?.provider, "gemini");
     assert.equal(fallbackLog?.category, "authentication");
@@ -756,24 +759,30 @@ test("advisor bounds a provider that never settles and returns fallback", async 
 });
 
 test("advisor retries one transient provider failure and caps long responses", async () => {
-  const retryProvider = new RetryProvider();
-  const retried = await chatAdvisor(
-    "user_asha",
-    { message: "What should I learn next?" },
-    new FakePool(),
-    retryProvider,
-  );
-  assert.equal(retryProvider.attempts, 2);
-  assert.equal(retried.answer, "The provider recovered after one retry.");
+  const previousRetries = env.aiRetryAttempts;
+  env.aiRetryAttempts = 1;
+  try {
+    const retryProvider = new RetryProvider();
+    const retried = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next?" },
+      new FakePool(),
+      retryProvider,
+    );
+    assert.equal(retryProvider.attempts, 2);
+    assert.equal(retried.answer, "The provider recovered after one retry.");
 
-  const limited = await chatAdvisor(
-    "user_asha",
-    { message: "Give me a concise plan." },
-    new FakePool(),
-    new LongProvider(),
-  );
-  assert.equal(limited.answer.length, 4000);
-  assert.equal(limited.answer.endsWith("…"), true);
+    const limited = await chatAdvisor(
+      "user_asha",
+      { message: "Give me a concise plan." },
+      new FakePool(),
+      new LongProvider(),
+    );
+    assert.equal(limited.answer.length, 4000);
+    assert.equal(limited.answer.endsWith("…"), true);
+  } finally {
+    env.aiRetryAttempts = previousRetries;
+  }
 });
 
 test("advisor continues an owned conversation with the same conversation id", async () => {
@@ -843,7 +852,6 @@ test("advisor endpoint requires bearer authentication", async () => {
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const address = server.address();
   assert.ok(address && typeof address !== "string");
-
   try {
     const response = await fetch(
       `http://127.0.0.1:${address.port}/api/advisor/chat`,
@@ -858,5 +866,60 @@ test("advisor endpoint requires bearer authentication", async () => {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),
     );
+  }
+});
+
+test("default Gemini circuit breaker is shared across advisor requests", async () => {
+  const previousEnabled = env.geminiEnabled;
+  const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
+  const previousOllama = env.ollamaEnabled;
+  const previousRetries = env.aiRetryAttempts;
+  const previousThreshold = env.aiCircuitFailureThreshold;
+  const previousCooldown = env.aiCircuitCooldownMs;
+  const originalFetch = globalThis.fetch;
+  let fetchCalls = 0;
+  env.geminiEnabled = true;
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash-lite";
+  env.ollamaEnabled = false;
+  env.aiRetryAttempts = 0;
+  env.aiCircuitFailureThreshold = 1;
+  env.aiCircuitCooldownMs = 30_000;
+  globalThis.fetch = (async () => {
+    fetchCalls += 1;
+    return {
+      ok: false,
+      status: 503,
+      json: async () => ({ error: { status: "UNAVAILABLE" } }),
+    };
+  }) as typeof fetch;
+
+  try {
+    const first = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn first?" },
+      new FakePool(),
+    );
+    const callsAfterFirst = fetchCalls;
+    const second = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn next?" },
+      new FakePool(),
+    );
+
+    assert.equal(first.mode, "deterministic_fallback");
+    assert.equal(second.mode, "deterministic_fallback");
+    assert.equal(callsAfterFirst, 1);
+    assert.equal(fetchCalls, callsAfterFirst);
+  } finally {
+    env.geminiEnabled = previousEnabled;
+    env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
+    env.ollamaEnabled = previousOllama;
+    env.aiRetryAttempts = previousRetries;
+    env.aiCircuitFailureThreshold = previousThreshold;
+    env.aiCircuitCooldownMs = previousCooldown;
+    globalThis.fetch = originalFetch;
   }
 });

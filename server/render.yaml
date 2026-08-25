@@ -44,17 +44,17 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-2.5-flash-lite
       - key: GEMINI_BASE_URL
         value: https://generativelanguage.googleapis.com
       - key: GEMINI_MAX_OUTPUT_TOKENS
         value: "900"
       - key: AI_REQUEST_TIMEOUT_MS
-        value: "30000"
+        value: "15000"
       - key: AI_MAX_RESPONSE_CHARS
         value: "4000"
       - key: AI_RETRY_ATTEMPTS
-        value: "1"
+        value: "0"
       - key: AI_CIRCUIT_FAILURE_THRESHOLD
         value: "3"
       - key: AI_CIRCUIT_COOLDOWN_MS

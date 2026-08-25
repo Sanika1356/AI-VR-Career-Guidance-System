@@ -45,21 +45,21 @@ export const env = {
   ollamaModel: process.env.OLLAMA_MODEL ?? "llama3.2:3b",
   geminiEnabled: booleanFromEnv(process.env.GEMINI_ENABLED, false),
   geminiApiKey: process.env.GEMINI_API_KEY,
-  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
+  geminiModel: process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite",
   geminiBaseUrl:
     process.env.GEMINI_BASE_URL ?? "https://generativelanguage.googleapis.com",
   geminiMaxOutputTokens: Math.max(
     256,
     Math.floor(numberFromEnv(process.env.GEMINI_MAX_OUTPUT_TOKENS, 900)),
   ),
-  aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 30_000),
+  aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 15_000),
   aiMaxResponseChars: Math.max(
     200,
     Math.floor(numberFromEnv(process.env.AI_MAX_RESPONSE_CHARS, 4_000)),
   ),
   aiRetryAttempts: Math.min(
-    2,
-    Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 1))),
+    1,
+    Math.max(0, Math.floor(numberFromEnv(process.env.AI_RETRY_ATTEMPTS, 0))),
   ),
   aiCircuitFailureThreshold: Math.max(
     1,
