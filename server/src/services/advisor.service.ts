@@ -85,6 +85,13 @@ export class AdvisorProviderError extends Error {
   }
 }
 
+class AdvisorProviderTimeoutError extends Error {
+  constructor() {
+    super("Advisor provider request timed out");
+    this.name = "AdvisorProviderTimeoutError";
+  }
+}
+
 function providerFailureDetails(error: unknown): {
   category: AdvisorProviderFailureCategory;
   statusCode?: number;
@@ -103,7 +110,9 @@ function providerFailureDetails(error: unknown): {
   }
   if (
     (error instanceof DOMException && error.name === "AbortError") ||
-    (error instanceof Error && error.name === "AbortError")
+    (error instanceof Error &&
+      (error.name === "AbortError" ||
+        error.name === "AdvisorProviderTimeoutError"))
   ) {
     return { category: "timeout" };
   }
@@ -261,19 +270,45 @@ function limitAdvisorOutput(value: string): string {
   return `${answer.slice(0, Math.max(0, env.aiMaxResponseChars - suffix.length)).trimEnd()}${suffix}`;
 }
 
+function isRetryableProviderFailure(error: unknown): boolean {
+  if (!(error instanceof AdvisorProviderError)) return true;
+  return ["timeout", "network", "upstream_http"].includes(error.category);
+}
+
 async function generateWithRetry(
   provider: AdvisorProvider,
   prompt: string,
 ): Promise<string> {
   let lastError: unknown;
+  const deadlineAt = Date.now() + Math.max(1, env.aiRequestTimeoutMs);
+
   for (let attempt = 0; attempt <= env.aiRetryAttempts; attempt += 1) {
+    const remainingMs = deadlineAt - Date.now();
+    if (remainingMs <= 0) {
+      lastError = new AdvisorProviderTimeoutError();
+      break;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const answer = limitAdvisorOutput(await provider.generate(prompt));
+      const providerRequest = provider.generate(prompt);
+      const deadline = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new AdvisorProviderTimeoutError()),
+          remainingMs,
+        );
+      });
+      const answer = limitAdvisorOutput(
+        await Promise.race([providerRequest, deadline]),
+      );
       if (answer.length === 0)
         throw new Error("Advisor provider returned an empty answer");
       return answer;
     } catch (error) {
       lastError = error;
+      if (!isRetryableProviderFailure(error) || Date.now() >= deadlineAt) break;
+    } finally {
+      if (timer) clearTimeout(timer);
     }
   }
   throw lastError instanceof Error
@@ -713,23 +748,21 @@ export async function chatAdvisor(
 ): Promise<AdvisorResponse> {
   const client = await database.connect();
   try {
-    const [profileResult, assessmentResult, consentResult] = await Promise.all([
-      client.query<ProfileRow>(
-        `SELECT u.name, p.interests, p.current_skills, p.experience, p.learning_preferences
-         FROM profiles p JOIN users u ON u.id = p.user_id
-         WHERE p.user_id = $1`,
-        [userId],
-      ),
-      client.query<AssessmentRow>(
-        `SELECT category_scores, top_career_ids FROM assessment_results
-         WHERE user_id = $1 ORDER BY completed_at DESC LIMIT 1`,
-        [userId],
-      ),
-      client.query<{ personalized_ai: boolean }>(
-        "SELECT personalized_ai FROM privacy_consents WHERE user_id = $1",
-        [userId],
-      ),
-    ]);
+    const profileResult = await client.query<ProfileRow>(
+      `SELECT u.name, p.interests, p.current_skills, p.experience, p.learning_preferences
+       FROM profiles p JOIN users u ON u.id = p.user_id
+       WHERE p.user_id = $1`,
+      [userId],
+    );
+    const assessmentResult = await client.query<AssessmentRow>(
+      `SELECT category_scores, top_career_ids FROM assessment_results
+       WHERE user_id = $1 ORDER BY completed_at DESC LIMIT 1`,
+      [userId],
+    );
+    const consentResult = await client.query<{ personalized_ai: boolean }>(
+      "SELECT personalized_ai FROM privacy_consents WHERE user_id = $1",
+      [userId],
+    );
 
     let conversationHistory: ConversationMessageRow[] = [];
     if (input.conversationId) {
