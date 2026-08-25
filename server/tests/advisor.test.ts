@@ -323,6 +323,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
   const previousKey = env.geminiApiKey;
   const previousModel = env.geminiModel;
   const previousBaseUrl = env.geminiBaseUrl;
+  const previousMaxOutputTokens = env.geminiMaxOutputTokens;
   const originalFetch = globalThis.fetch;
   const originalInfo = console.info;
   const logs: string[] = [];
@@ -332,6 +333,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
   env.geminiApiKey = "test-gemini-key";
   env.geminiModel = "gemini-2.5-flash";
   env.geminiBaseUrl = "https://generativelanguage.googleapis.com";
+  env.geminiMaxOutputTokens = 900;
   console.info = (...args: unknown[]) => {
     logs.push(args.map(String).join(" "));
   };
@@ -408,7 +410,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
       ],
       generationConfig: {
         temperature: 0.2,
-        maxOutputTokens: env.geminiMaxOutputTokens,
+        maxOutputTokens: 600,
         thinkingConfig: { thinkingBudget: 0 },
       },
     });
@@ -416,6 +418,7 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
     env.geminiApiKey = previousKey;
     env.geminiModel = previousModel;
     env.geminiBaseUrl = previousBaseUrl;
+    env.geminiMaxOutputTokens = previousMaxOutputTokens;
     globalThis.fetch = originalFetch;
     console.info = originalInfo;
   }
@@ -637,7 +640,7 @@ test("Gemini provider uses the GenerateContent maxOutputTokens schema", async ()
       generationConfig?: Record<string, unknown>;
     };
     if (
-      body.generationConfig?.maxOutputTokens !== 900 ||
+      body.generationConfig?.maxOutputTokens !== 600 ||
       body.generationConfig?.max_output_tokens !== undefined
     ) {
       return {

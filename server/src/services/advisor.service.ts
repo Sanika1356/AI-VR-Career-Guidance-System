@@ -664,6 +664,7 @@ async function requestGeminiGenerateContent(
 ): Promise<string> {
   const startedAt = Date.now();
   const endpoint = buildGeminiGenerateContentUrl(env.geminiBaseUrl, model);
+  const maxOutputTokens = Math.min(600, env.geminiMaxOutputTokens);
   logAdvisorProviderEvent("advisor_gemini_request_started", { model });
   try {
     const response = await fetch(endpoint, {
@@ -676,7 +677,7 @@ async function requestGeminiGenerateContent(
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: env.geminiMaxOutputTokens,
+          maxOutputTokens,
           ...(geminiThinkingConfig(model)
             ? { thinkingConfig: geminiThinkingConfig(model) }
             : {}),
