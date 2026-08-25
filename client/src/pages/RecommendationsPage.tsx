@@ -49,21 +49,25 @@ function RecommendationCard({
           {Math.round(score)}%
         </span>
       </div>
-      <h2 className="recommendation-card__title">{recommendation.career}</h2>
-      <p className="recommendation-card__reason">{recommendation.reason}</p>
-      <ProgressBar value={score} label={`${recommendation.career} match strength`} />
-      <div
-        className="recommendation-evidence"
-        aria-label={`${recommendation.career} scoring evidence`}
-      >
-        <Badge tone={recommendation.evidence.confidence === 'high' ? 'success' : 'neutral'}>
-          {recommendation.evidence.confidence} confidence
-        </Badge>
-        <span>
-          {recommendation.evidence.matchedSkillCount} matched skill
-          {recommendation.evidence.matchedSkillCount === 1 ? '' : 's'} ·{' '}
-          {recommendation.evidence.missingSkillCount} to develop
-        </span>
+      <div className="recommendation-card__summary">
+        <h2 className="recommendation-card__title">{recommendation.career}</h2>
+        <p className="recommendation-card__reason">{recommendation.reason}</p>
+      </div>
+      <div className="recommendation-card__match">
+        <ProgressBar value={score} label={`${recommendation.career} match strength`} />
+        <div
+          className="recommendation-evidence"
+          aria-label={`${recommendation.career} scoring evidence`}
+        >
+          <Badge tone={recommendation.evidence.confidence === 'high' ? 'success' : 'neutral'}>
+            {recommendation.evidence.confidence} confidence
+          </Badge>
+          <span>
+            {recommendation.evidence.matchedSkillCount} matched skill
+            {recommendation.evidence.matchedSkillCount === 1 ? '' : 's'} ·{' '}
+            {recommendation.evidence.missingSkillCount} to develop
+          </span>
+        </div>
       </div>
       <ul className="recommendation-tradeoffs" aria-label={`${recommendation.career} trade-offs`}>
         {recommendation.evidence.tradeOffs.map((tradeOff) => (
