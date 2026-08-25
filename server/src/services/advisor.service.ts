@@ -740,6 +740,15 @@ export class FallbackAdvisorProvider implements AdvisorProvider {
   }
 }
 
+// Keep one breaker per hosted provider for the lifetime of this server process.
+// Injected providers remain unwrapped so tests and explicit callers retain control.
+const geminiCircuitBreaker = new CircuitBreakerAdvisorProvider(
+  new GeminiAdvisorProvider(),
+);
+const ollamaCircuitBreaker = new CircuitBreakerAdvisorProvider(
+  new OllamaAdvisorProvider(),
+);
+
 export async function chatAdvisor(
   userId: string,
   input: AdvisorChatInput,
@@ -862,9 +871,9 @@ export async function chatAdvisor(
     const selectedProvider =
       provider ??
       (providerName === "gemini"
-        ? new CircuitBreakerAdvisorProvider(new GeminiAdvisorProvider())
+        ? geminiCircuitBreaker
         : providerName === "ollama"
-          ? new CircuitBreakerAdvisorProvider(new OllamaAdvisorProvider())
+          ? ollamaCircuitBreaker
           : undefined);
     logAdvisorProviderEvent("advisor_provider_selected", {
       provider: providerName,
