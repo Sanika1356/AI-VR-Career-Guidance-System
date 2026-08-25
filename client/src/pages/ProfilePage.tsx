@@ -328,6 +328,7 @@ const educationOptions: RadioOption[] = [
 
   {
     value: 'self-taught-or-other',
+    apiValue: 'other',
     label: 'Self-taught or other',
     description: 'A different learning path.',
   },
@@ -529,10 +530,14 @@ function RadioChoiceGroup({
                     name={name}
                     value={option.value}
                     checked={isSelected}
-                    onChange={() => onChange(submittedValue)}
+                    onChange={() => {
+                      onChange(submittedValue);
+                      setIsOpen(false);
+                    }}
                   />
                   <span className="profile-choice__copy">
                     <strong>{option.label}</strong>
+                    <small>{option.description}</small>
                   </span>
                 </label>
               );

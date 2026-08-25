@@ -3384,8 +3384,16 @@ em {
 }
 .profile-choice__copy strong {
   color: #202222;
+  display: block;
   font-size: 12px;
   line-height: 1.25;
+}
+.profile-choice__copy small {
+  color: #777b73;
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
+  margin-top: 3px;
 }
 @media (max-width: 620px) {
   .profile-choice {
