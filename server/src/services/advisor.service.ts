@@ -407,26 +407,24 @@ export class OllamaAdvisorProvider implements AdvisorProvider {
   }
 }
 
-export function buildGeminiGenerateContentUrl(
-  baseUrl: string,
-  model: string,
-): string {
+export function normalizeGeminiModel(model: string): string {
+  return model.trim().replace(/^models\//i, "");
+}
+
+export function buildGeminiInteractionsUrl(baseUrl: string): string {
   const normalizedBaseUrl = baseUrl
     .trim()
     .replace(/\/+$/, "")
     .replace(
-      /\/v1(?:beta)?(?:\/models(?:\/[^/]+(?::generateContent)?)?)?$/i,
+      /\/v1(?:beta)?(?:\/(?:models(?:\/[^/]+(?::generateContent)?)?|interactions))?$/i,
       "",
     );
-  const normalizedModel = model.trim().replace(/^models\//i, "");
-  return `${normalizedBaseUrl}/v1beta/models/${encodeURIComponent(normalizedModel)}:generateContent`;
+  return `${normalizedBaseUrl}/v1beta/interactions`;
 }
 
 function safeGeminiEndpointPath(): string {
   try {
-    return new URL(
-      buildGeminiGenerateContentUrl(env.geminiBaseUrl, env.geminiModel),
-    ).pathname;
+    return new URL(buildGeminiInteractionsUrl(env.geminiBaseUrl)).pathname;
   } catch {
     return "invalid";
   }
@@ -449,10 +447,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
       env.aiRequestTimeoutMs,
     );
     try {
-      const endpoint = buildGeminiGenerateContentUrl(
-        env.geminiBaseUrl,
-        env.geminiModel,
-      );
+      const endpoint = buildGeminiInteractionsUrl(env.geminiBaseUrl);
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -460,10 +455,11 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: env.geminiMaxOutputTokens,
+          model: normalizeGeminiModel(env.geminiModel),
+          input: prompt,
+          store: false,
+          generation_config: {
+            max_tokens: env.geminiMaxOutputTokens,
           },
         }),
         signal: controller.signal,
@@ -494,19 +490,32 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           "Gemini returned invalid JSON",
         );
       }
-      const parts = (
-        payload as {
-          candidates?: Array<{
-            content?: { parts?: Array<{ text?: unknown }> };
-          }>;
-        }
-      ).candidates?.[0]?.content?.parts;
-      const content = Array.isArray(parts)
-        ? parts
-            .map((part) => (typeof part.text === "string" ? part.text : ""))
+      const interaction = payload as {
+        output_text?: unknown;
+        steps?: Array<{
+          type?: unknown;
+          content?: Array<{ type?: unknown; text?: unknown }>;
+        }>;
+      };
+      const stepText = Array.isArray(interaction.steps)
+        ? interaction.steps
+            .filter((step) => step.type === "model_output")
+            .flatMap((step) =>
+              Array.isArray(step.content) ? step.content : [],
+            )
+            .map((part) =>
+              part.type === "text" && typeof part.text === "string"
+                ? part.text
+                : "",
+            )
             .join("\n")
             .trim()
         : "";
+      const content = (
+        typeof interaction.output_text === "string"
+          ? interaction.output_text
+          : stepText
+      ).trim();
       if (!content) {
         throw new AdvisorProviderError(
           "gemini",
@@ -688,7 +697,7 @@ export async function chatAdvisor(
       provider: providerName,
       geminiEnabled: env.geminiEnabled,
       geminiKeyConfigured: Boolean(env.geminiApiKey?.trim()),
-      geminiModel: env.geminiModel.trim().replace(/^models\//i, ""),
+      geminiModel: normalizeGeminiModel(env.geminiModel),
       geminiEndpointPath: safeGeminiEndpointPath(),
       ollamaEnabled: env.ollamaEnabled,
     });
