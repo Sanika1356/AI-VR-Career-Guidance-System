@@ -464,6 +464,12 @@ function buildGeminiModelsUrl(baseUrl: string): string {
   return `${normalizedBaseUrl}/v1beta/models`;
 }
 
+function isConversationalGeminiModel(model: string): boolean {
+  return !/(?:^|[-_])(audio|embedding|image|live|robotics|tts|veo)(?:$|[-_])/i.test(
+    model,
+  );
+}
+
 async function discoverGeminiGenerateContentModel(
   apiKey: string,
   signal: AbortSignal,
@@ -509,14 +515,21 @@ async function discoverGeminiGenerateContentModel(
   const excluded = excludedModel
     ? normalizeGeminiModel(excludedModel)
     : undefined;
-  if (!excluded && supportedModels.includes(requestedModel))
+  if (
+    !excluded &&
+    supportedModels.includes(requestedModel) &&
+    isConversationalGeminiModel(requestedModel)
+  ) {
     return requestedModel;
+  }
 
-  const alternatives = excluded
-    ? supportedModels.filter((model) => model !== excluded)
-    : supportedModels;
+  const alternatives = (
+    excluded
+      ? supportedModels.filter((model) => model !== excluded)
+      : supportedModels
+  ).filter(isConversationalGeminiModel);
   return (
-    alternatives.find((model) => /gemini-.*flash(?!.*image)/i.test(model)) ??
+    alternatives.find((model) => /gemini-.*flash/i.test(model)) ??
     alternatives.find((model) => /gemini/i.test(model))
   );
 }
