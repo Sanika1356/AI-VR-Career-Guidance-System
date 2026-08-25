@@ -505,11 +505,11 @@ function isConversationalGeminiModel(model: string): boolean {
   );
 }
 
-async function discoverGeminiGenerateContentModel(
+async function discoverGeminiGenerateContentModels(
   apiKey: string,
   signal: AbortSignal,
   excludedModel?: string,
-): Promise<string | undefined> {
+): Promise<string[]> {
   const response = await fetch(buildGeminiModelsUrl(env.geminiBaseUrl), {
     method: "GET",
     headers: {
@@ -517,13 +517,13 @@ async function discoverGeminiGenerateContentModel(
     },
     signal,
   });
-  if (!response.ok) return undefined;
+  if (!response.ok) return [];
 
   let payload: unknown;
   try {
     payload = await response.json();
   } catch {
-    return undefined;
+    return [];
   }
   const models = (
     payload as {
@@ -533,7 +533,7 @@ async function discoverGeminiGenerateContentModel(
       }>;
     }
   ).models;
-  if (!Array.isArray(models)) return undefined;
+  if (!Array.isArray(models)) return [];
 
   const supportedModels = models
     .filter(
@@ -544,7 +544,7 @@ async function discoverGeminiGenerateContentModel(
     .map((model) => (typeof model.name === "string" ? model.name : ""))
     .filter(Boolean)
     .map(normalizeGeminiModel);
-  if (supportedModels.length === 0) return undefined;
+  if (supportedModels.length === 0) return [];
 
   const requestedModel = normalizeGeminiModel(env.geminiModel);
   const excluded = excludedModel
@@ -555,7 +555,7 @@ async function discoverGeminiGenerateContentModel(
     supportedModels.includes(requestedModel) &&
     isConversationalGeminiModel(requestedModel)
   ) {
-    return requestedModel;
+    return [requestedModel];
   }
 
   const alternatives = (
@@ -563,10 +563,11 @@ async function discoverGeminiGenerateContentModel(
       ? supportedModels.filter((model) => model !== excluded)
       : supportedModels
   ).filter(isConversationalGeminiModel);
-  return (
-    alternatives.find((model) => /gemini-.*flash/i.test(model)) ??
-    alternatives.find((model) => /gemini/i.test(model))
-  );
+  return alternatives.sort((left, right) => {
+    const leftFlash = /gemini-.*flash/i.test(left) ? 0 : 1;
+    const rightFlash = /gemini-.*flash/i.test(right) ? 0 : 1;
+    return leftFlash - rightFlash;
+  });
 }
 
 async function requestGeminiGenerateContent(
@@ -679,25 +680,39 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           throw error;
         }
 
-        const discoveredModel = await discoverGeminiGenerateContentModel(
+        const discoveredModels = await discoverGeminiGenerateContentModels(
           apiKey,
           controller.signal,
           requestedModel,
         );
-        if (!discoveredModel || discoveredModel === requestedModel) throw error;
+        let lastModelError: AdvisorProviderError = error;
+        for (const discoveredModel of discoveredModels) {
+          if (discoveredModel === requestedModel) continue;
 
-        logAdvisorProviderEvent("advisor_provider_model_discovered", {
-          provider: "gemini",
-          requestedModel,
-          selectedModel: discoveredModel,
-          endpointPath: safeGeminiEndpointPath(discoveredModel),
-        });
-        return await requestGeminiGenerateContent(
-          prompt,
-          discoveredModel,
-          apiKey,
-          controller.signal,
-        );
+          logAdvisorProviderEvent("advisor_provider_model_discovered", {
+            provider: "gemini",
+            requestedModel,
+            selectedModel: discoveredModel,
+            endpointPath: safeGeminiEndpointPath(discoveredModel),
+          });
+          try {
+            return await requestGeminiGenerateContent(
+              prompt,
+              discoveredModel,
+              apiKey,
+              controller.signal,
+            );
+          } catch (discoveredError) {
+            if (
+              !(discoveredError instanceof AdvisorProviderError) ||
+              discoveredError.category !== "model_or_endpoint_not_found"
+            ) {
+              throw discoveredError;
+            }
+            lastModelError = discoveredError;
+          }
+        }
+        throw lastModelError;
       }
     } catch (error) {
       if (error instanceof AdvisorProviderError) throw error;

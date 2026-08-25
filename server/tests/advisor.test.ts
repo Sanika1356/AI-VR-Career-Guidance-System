@@ -481,6 +481,84 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
   }
 });
 
+test("Gemini provider tries later conversational models after multiple 404 responses", async () => {
+  const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash-lite";
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    requests.push(`${init?.method ?? "GET"} ${url}`);
+    if (
+      url.endsWith("/v1beta/models/gemini-2.5-flash-lite:generateContent") ||
+      url.endsWith("/v1beta/models/gemini-2.5-flash:generateContent")
+    ) {
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({ error: { status: "NOT_FOUND" } }),
+      };
+    }
+    if (url.endsWith("/v1beta/models")) {
+      return {
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: "models/gemini-2.5-flash-lite",
+              supportedGenerationMethods: ["generateContent"],
+            },
+            {
+              name: "models/gemini-2.5-flash",
+              supportedGenerationMethods: ["generateContent"],
+            },
+            {
+              name: "models/gemini-2.5-pro",
+              supportedGenerationMethods: ["generateContent"],
+            },
+          ],
+        }),
+      };
+    }
+    if (url.endsWith("/v1beta/models/gemini-2.5-pro:generateContent")) {
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: "Later accessible Gemini model answered." }],
+              },
+            },
+          ],
+        }),
+      };
+    }
+    throw new Error("unexpected test URL");
+  }) as typeof fetch;
+
+  try {
+    assert.equal(
+      await new GeminiAdvisorProvider().generate(
+        "Try all accessible conversational models.",
+      ),
+      "Later accessible Gemini model answered.",
+    );
+    assert.deepEqual(requests, [
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+      "GET https://generativelanguage.googleapis.com/v1beta/models",
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent",
+    ]);
+  } finally {
+    env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Gemini provider uses the GenerateContent maxOutputTokens schema", async () => {
   const previousKey = env.geminiApiKey;
   const previousMaxTokens = env.geminiMaxOutputTokens;
