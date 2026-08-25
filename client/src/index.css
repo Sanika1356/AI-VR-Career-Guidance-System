@@ -3274,7 +3274,6 @@ em {
   margin: 7px 0 13px;
 }
 .profile-choice-grid {
-
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -3334,7 +3333,6 @@ em {
   width: 16px;
 }
 .profile-choice__copy {
-
   height: 17px;
   margin: 1px 0 0;
   width: 17px;
@@ -3354,7 +3352,8 @@ em {
 @media (max-width: 620px) {
   .profile-choice {
     flex-basis: 145px;
-
+  }
+}
 .profile-choice__copy small {
   color: #656a66;
   font-size: 11px;
@@ -3363,7 +3362,6 @@ em {
 @media (max-width: 620px) {
   .profile-choice-grid {
     grid-template-columns: 1fr;
-
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3371,7 +3369,6 @@ em {
     transition: none;
   }
 }
-
 
 .advisor-message__answer {
   display: grid;
@@ -3419,4 +3416,3 @@ em {
   line-height: 1.5;
   margin: 0;
 }
-
