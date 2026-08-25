@@ -37,6 +37,10 @@ export const env = {
   dbPoolMax: numberFromEnv(process.env.DB_POOL_MAX, 10),
   authSecret,
   tokenExpirySeconds: numberFromEnv(process.env.TOKEN_EXPIRY_SECONDS, 86_400),
+  ollamaEnabled: booleanFromEnv(
+    process.env.OLLAMA_ENABLED,
+    nodeEnv !== "production",
+  ),
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
   ollamaModel: process.env.OLLAMA_MODEL ?? "llama3.2:3b",
   aiRequestTimeoutMs: numberFromEnv(process.env.AI_REQUEST_TIMEOUT_MS, 30_000),

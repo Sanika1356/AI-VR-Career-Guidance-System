@@ -29,6 +29,28 @@ function formatTimestamp(value: string): string {
     : date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
+function renderAdvisorAnswer(answer: string) {
+  const blocks = answer
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  return (
+    <div className="advisor-message__answer">
+      {blocks.map((block, index) => {
+        const heading = block.match(/^#{1,3}\s+(.+?)\n([\s\S]+)$/);
+        return heading ? (
+          <section key={`${heading[1]}-${index}`}>
+            <h3>{heading[1]}</h3>
+            <p>{heading[2]}</p>
+          </section>
+        ) : (
+          <p key={`answer-${index}`}>{block}</p>
+        );
+      })}
+    </div>
+  );
+}
+
 function isProviderFailure(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
   const candidate = error as { code?: unknown; message?: unknown };
@@ -87,6 +109,7 @@ export function AdvisorPage() {
           sources: response.sources,
           confidence: response.confidence,
           caveat: response.caveat,
+          mode: response.mode,
         },
       ]);
     } catch (error: unknown) {
@@ -203,7 +226,11 @@ export function AdvisorPage() {
                 <span className="advisor-message__role">
                   {item.role === 'advisor' ? 'Advisor' : 'You'}
                 </span>
-                <p>{item.content}</p>
+                {item.role === 'advisor' ? (
+                  renderAdvisorAnswer(item.content)
+                ) : (
+                  <p>{item.content}</p>
+                )}
                 {isEndOfSenderGroup && (
                   <time className="advisor-message__time" dateTime={item.createdAt}>
                     {formatTimestamp(item.createdAt)}
@@ -216,6 +243,12 @@ export function AdvisorPage() {
                 )}
                 {isEndOfSenderGroup && item.caveat && (
                   <small className="advisor-message__caveat">{item.caveat}</small>
+                )}
+                {isEndOfSenderGroup && item.mode === 'deterministic_fallback' && (
+                  <small className="advisor-message__mode">
+                    Detailed local fallback guidance; connect a reachable AI provider for
+                    model-generated answers.
+                  </small>
                 )}
                 {isEndOfSenderGroup && item.sources && item.sources.length > 0 && (
                   <small className="advisor-message__sources">

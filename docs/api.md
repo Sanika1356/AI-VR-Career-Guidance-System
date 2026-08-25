@@ -535,7 +535,7 @@ Atomically moves one authenticated learner’s roadmap step to a one-based targe
 
 ### `POST /api/advisor/chat`
 
-The server enriches the question with the authenticated user's profile, assessment result, selected career, skill gap, and roadmap before calling the AI provider when personalized-AI consent allows that context. Profile text, assessment data, catalog descriptions, roadmap text, and the user question are passed to the provider as untrusted data; instructions inside those values are not treated as system instructions. Catalog-derived source references are returned in `sources` when the selected career has them.
+The server enriches the question with the authenticated user's profile, assessment result, selected career, skill gap, and roadmap before calling the AI provider when personalized-AI consent allows that context. Profile text, assessment data, catalog descriptions, roadmap text, and the user question are passed to the provider as untrusted data; instructions inside those values are not treated as system instructions. A normal answer is asked to explain its reasoning in focused sections and concrete numbered next steps rather than returning only a one-line recommendation. Catalog-derived source references are returned in `sources` when the selected career has them.
 
 Request:
 
@@ -556,11 +556,13 @@ Response:
   "sources": ["local://catalog/career_ai_engineer"],
   "confidence": "medium",
   "caveat": "Confidence reflects the amount of approved context available, not the truth or outcome of the advice. Verify consequential decisions with authoritative sources and trusted people.",
-  "createdAt": "2026-08-18T00:00:00.000Z"
+  "createdAt": "2026-08-18T00:00:00.000Z",
+  "mode": "provider"
 }
 ```
 
-The backend must protect provider credentials, apply input limits, handle provider failures, and avoid presenting unsupported claims as certain career advice. The response `confidence` is a deterministic context-coverage label (`low`, `medium`, or `high`), not a claim that the advice is true or that an outcome is likely. The `caveat` instructs the learner to verify consequential decisions with authoritative sources and trusted people. If the configured local provider is unavailable, returns an empty or malformed response, or exhausts its bounded retries, the endpoint returns a deterministic fallback that explains the limitation and still suggests a small next learning activity from the available skill-gap context. The fallback is general guidance, not a diagnosis, employment guarantee, or external labor-market claim. Consequential education, licensing, salary, employment, and other time-sensitive claims must be verified against an appropriate authoritative source; the local catalog references are not labor-market forecasts.
+The backend must protect provider credentials, apply input limits, handle provider failures, and avoid presenting unsupported claims as certain career advice. The response `confidence` is a deterministic context-coverage label (`low`, `medium`, or `high`), not a claim that the advice is true or that an outcome is likely. The `caveat` instructs the learner to verify consequential decisions with authoritative sources and trusted people. The `mode` field is `provider` for a model-generated answer and `deterministic_fallback` when no provider is enabled or the configured local provider is unavailable, returns an empty or malformed response, or exhausts its bounded retries. The fallback is deliberately multi-section: it gives a short answer, explains the available context, provides a numbered sequence, and tells the learner how to personalize or verify the plan. It still suggests a small next learning activity from the available skill-gap context.
+The fallback is general guidance, not a diagnosis, employment guarantee, or external labor-market claim. Consequential education, licensing, salary, employment, and other time-sensitive claims must be verified against an appropriate authoritative source; the local catalog references are not labor-market forecasts.
 
 ### `POST /api/advisor/feedback`
 

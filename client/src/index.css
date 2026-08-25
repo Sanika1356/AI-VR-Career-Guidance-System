@@ -3340,3 +3340,31 @@ em {
     transition: none;
   }
 }
+
+.advisor-message__answer {
+  display: grid;
+  gap: 12px;
+}
+.advisor-message__answer section {
+  display: grid;
+  gap: 5px;
+}
+.advisor-message__answer h3 {
+  color: #4d5546;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  margin: 0;
+  text-transform: uppercase;
+}
+.advisor-message__answer p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.advisor-message__mode {
+  color: #8a642c;
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
