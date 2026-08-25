@@ -518,6 +518,7 @@ test("Gemini Flash-Lite 404 prefers the live latest Flash candidate", async () =
   const previousModel = env.geminiModel;
   const originalFetch = globalThis.fetch;
   const requests: string[] = [];
+  let latestRequestBody = "";
   env.geminiApiKey = "test-gemini-key";
   env.geminiModel = "gemini-2.5-flash-lite";
   globalThis.fetch = (async (input, init) => {
@@ -549,6 +550,7 @@ test("Gemini Flash-Lite 404 prefers the live latest Flash candidate", async () =
       };
     }
     if (url.endsWith("/v1beta/models/gemini-flash-latest:generateContent")) {
+      latestRequestBody = String(init?.body ?? "");
       return {
         ok: true,
         status: 200,
@@ -578,6 +580,14 @@ test("Gemini Flash-Lite 404 prefers the live latest Flash candidate", async () =
       "GET https://generativelanguage.googleapis.com/v1beta/models",
       "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
     ]);
+    assert.deepEqual(
+      (
+        JSON.parse(latestRequestBody) as {
+          generationConfig?: { thinkingConfig?: unknown };
+        }
+      ).generationConfig?.thinkingConfig,
+      { thinkingLevel: "low" },
+    );
   } finally {
     env.geminiApiKey = previousKey;
     env.geminiModel = previousModel;
