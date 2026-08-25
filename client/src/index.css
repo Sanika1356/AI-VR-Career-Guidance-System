@@ -1051,6 +1051,15 @@ em {
   gap: 20px;
   margin-top: 24px;
 }
+.profile-form__fields {
+  display: grid;
+  gap: 20px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.profile-form__fields > .profile-choice-group,
+.profile-form__fields > .ui-field {
+  min-width: 0;
+}
 .profile-form__field {
   display: grid;
   gap: 7px;
@@ -1097,6 +1106,9 @@ em {
   }
   .profile-page__form-card {
     margin-top: 20px;
+  }
+  .profile-form__fields {
+    grid-template-columns: 1fr;
   }
 }
 @media (max-width: 480px) {
