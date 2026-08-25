@@ -487,27 +487,20 @@ function RadioChoiceGroup({
   });
 
   return (
-    <fieldset
-      className={`profile-choice-group ${isOpen ? 'profile-choice-group--open' : ''} ${error ? 'profile-choice-group--error' : ''}`.trim()}
+    <details
+      className={`profile-choice-group ${error ? 'profile-choice-group--error' : ''}`.trim()}
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
     >
-      <legend className="profile-choice-group__legend">
-        <button
-          type="button"
-          className="profile-choice-group__toggle"
-          aria-controls={`${id}-options`}
-          aria-expanded={isOpen}
-          aria-describedby={isOpen ? `${id}-hint` : undefined}
-          onClick={() => setIsOpen((current) => !current)}
-        >
-          <span className="profile-choice-group__toggle-copy">
-            <strong>{label}</strong>
-            <small>{selectedOption?.label ?? 'Choose an option'}</small>
-          </span>
-          <span className="profile-choice-group__chevron" aria-hidden="true">
-            {isOpen ? '−' : '+'}
-          </span>
-        </button>
-      </legend>
+      <summary className="profile-choice-group__summary">
+        <span className="profile-choice-group__summary-copy">
+          <strong>{label}</strong>
+          <small>{selectedOption?.label ?? 'Choose an option'}</small>
+        </span>
+        <span className="profile-choice-group__chevron" aria-hidden="true">
+          {isOpen ? '−' : '+'}
+        </span>
+      </summary>
       {isOpen && (
         <>
           <p className="profile-choice-group__hint" id={`${id}-hint`}>
@@ -552,7 +545,7 @@ function RadioChoiceGroup({
           {error}
         </p>
       )}
-    </fieldset>
+    </details>
   );
 }
 
