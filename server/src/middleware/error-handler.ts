@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/app-error.js';
+import { safeErrorDetails } from '../utils/safe-error.js';
 
 export const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
   if (error instanceof AppError) {
@@ -29,16 +30,20 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
     }
   }
 
-  const unknownError = error instanceof Error ? error : new Error('Unknown non-Error failure');
+  const errorDetails = safeErrorDetails(error);
   console.error(JSON.stringify({
     event: 'http_error',
     requestId: response.getHeader('x-request-id') ?? null,
     method: request.method,
     path: request.path,
     statusCode: 500,
-    errorName: unknownError.name,
-    message: unknownError.message,
-    ...(env.nodeEnv !== 'production' && unknownError.stack ? { stack: unknownError.stack } : {}),
+    errorName: errorDetails.errorName,
+    ...(env.nodeEnv !== 'production'
+      ? {
+          message: errorDetails.message,
+          ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
+        }
+      : {}),
   }));
   response.status(500).json({
     error: 'internal_server_error',

@@ -1,6 +1,7 @@
 import { env } from '../config/env.js';
 import { migrate } from './migrate.js';
 import { requirePool } from './pool.js';
+import { safeErrorDetails } from '../utils/safe-error.js';
 
 const localDatabaseHosts = new Set(['localhost', '127.0.0.1', '::1']);
 
@@ -30,7 +31,10 @@ async function resetDevelopmentDatabase(): Promise<void> {
 }
 
 resetDevelopmentDatabase().catch(async (error) => {
-  console.error('Development database reset failed', error);
+  console.error(JSON.stringify({
+    event: 'development_database_reset_failed',
+    ...safeErrorDetails(error),
+  }));
   await requirePool().end().catch(() => undefined);
   process.exitCode = 1;
 });
