@@ -3274,20 +3274,37 @@ em {
   margin: 7px 0 13px;
 }
 .profile-choice-grid {
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.profile-choice {
+  align-items: center;
+
   display: grid;
   gap: 9px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .profile-choice {
   align-items: flex-start;
+
   background: #fafbf7;
   border: 1px solid #d9ddd2;
   border-radius: 3px;
   cursor: pointer;
+
+  display: inline-flex;
+  flex: 1 1 180px;
+  gap: 8px;
+  min-height: 0;
+  padding: 9px 11px;
+
   display: flex;
   gap: 10px;
   min-height: 67px;
   padding: 12px;
+
   transition:
     background 0.18s ease-out,
     border-color 0.18s ease-out,
@@ -3311,6 +3328,13 @@ em {
 .profile-choice input {
   accent-color: #829d31;
   flex: 0 0 auto;
+
+  height: 16px;
+  margin: 0;
+  width: 16px;
+}
+.profile-choice__copy {
+
   height: 17px;
   margin: 1px 0 0;
   width: 17px;
@@ -3318,6 +3342,7 @@ em {
 .profile-choice__copy {
   display: grid;
   gap: 4px;
+
   min-width: 0;
 }
 .profile-choice__copy strong {
@@ -3325,6 +3350,11 @@ em {
   font-size: 12px;
   line-height: 1.25;
 }
+
+@media (max-width: 620px) {
+  .profile-choice {
+    flex-basis: 145px;
+
 .profile-choice__copy small {
   color: #656a66;
   font-size: 11px;
@@ -3333,6 +3363,7 @@ em {
 @media (max-width: 620px) {
   .profile-choice-grid {
     grid-template-columns: 1fr;
+
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3340,6 +3371,7 @@ em {
     transition: none;
   }
 }
+
 
 .advisor-message__answer {
   display: grid;
@@ -3387,3 +3419,4 @@ em {
   line-height: 1.5;
   margin: 0;
 }
+
