@@ -411,7 +411,6 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
         maxOutputTokens: env.geminiMaxOutputTokens,
         thinkingConfig: { thinkingBudget: 0 },
       },
-      store: false,
     });
   } finally {
     env.geminiApiKey = previousKey;
