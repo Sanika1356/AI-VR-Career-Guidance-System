@@ -4,6 +4,7 @@ import test from "node:test";
 import { app } from "../src/app.js";
 import { env } from "../src/config/env.js";
 import {
+  buildGeminiGenerateContentUrl,
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
   GeminiAdvisorProvider,
@@ -278,6 +279,23 @@ test("advisor falls back when Ollama returns a malformed payload", async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("Gemini URL builder targets the supported v1beta model resource path", () => {
+  assert.equal(
+    buildGeminiGenerateContentUrl(
+      "https://generativelanguage.googleapis.com",
+      "gemini-2.5-flash",
+    ),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  );
+  assert.equal(
+    buildGeminiGenerateContentUrl(
+      "https://generativelanguage.googleapis.com/v1beta/",
+      "models/gemini-2.5-flash",
+    ),
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+  );
 });
 
 test("Gemini advisor provider sends a grounded text request and parses generated content", async () => {

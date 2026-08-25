@@ -406,6 +406,18 @@ export class OllamaAdvisorProvider implements AdvisorProvider {
   }
 }
 
+export function buildGeminiGenerateContentUrl(
+  baseUrl: string,
+  model: string,
+): string {
+  const normalizedBaseUrl = baseUrl
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/v1(?:beta)?$/i, "");
+  const normalizedModel = model.trim().replace(/^models\//i, "");
+  return `${normalizedBaseUrl}/v1beta/models/${encodeURIComponent(normalizedModel)}:generateContent`;
+}
+
 export class GeminiAdvisorProvider implements AdvisorProvider {
   async generate(prompt: string): Promise<string> {
     const apiKey = env.geminiApiKey?.trim();
@@ -423,7 +435,10 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
       env.aiRequestTimeoutMs,
     );
     try {
-      const endpoint = `${env.geminiBaseUrl.replace(/\/$/, "")}/v1beta/models/${encodeURIComponent(env.geminiModel)}:generateContent`;
+      const endpoint = buildGeminiGenerateContentUrl(
+        env.geminiBaseUrl,
+        env.geminiModel,
+      );
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
