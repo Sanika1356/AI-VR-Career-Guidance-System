@@ -533,6 +533,15 @@ function isConversationalGeminiModel(model: string): boolean {
   );
 }
 
+function geminiFallbackModelPriority(model: string): number {
+  if (model === "gemini-flash-latest") return 0;
+  if (/gemini-.*flash-lite/i.test(model)) return 1;
+  if (/gemini-2\.0-.*flash/i.test(model)) return 2;
+  if (/gemini-2\.5-.*flash/i.test(model)) return 3;
+  if (/gemini-.*flash/i.test(model)) return 4;
+  return 5;
+}
+
 async function discoverGeminiGenerateContentModel(
   apiKey: string,
   signal: AbortSignal,
@@ -591,11 +600,10 @@ async function discoverGeminiGenerateContentModel(
       ? supportedModels.filter((model) => model !== excluded)
       : supportedModels
   ).filter(isConversationalGeminiModel);
-  const orderedAlternatives = alternatives.sort((left, right) => {
-    const leftFlash = /gemini-.*flash/i.test(left) ? 0 : 1;
-    const rightFlash = /gemini-.*flash/i.test(right) ? 0 : 1;
-    return leftFlash - rightFlash;
-  });
+  const orderedAlternatives = alternatives.sort(
+    (left, right) =>
+      geminiFallbackModelPriority(left) - geminiFallbackModelPriority(right),
+  );
   return orderedAlternatives[0];
 }
 

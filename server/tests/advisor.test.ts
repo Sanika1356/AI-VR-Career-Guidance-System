@@ -513,6 +513,78 @@ test("Gemini provider discovers an accessible GenerateContent model after a 404"
   }
 });
 
+test("Gemini Flash-Lite 404 prefers the live latest Flash candidate", async () => {
+  const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash-lite";
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    requests.push(`${init?.method ?? "GET"} ${url}`);
+    if (url.endsWith("/v1beta/models/gemini-2.5-flash-lite:generateContent")) {
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({ error: { status: "NOT_FOUND" } }),
+      };
+    }
+    if (url.endsWith("/v1beta/models")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          models: [
+            {
+              name: "models/gemini-2.5-flash",
+              supportedGenerationMethods: ["generateContent"],
+            },
+            {
+              name: "models/gemini-flash-latest",
+              supportedGenerationMethods: ["generateContent"],
+            },
+          ],
+        }),
+      };
+    }
+    if (url.endsWith("/v1beta/models/gemini-flash-latest:generateContent")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: "The live latest Flash model answered." }],
+              },
+            },
+          ],
+        }),
+      };
+    }
+    throw new Error("unexpected test URL");
+  }) as typeof fetch;
+
+  try {
+    assert.equal(
+      await new GeminiAdvisorProvider().generate(
+        "Give a Data Analyst learning plan.",
+      ),
+      "The live latest Flash model answered.",
+    );
+    assert.deepEqual(requests, [
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+      "GET https://generativelanguage.googleapis.com/v1beta/models",
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
+    ]);
+  } finally {
+    env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Gemini 503 does not trigger model discovery", async () => {
   const previousKey = env.geminiApiKey;
   const previousModel = env.geminiModel;
