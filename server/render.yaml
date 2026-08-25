@@ -31,6 +31,10 @@ services:
         value: "60000"
       - key: AI_RATE_LIMIT_MAX
         value: "20"
+      - key: AI_ADVISOR_ENABLED
+        value: "true"
+      - key: OLLAMA_ENABLED
+        value: "false"
       - key: OLLAMA_BASE_URL
         value: http://localhost:11434
       - key: OLLAMA_MODEL
