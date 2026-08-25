@@ -381,6 +381,73 @@ test("Gemini advisor provider sends GenerateContent and parses candidate output"
   }
 });
 
+test("Gemini provider discovers an accessible GenerateContent model after a 404", async () => {
+  const previousKey = env.geminiApiKey;
+  const previousModel = env.geminiModel;
+  const originalFetch = globalThis.fetch;
+  const requests: string[] = [];
+  env.geminiApiKey = "test-gemini-key";
+  env.geminiModel = "gemini-2.5-flash";
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input);
+    requests.push(`${init?.method ?? "GET"} ${url}`);
+    if (url.endsWith("/v1beta/models/gemini-2.5-flash:generateContent")) {
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({ error: { status: "NOT_FOUND" } }),
+      };
+    }
+    if (url.endsWith("/v1beta/models")) {
+      return {
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: "models/gemini-2.5-flash-lite",
+              supportedGenerationMethods: ["generateContent"],
+            },
+          ],
+        }),
+      };
+    }
+    if (url.endsWith("/v1beta/models/gemini-2.5-flash-lite:generateContent")) {
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: "Discovered Gemini model answered." }],
+              },
+            },
+          ],
+        }),
+      };
+    }
+    throw new Error("unexpected test URL");
+  }) as typeof fetch;
+
+  try {
+    assert.equal(
+      await new GeminiAdvisorProvider().generate(
+        "Find an accessible model and answer this question.",
+      ),
+      "Discovered Gemini model answered.",
+    );
+    assert.deepEqual(requests, [
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "GET https://generativelanguage.googleapis.com/v1beta/models",
+      "POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+    ]);
+    assert.doesNotMatch(requests.join("\\n"), /test-gemini-key/);
+  } finally {
+    env.geminiApiKey = previousKey;
+    env.geminiModel = previousModel;
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Gemini provider uses the GenerateContent maxOutputTokens schema", async () => {
   const previousKey = env.geminiApiKey;
   const previousMaxTokens = env.geminiMaxOutputTokens;
@@ -392,8 +459,8 @@ test("Gemini provider uses the GenerateContent maxOutputTokens schema", async ()
       generationConfig?: Record<string, unknown>;
     };
     if (
-      body.generationConfig?.max_output_tokens !== undefined ||
-      body.generationConfig?.maxOutputTokens !== 900
+      body.generationConfig?.maxOutputTokens !== 900 ||
+      body.generationConfig?.max_output_tokens !== undefined
     ) {
       return {
         ok: false,
