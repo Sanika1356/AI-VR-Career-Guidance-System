@@ -11,7 +11,7 @@ interface ProfileRow {
   interests: string[] | string | null;
   current_skills: string[] | string | null;
   experience: string | null;
-  learning_preferences: string | null;
+  learning_preferences: unknown;
 }
 
 interface AssessmentRow {
@@ -93,11 +93,22 @@ function normalizeSkill(value: string): string {
   return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
 }
 
-function safeContextText(
-  value: string | null | undefined,
-  fallback = "Not provided",
-): string {
-  const normalized = (value ?? fallback)
+function safeContextText(value: unknown, fallback = "Not provided"): string {
+  let text: string;
+  if (typeof value === "string") {
+    text = value;
+  } else if (value === null || value === undefined) {
+    text = fallback;
+  } else {
+    try {
+      const serialized = JSON.stringify(value);
+      text = typeof serialized === "string" ? serialized : fallback;
+    } catch {
+      text = fallback;
+    }
+  }
+
+  const normalized = text
     .replace(/[\u0000-\u001F\u007F]/g, " ")
     .replace(/\s+/g, " ")
     .trim();

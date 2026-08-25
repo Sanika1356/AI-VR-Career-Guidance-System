@@ -32,7 +32,7 @@ class FakeClient implements DatabaseClient {
             interests: ["ai"],
             current_skills: ["Python"],
             experience: "Beginner",
-            learning_preferences: "Projects",
+            learning_preferences: { preferredMode: "Projects" },
           },
         ] as T[],
       };
@@ -155,6 +155,26 @@ test("advisor enriches the local provider prompt with profile, assessment, caree
       query.includes("INSERT INTO messages"),
     ),
   );
+});
+
+test("advisor accepts JSONB learning preferences in the live chat request path", async () => {
+  const database = new FakePool();
+  const provider = new RecordingProvider();
+  const response = await chatAdvisor(
+    "user_asha",
+    {
+      message:
+        "I am an AI and Data Science engineering student. Which career path should I choose?",
+      careerId: "career_ai_engineer",
+    },
+    database,
+    provider,
+  );
+
+  assert.equal(response.mode, "provider");
+  assert.match(provider.prompt, /preferredMode/);
+  assert.match(provider.prompt, /Projects/);
+  assert.match(provider.prompt, /Which career path should I choose/);
 });
 
 test("advisor treats user content as untrusted data and removes control characters", async () => {
