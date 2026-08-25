@@ -48,7 +48,7 @@ services:
       - key: GEMINI_BASE_URL
         value: https://generativelanguage.googleapis.com
       - key: GEMINI_MAX_OUTPUT_TOKENS
-        value: "900"
+        value: "600"
       - key: AI_REQUEST_TIMEOUT_MS
         value: "15000"
       - key: AI_MAX_RESPONSE_CHARS
