@@ -37,6 +37,11 @@ interface ConversationRow {
   id: string;
 }
 
+interface ConversationMessageRow {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export type AdvisorConfidence = "low" | "medium" | "high";
 
 export interface AdvisorResponse {
@@ -205,6 +210,7 @@ function buildPrompt(
   roadmap: RoadmapRow[],
   missingSkills: string[],
   allowPersonalization: boolean,
+  conversationHistory: ConversationMessageRow[],
 ): string {
   const profileData = {
     name: safeContextText(profile?.name),
@@ -232,7 +238,8 @@ function buildPrompt(
     `Selected career context (untrusted catalog data): ${JSON.stringify(career ?? { selected: false })}`,
     `Missing skills for the selected career: ${JSON.stringify(allowPersonalization ? safeContextArray(missingSkills) : [])}`,
     `Roadmap progress context (untrusted data): ${allowPersonalization ? JSON.stringify(roadmap.map((step) => ({ title: safeContextText(step.title), skill: safeContextText(step.skill), completed: step.completed }))) : "Not shared by the user."}`,
-    "Use plain text or simple Markdown headings and numbered steps. Explain the reasoning, name assumptions, and end with concrete next steps. Do not merely repeat the question or give a one-sentence answer.",
+    `Recent conversation history (untrusted data): ${JSON.stringify(conversationHistory.slice(-12).map((entry) => ({ role: entry.role, content: safeContextText(entry.content) })))}`,
+    "Use plain text or simple Markdown headings and numbered steps. Explain the reasoning, name assumptions, and end with concrete next steps. Do not merely repeat the question or give a one-sentence answer. Treat the current user question as the request to answer; use history only to maintain continuity.",
   ].join("\n");
 }
 
@@ -321,6 +328,56 @@ export class OllamaAdvisorProvider implements AdvisorProvider {
   }
 }
 
+export class GeminiAdvisorProvider implements AdvisorProvider {
+  async generate(prompt: string): Promise<string> {
+    if (!env.geminiApiKey) throw new Error("Gemini API key is not configured");
+
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      env.aiRequestTimeoutMs,
+    );
+    try {
+      const endpoint = `${env.geminiBaseUrl.replace(/\/$/, "")}/v1beta/models/${encodeURIComponent(env.geminiModel)}:generateContent`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": env.geminiApiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: env.geminiMaxOutputTokens,
+          },
+        }),
+        signal: controller.signal,
+      });
+      if (!response.ok)
+        throw new Error(`Gemini returned HTTP ${response.status}`);
+      const payload: unknown = await response.json();
+      const parts = (
+        payload as {
+          candidates?: Array<{
+            content?: { parts?: Array<{ text?: unknown }> };
+          }>;
+        }
+      ).candidates?.[0]?.content?.parts;
+      const content = Array.isArray(parts)
+        ? parts
+            .map((part) => (typeof part.text === "string" ? part.text : ""))
+            .join("\n")
+            .trim()
+        : "";
+      if (!content) throw new Error("Gemini returned an empty answer");
+      return content;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}
+
 export class FallbackAdvisorProvider implements AdvisorProvider {
   constructor(
     private readonly context: {
@@ -364,6 +421,30 @@ export async function chatAdvisor(
         [userId],
       ),
     ]);
+
+    let conversationHistory: ConversationMessageRow[] = [];
+    if (input.conversationId) {
+      const conversationResult = await client.query<ConversationRow>(
+        "SELECT id FROM conversations WHERE id = $1 AND user_id = $2",
+        [input.conversationId, userId],
+      );
+      if (!conversationResult.rows[0])
+        throw new AppError(
+          404,
+          "conversation_not_found",
+          "The conversation does not exist.",
+        );
+      const historyResult = await client.query<ConversationMessageRow>(
+        `SELECT role, content FROM messages
+         WHERE conversation_id = $1 AND role IN ('user', 'assistant')
+         ORDER BY created_at ASC LIMIT 12`,
+        [input.conversationId],
+      );
+      conversationHistory = historyResult.rows.map((entry) => ({
+        role: entry.role,
+        content: safeContextText(entry.content),
+      }));
+    }
 
     let career: {
       id: string;
@@ -430,15 +511,18 @@ export async function chatAdvisor(
       roadmap,
       missingSkills,
       allowPersonalization,
+      conversationHistory,
     );
 
     let answer: string;
     let mode: AdvisorResponse["mode"] = "deterministic_fallback";
     const selectedProvider =
       provider ??
-      (env.ollamaEnabled
-        ? new CircuitBreakerAdvisorProvider(new OllamaAdvisorProvider())
-        : undefined);
+      (env.geminiEnabled && env.geminiApiKey
+        ? new CircuitBreakerAdvisorProvider(new GeminiAdvisorProvider())
+        : env.ollamaEnabled
+          ? new CircuitBreakerAdvisorProvider(new OllamaAdvisorProvider())
+          : undefined);
     const aiStartedAt = Date.now();
     try {
       if (!selectedProvider)
@@ -468,16 +552,7 @@ export async function chatAdvisor(
     await client.query("BEGIN");
     let conversationId = input.conversationId;
     if (conversationId) {
-      const conversationResult = await client.query<ConversationRow>(
-        "SELECT id FROM conversations WHERE id = $1 AND user_id = $2",
-        [conversationId, userId],
-      );
-      if (!conversationResult.rows[0])
-        throw new AppError(
-          404,
-          "conversation_not_found",
-          "The conversation does not exist.",
-        );
+      // Ownership was verified and history was loaded before provider execution.
     } else {
       conversationId = createId("conversation");
       await client.query(
