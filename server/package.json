@@ -9,6 +9,7 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
+    "gemini:smoke": "tsx scripts/gemini-smoke.ts",
     "db:migrate": "tsx src/db/migrate-cli.ts",
     "db:reset": "tsx src/db/reset-dev.ts"
   },
