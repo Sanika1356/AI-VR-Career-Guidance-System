@@ -292,6 +292,7 @@ export interface ChatMessage {
   confidence?: 'low' | 'medium' | 'high';
   caveat?: string;
   feedbackHelpful?: boolean;
+  mode?: 'provider' | 'deterministic_fallback';
 }
 export type AdvisorFeedbackReason =
   'clear' | 'actionable' | 'grounded' | 'incorrect' | 'unsafe' | 'other';
@@ -319,6 +320,7 @@ export interface AdvisorChatResponse {
   confidence?: 'low' | 'medium' | 'high';
   caveat?: string;
   createdAt: string;
+  mode?: 'provider' | 'deterministic_fallback';
 }
 export interface ClearAdvisorHistoryResponse {
   conversationId: string;

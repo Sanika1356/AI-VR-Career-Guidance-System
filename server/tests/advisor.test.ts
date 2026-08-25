@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import test from "node:test";
 import { app } from "../src/app.js";
+import { env } from "../src/config/env.js";
 import {
   chatAdvisor,
   CircuitBreakerAdvisorProvider,
@@ -142,6 +143,7 @@ test("advisor enriches the local provider prompt with profile, assessment, caree
     response.answer,
     "Use a small machine-learning project to build confidence.",
   );
+  assert.equal(response.mode, "provider");
   assert.match(provider.prompt, /Asha/);
   assert.match(provider.prompt, /career_ai_engineer/);
   assert.match(provider.prompt, /Machine Learning/);
@@ -188,6 +190,24 @@ test("advisor does not use private profile context when personalized AI consent 
   assert.doesNotMatch(response.answer, /Machine Learning/);
 });
 
+test("advisor returns detailed fallback when no provider is enabled", async () => {
+  const previous = env.ollamaEnabled;
+  env.ollamaEnabled = false;
+  try {
+    const response = await chatAdvisor(
+      "user_asha",
+      { message: "What should I learn first?", careerId: "career_ai_engineer" },
+      new FakePool(),
+    );
+    assert.equal(response.mode, "deterministic_fallback");
+    assert.match(response.answer, /## Short answer/);
+    assert.match(response.answer, /## How to make the decision yours/);
+    assert.ok(response.answer.length > 600);
+  } finally {
+    env.ollamaEnabled = previous;
+  }
+});
+
 test("advisor returns deterministic fallback text when local Ollama fails", async () => {
   const response = await chatAdvisor(
     "user_asha",
@@ -199,6 +219,10 @@ test("advisor returns deterministic fallback text when local Ollama fails", asyn
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /Machine Learning/);
   assert.match(response.answer, /general guidance, not a guarantee/);
+  assert.equal(response.mode, "deterministic_fallback");
+  assert.match(response.answer, /## Short answer/);
+  assert.match(response.answer, /## A practical sequence/);
+  assert.match(response.answer, /1\. Spend one short study session/);
 });
 
 test("advisor uses safe fallback text when a provider returns an empty answer", async () => {
@@ -211,6 +235,7 @@ test("advisor uses safe fallback text when a provider returns an empty answer", 
 
   assert.match(response.answer, /I can help you plan your next career step/);
   assert.match(response.answer, /general guidance, not a guarantee/);
+  assert.equal(response.mode, "deterministic_fallback");
 });
 
 test("advisor falls back when Ollama returns a malformed payload", async () => {
@@ -228,6 +253,7 @@ test("advisor falls back when Ollama returns a malformed payload", async () => {
       new OllamaAdvisorProvider(),
     );
     assert.match(response.answer, /I can help you plan your next career step/);
+    assert.equal(response.mode, "deterministic_fallback");
   } finally {
     globalThis.fetch = originalFetch;
   }
