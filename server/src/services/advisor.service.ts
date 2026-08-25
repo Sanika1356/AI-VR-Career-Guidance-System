@@ -447,14 +447,147 @@ async function safeGeminiErrorCode(
   }
 }
 
-function safeGeminiEndpointPath(): string {
+function safeGeminiEndpointPath(model = env.geminiModel): string {
   try {
-    return new URL(
-      buildGeminiGenerateContentUrl(env.geminiBaseUrl, env.geminiModel),
-    ).pathname;
+    return new URL(buildGeminiGenerateContentUrl(env.geminiBaseUrl, model))
+      .pathname;
   } catch {
     return "invalid";
   }
+}
+
+function buildGeminiModelsUrl(baseUrl: string): string {
+  const normalizedBaseUrl = baseUrl
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\/v1(?:beta)?(?:\/models)?$/i, "");
+  return `${normalizedBaseUrl}/v1beta/models`;
+}
+
+async function discoverGeminiGenerateContentModel(
+  apiKey: string,
+  signal: AbortSignal,
+): Promise<string | undefined> {
+  const response = await fetch(buildGeminiModelsUrl(env.geminiBaseUrl), {
+    method: "GET",
+    headers: {
+      "x-goog-api-key": apiKey,
+    },
+    signal,
+  });
+  if (!response.ok) return undefined;
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    return undefined;
+  }
+  const models = (
+    payload as {
+      models?: Array<{
+        name?: unknown;
+        supportedGenerationMethods?: unknown;
+      }>;
+    }
+  ).models;
+  if (!Array.isArray(models)) return undefined;
+
+  const supportedModels = models
+    .filter(
+      (model) =>
+        Array.isArray(model.supportedGenerationMethods) &&
+        model.supportedGenerationMethods.includes("generateContent"),
+    )
+    .map((model) => (typeof model.name === "string" ? model.name : ""))
+    .filter(Boolean)
+    .map(normalizeGeminiModel);
+  if (supportedModels.length === 0) return undefined;
+
+  const requestedModel = normalizeGeminiModel(env.geminiModel);
+  if (supportedModels.includes(requestedModel)) return requestedModel;
+
+  return (
+    supportedModels.find((model) => /gemini-.*flash(?!.*image)/i.test(model)) ??
+    supportedModels.find((model) => /gemini/i.test(model))
+  );
+}
+
+async function requestGeminiGenerateContent(
+  prompt: string,
+  model: string,
+  apiKey: string,
+  signal: AbortSignal,
+): Promise<string> {
+  const endpoint = buildGeminiGenerateContentUrl(env.geminiBaseUrl, model);
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: env.geminiMaxOutputTokens,
+      },
+      store: false,
+    }),
+    signal,
+  });
+  if (!response.ok) {
+    const providerErrorCode = await safeGeminiErrorCode(response);
+    const category =
+      response.status === 401 || response.status === 403
+        ? "authentication"
+        : response.status === 429
+          ? "quota"
+          : response.status === 400
+            ? "request_schema"
+            : response.status === 404
+              ? "model_or_endpoint_not_found"
+              : "upstream_http";
+    throw new AdvisorProviderError(
+      "gemini",
+      category,
+      `Gemini returned HTTP ${response.status}`,
+      response.status,
+      providerErrorCode,
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new AdvisorProviderError(
+      "gemini",
+      "response_shape",
+      "Gemini returned invalid JSON",
+    );
+  }
+  const candidates = (
+    payload as {
+      candidates?: Array<{
+        content?: { parts?: Array<{ text?: unknown }> };
+      }>;
+    }
+  ).candidates;
+  const content = Array.isArray(candidates?.[0]?.content?.parts)
+    ? candidates[0].content.parts
+        .map((part) => (typeof part.text === "string" ? part.text : ""))
+        .join("\n")
+        .trim()
+    : "";
+  if (!content) {
+    throw new AdvisorProviderError(
+      "gemini",
+      "empty_response",
+      "Gemini returned no usable text",
+    );
+  }
+  return content;
 }
 
 export class GeminiAdvisorProvider implements AdvisorProvider {
@@ -474,77 +607,41 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
       env.aiRequestTimeoutMs,
     );
     try {
-      const endpoint = buildGeminiGenerateContentUrl(
-        env.geminiBaseUrl,
-        env.geminiModel,
-      );
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: env.geminiMaxOutputTokens,
-          },
-          store: false,
-        }),
-        signal: controller.signal,
-      });
-      if (!response.ok) {
-        const providerErrorCode = await safeGeminiErrorCode(response);
-        const category =
-          response.status === 401 || response.status === 403
-            ? "authentication"
-            : response.status === 429
-              ? "quota"
-              : response.status === 400
-                ? "request_schema"
-                : response.status === 404
-                  ? "model_or_endpoint_not_found"
-                  : "upstream_http";
-        throw new AdvisorProviderError(
-          "gemini",
-          category,
-          `Gemini returned HTTP ${response.status}`,
-          response.status,
-          providerErrorCode,
-        );
-      }
-      let payload: unknown;
+      const requestedModel = normalizeGeminiModel(env.geminiModel);
       try {
-        payload = await response.json();
-      } catch {
-        throw new AdvisorProviderError(
-          "gemini",
-          "response_shape",
-          "Gemini returned invalid JSON",
+        return await requestGeminiGenerateContent(
+          prompt,
+          requestedModel,
+          apiKey,
+          controller.signal,
         );
-      }
-      const candidates = (
-        payload as {
-          candidates?: Array<{
-            content?: { parts?: Array<{ text?: unknown }> };
-          }>;
+      } catch (error) {
+        if (
+          !(error instanceof AdvisorProviderError) ||
+          error.category !== "model_or_endpoint_not_found"
+        ) {
+          throw error;
         }
-      ).candidates;
-      const content = Array.isArray(candidates?.[0]?.content?.parts)
-        ? candidates[0].content.parts
-            .map((part) => (typeof part.text === "string" ? part.text : ""))
-            .join("\n")
-            .trim()
-        : "";
-      if (!content) {
-        throw new AdvisorProviderError(
-          "gemini",
-          "empty_response",
-          "Gemini returned no usable text",
+
+        const discoveredModel = await discoverGeminiGenerateContentModel(
+          apiKey,
+          controller.signal,
+        );
+        if (!discoveredModel || discoveredModel === requestedModel) throw error;
+
+        logAdvisorProviderEvent("advisor_provider_model_discovered", {
+          provider: "gemini",
+          requestedModel,
+          selectedModel: discoveredModel,
+          endpointPath: safeGeminiEndpointPath(discoveredModel),
+        });
+        return await requestGeminiGenerateContent(
+          prompt,
+          discoveredModel,
+          apiKey,
+          controller.signal,
         );
       }
-      return content;
     } catch (error) {
       if (error instanceof AdvisorProviderError) throw error;
       if (
