@@ -16,6 +16,7 @@ import { VRPage } from './pages/VRPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
+import { ResumeAnalyzerPage, ResumeAnalysisResultsPage } from './pages/ResumeAnalyzerPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { SkillGapPage } from './pages/SkillGapPage';
 import { clearAuthSession, readAuthSession } from './services/auth';
@@ -34,6 +35,8 @@ type RouteKey =
   | 'skill-gap'
   | 'roadmap'
   | 'advisor'
+  | 'resume-analyzer'
+  | 'resume-analyzer-results'
   | 'vr'
   | 'limitations'
   | 'not-found';
@@ -93,6 +96,16 @@ const routes: Record<
     description:
       'Ask thoughtful questions and receive guidance grounded in your goals and progress.',
   },
+  'resume-analyzer': {
+    title: 'Analyze your resume',
+    description:
+      'Compare your resume with a target role and turn the result into practical next steps.',
+  },
+  'resume-analyzer-results': {
+    title: 'Resume analysis results',
+    description:
+      'Review the evidence-based strengths, gaps, and recommendations from your resume analysis.',
+  },
   vr: {
     title: 'Explore career worlds',
     description: 'Enter a desktop-friendly 3D career hub and discover immersive environments.',
@@ -112,6 +125,8 @@ const protectedRouteKeys = new Set<RouteKey>([
   'skill-gap',
   'roadmap',
   'advisor',
+  'resume-analyzer',
+  'resume-analyzer-results',
   'vr',
 ]);
 
@@ -127,6 +142,8 @@ function getRoute(pathname: string): RouteState {
   if (/^\/careers\/[^/]+\/roadmap$/.test(normalizedPath)) {
     return { key: 'roadmap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
   }
+  if (normalizedPath === '/resume-analyzer/results') return { key: 'resume-analyzer-results' };
+  if (normalizedPath === '/resume-analyzer') return { key: 'resume-analyzer' };
   if (normalizedPath.startsWith('/careers/')) {
     return {
       key: 'career-details',
@@ -347,6 +364,10 @@ export default function App() {
         <RoadmapPage careerId={route.careerId} onNavigate={navigate} />
       )}
       {route.key === 'advisor' && session && <AdvisorPage />}
+      {route.key === 'resume-analyzer' && session && <ResumeAnalyzerPage onNavigate={navigate} />}
+      {route.key === 'resume-analyzer-results' && session && (
+        <ResumeAnalysisResultsPage onNavigate={navigate} />
+      )}
       {route.key === 'vr' && session && <VRPage onNavigate={navigate} />}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}
       {route.key === 'limitations' && <LimitationsPage onNavigate={navigate} />}

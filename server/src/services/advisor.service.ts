@@ -1060,6 +1060,106 @@ const ollamaCircuitBreaker = new CircuitBreakerAdvisorProvider(
   new OllamaAdvisorProvider(),
 );
 
+export async function generateAdvisorProviderText(
+  prompt: string,
+  provider?: AdvisorProvider,
+): Promise<{ text: string; provider: AdvisorProviderName }> {
+  const providerName = selectedProviderName(provider);
+  const selectedProvider =
+    provider ??
+    (providerName === "gemini"
+      ? geminiCircuitBreaker
+      : providerName === "groq"
+        ? groqCircuitBreaker
+        : providerName === "ollama"
+          ? ollamaCircuitBreaker
+          : undefined);
+  const startedAt = Date.now();
+  const deadlineAt = startedAt + Math.max(1, env.aiRequestTimeoutMs);
+  const canUseGroqFailover =
+    providerName === "gemini" &&
+    env.secondaryAiEnabled &&
+    env.secondaryAiProvider.trim().toLowerCase() === "groq" &&
+    Boolean(env.groqApiKey?.trim());
+  const secondaryBudgetMs = canUseGroqFailover
+    ? Math.min(
+        Math.max(1_000, env.secondaryAiTimeoutMs),
+        Math.max(1_000, env.aiRequestTimeoutMs - 1_000),
+      )
+    : 0;
+  const primaryDeadlineAt = deadlineAt - secondaryBudgetMs;
+
+  logAdvisorProviderEvent("advisor_provider_selected", {
+    provider: providerName,
+    geminiEnabled: env.geminiEnabled,
+    geminiKeyConfigured: Boolean(env.geminiApiKey?.trim()),
+    geminiModel: normalizeGeminiModel(env.geminiModel),
+    geminiEndpointPath: safeGeminiEndpointPath(),
+    secondaryAiEnabled: env.secondaryAiEnabled,
+    secondaryAiProvider: env.secondaryAiProvider,
+    groqKeyConfigured: Boolean(env.groqApiKey?.trim()),
+    groqModel: normalizeGroqModel(env.groqModel),
+    ollamaEnabled: env.ollamaEnabled,
+  });
+
+  let finalError: unknown;
+  try {
+    if (!selectedProvider) throw new Error("No advisor provider is configured");
+    const text = await generateWithRetry(
+      selectedProvider,
+      prompt,
+      primaryDeadlineAt,
+    );
+    logAdvisorProviderEvent("advisor_provider_succeeded", {
+      provider: providerName,
+      durationMs: Date.now() - startedAt,
+    });
+    return { text, provider: providerName };
+  } catch (error) {
+    finalError = error;
+    if (canUseGroqFailover && isTemporaryProviderFailure(error)) {
+      logAdvisorProviderEvent("advisor_secondary_provider_selected", {
+        primaryProvider: "gemini",
+        provider: "groq",
+      });
+      try {
+        const secondaryDeadlineAt = Math.min(
+          deadlineAt,
+          Date.now() + secondaryBudgetMs,
+        );
+        const text = await generateWithRetry(
+          groqCircuitBreaker,
+          prompt,
+          secondaryDeadlineAt,
+        );
+        logAdvisorProviderEvent("advisor_provider_succeeded", {
+          provider: "groq",
+          failoverFrom: "gemini",
+          durationMs: Date.now() - startedAt,
+        });
+        return { text, provider: "groq" };
+      } catch (secondaryError) {
+        finalError = secondaryError;
+      }
+    }
+  }
+
+  const failure = providerFailureDetails(finalError);
+  logAdvisorProviderEvent("advisor_provider_failed", {
+    provider: providerName,
+    category: failure.category,
+    ...(failure.statusCode === undefined
+      ? {}
+      : { statusCode: failure.statusCode }),
+    ...(failure.providerErrorCode === undefined
+      ? {}
+      : { providerErrorCode: failure.providerErrorCode }),
+  });
+  throw finalError instanceof Error
+    ? finalError
+    : new Error("Advisor provider failed");
+}
+
 export async function chatAdvisor(
   userId: string,
   input: AdvisorChatInput,

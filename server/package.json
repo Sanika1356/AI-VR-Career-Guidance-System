@@ -17,11 +17,14 @@
     "cors": "latest",
     "dotenv": "latest",
     "express": "latest",
+    "multer": "^2.2.0",
+    "pdf-parse": "^2.4.5",
     "pg": "latest"
   },
   "devDependencies": {
     "@types/cors": "latest",
     "@types/express": "latest",
+    "@types/multer": "^2.2.0",
     "@types/node": "latest",
     "@types/pg": "latest",
     "tsx": "latest",
