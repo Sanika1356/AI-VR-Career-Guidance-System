@@ -287,6 +287,39 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
       'ai-engineer-lab',
       'data-insights-studio',
     ]);
+
+    const privacyDefaults = await request('/privacy/consent', { headers: authHeaders });
+    assert.equal(privacyDefaults.response.status, 200);
+    assert.equal(privacyDefaults.body.consent.analytics, false);
+    assert.equal(privacyDefaults.body.consent.personalizedAi, false);
+
+    const privacyUpdated = await request('/privacy/consent', {
+      method: 'PUT',
+      headers: authHeaders,
+      body: JSON.stringify({ analytics: true, personalizedAi: true, vrTelemetry: false }),
+    });
+    assert.equal(privacyUpdated.response.status, 200);
+    assert.equal(privacyUpdated.body.consent.analytics, true);
+    assert.equal(privacyUpdated.body.consent.personalizedAi, true);
+
+    const exportedData = await request('/privacy/export', { headers: authHeaders });
+    assert.equal(exportedData.response.status, 200);
+    assert.equal(exportedData.body.user.email, email);
+    assert.equal(typeof exportedData.body.exportedAt, 'string');
+    assert.equal('passwordHash' in exportedData.body, false);
+    assert.equal('token' in exportedData.body, false);
+
+    const deletedAccount = await request('/privacy/account', {
+      method: 'DELETE',
+      headers: authHeaders,
+    });
+    assert.equal(deletedAccount.response.status, 200);
+    assert.deepEqual(deletedAccount.body.deleted, true);
+    assert.equal(deletedAccount.body.userId, registered.body.user.id);
+
+    const exportedAfterDeletion = await request('/privacy/export', { headers: authHeaders });
+    assert.equal(exportedAfterDeletion.response.status, 404);
+    assert.equal(exportedAfterDeletion.body.error, 'account_not_found');
   } finally {
     await closeServer();
     await pool?.end();
