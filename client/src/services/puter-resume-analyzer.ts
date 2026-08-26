@@ -45,6 +45,7 @@ declare global {
 }
 
 const AI_TIMEOUT_MS = 180_000;
+const PUTER_AUTH_TIMEOUT_MS = 45_000;
 
 const AI_RESPONSE_FORMAT = `
 {
@@ -207,7 +208,13 @@ export async function analyzeResumeWithPuter(input: {
   const puter = getPuter();
   let signedIn = await puter.auth.isSignedIn();
   if (!signedIn) {
-    await puter.auth.signIn();
+    try {
+      await withTimeout(Promise.resolve(puter.auth.signIn()), PUTER_AUTH_TIMEOUT_MS);
+    } catch {
+      throw new Error(
+        'Puter sign-in did not finish. Allow the sign-in window or popup, then try again.',
+      );
+    }
     signedIn = await puter.auth.isSignedIn();
   }
   if (!signedIn) {
