@@ -16,7 +16,11 @@ import { VRPage } from './pages/VRPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
-import { ResumeAnalyzerPage, ResumeAnalysisResultsPage } from './pages/ResumeAnalyzerPage';
+import {
+  ResumeAnalysisResultsPage,
+  ResumeAnalyzerUploadPage,
+  ResumeHistoryPage,
+} from './pages/ResumeAnalyzerPage';
 import { RoadmapPage } from './pages/RoadmapPage';
 import { SkillGapPage } from './pages/SkillGapPage';
 import { clearAuthSession, readAuthSession } from './services/auth';
@@ -36,6 +40,7 @@ type RouteKey =
   | 'roadmap'
   | 'advisor'
   | 'resume-analyzer'
+  | 'resume-analyzer-upload'
   | 'resume-analyzer-results'
   | 'vr'
   | 'limitations'
@@ -44,6 +49,7 @@ type RouteKey =
 interface RouteState {
   key: RouteKey;
   careerId?: string;
+  analysisId?: string;
 }
 
 const routes: Record<
@@ -101,6 +107,10 @@ const routes: Record<
     description:
       'Compare your resume with a target role and turn the result into practical next steps.',
   },
+  'resume-analyzer-upload': {
+    title: 'Upload your resume',
+    description: 'Compare your resume with a target role and receive an evidence-based report.',
+  },
   'resume-analyzer-results': {
     title: 'Resume analysis results',
     description:
@@ -126,6 +136,7 @@ const protectedRouteKeys = new Set<RouteKey>([
   'roadmap',
   'advisor',
   'resume-analyzer',
+  'resume-analyzer-upload',
   'resume-analyzer-results',
   'vr',
 ]);
@@ -142,7 +153,15 @@ function getRoute(pathname: string): RouteState {
   if (/^\/careers\/[^/]+\/roadmap$/.test(normalizedPath)) {
     return { key: 'roadmap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
   }
+  const resumeResultMatch = normalizedPath.match(/^\/resume-analyzer\/results\/([^/]+)$/);
+  if (resumeResultMatch) {
+    return {
+      key: 'resume-analyzer-results',
+      analysisId: decodeURIComponent(resumeResultMatch[1] ?? ''),
+    };
+  }
   if (normalizedPath === '/resume-analyzer/results') return { key: 'resume-analyzer-results' };
+  if (normalizedPath === '/resume-analyzer/upload') return { key: 'resume-analyzer-upload' };
   if (normalizedPath === '/resume-analyzer') return { key: 'resume-analyzer' };
   if (normalizedPath.startsWith('/careers/')) {
     return {
@@ -364,9 +383,12 @@ export default function App() {
         <RoadmapPage careerId={route.careerId} onNavigate={navigate} />
       )}
       {route.key === 'advisor' && session && <AdvisorPage />}
-      {route.key === 'resume-analyzer' && session && <ResumeAnalyzerPage onNavigate={navigate} />}
+      {route.key === 'resume-analyzer' && session && <ResumeHistoryPage onNavigate={navigate} />}
+      {route.key === 'resume-analyzer-upload' && session && (
+        <ResumeAnalyzerUploadPage onNavigate={navigate} />
+      )}
       {route.key === 'resume-analyzer-results' && session && (
-        <ResumeAnalysisResultsPage onNavigate={navigate} />
+        <ResumeAnalysisResultsPage onNavigate={navigate} analysisId={route.analysisId} />
       )}
       {route.key === 'vr' && session && <VRPage onNavigate={navigate} />}
       {route.key === 'careers' && <CareerCatalogPage onNavigate={navigate} />}

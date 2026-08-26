@@ -594,16 +594,42 @@ Deletes all messages in a conversation owned by the authenticated user and prese
 
 ## Resume Analyzer
 
+### `GET /api/resume/analyses`
+
+Returns up to 50 completed analyses owned by the authenticated user, newest first. The response contains filename, target company, role, score, status, and date. It never returns another user’s history or uploaded resume bytes.
+
+```json
+{
+  "analyses": [
+    {
+      "id": "resume_analysis_123",
+      "fileName": "resume.pdf",
+      "companyName": "Microsoft",
+      "jobRole": "Data Analyst Intern",
+      "overallScore": 82,
+      "status": "completed",
+      "analyzedAt": "2026-08-26T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### `GET /api/resume/analyses/:analysisId`
+
+Returns one completed analysis owned by the authenticated user. Unknown or cross-user IDs return the same safe `404` response.
+
 ### `POST /api/resume/analyze`
 
-Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, and `jobDescription`. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and does not persist the resume in the MVP.
+Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, and `jobDescription`. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and stores only the user-owned metadata and structured result; the original resume bytes are not persisted.
 
-The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials.
+The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials. Provider failures are logged only as sanitized category/status/code fields.
 
 Response:
 
 ```json
 {
+  "analysisId": "resume_analysis_123",
+  "fileName": "resume.pdf",
   "analysis": {
     "overallScore": 82,
     "matchingSkills": ["Python", "SQL", "Data analysis"],
@@ -620,7 +646,7 @@ Response:
 }
 ```
 
-`overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result is designed to become a future input to profile, skill-gap, recommendation, roadmap, and advisor features; this MVP does not automatically mutate those records.
+`overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result can inform future profile, skill-gap, recommendation, roadmap, and advisor features; this endpoint does not automatically mutate those records.
 
 ## VR support
 
