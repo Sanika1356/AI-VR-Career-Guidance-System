@@ -11,6 +11,7 @@ export type AuditEventType =
   | "advisor_requested"
   | "advisor_history_cleared"
   | "advisor_feedback_submitted"
+  | "resume_analyzed"
   | "data_exported"
   | "account_deleted";
 

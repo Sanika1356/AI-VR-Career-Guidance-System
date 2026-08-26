@@ -620,7 +620,7 @@ Returns one completed analysis owned by the authenticated user. Unknown or cross
 
 ### `POST /api/resume/analyze`
 
-Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, and `jobDescription`. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and stores only the user-owned metadata and structured result; the original resume bytes are not persisted.
+Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, `jobDescription`, and optional JSON-encoded `preferredOutputs`. Supported focuses are `role_fit`, `ats_keywords`, `skill_gaps`, `writing_improvements`, `interview_prep`, and `learning_plan`; all six are used when the field is omitted. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and stores only the user-owned metadata and structured result; the original resume bytes are not persisted.
 
 The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and requests provider-native JSON output for this feature only. The server still validates and normalizes the returned object before persistence, so malformed or incomplete provider output becomes a safe `502 resume_analysis_invalid_response` rather than a fabricated report. It returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials. Provider failures are logged only as sanitized category/status/code fields.
 
@@ -640,19 +640,30 @@ Response:
       "Build and document one dashboard project aligned with the role."
     ],
     "summary": "The resume is a promising match for an entry-level data analysis role.",
+    "roleFit": "The resume provides direct evidence for the target analysis role.",
+    "atsKeywords": ["Python", "SQL"],
+    "priorityActions": ["Add measurable outcomes to project descriptions."],
+    "interviewTopics": ["Explain the SQL analysis project."],
+    "learningPlan": ["Build a dashboard project using the target data tools."],
+    "preferredOutputs": [
+      "role_fit",
+      "ats_keywords",
+      "skill_gaps",
+      "learning_plan"
+    ],
     "provider": "groq"
   },
   "analyzedAt": "2026-08-26T00:00:00.000Z"
 }
 ```
 
-`overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result can inform future profile, skill-gap, recommendation, roadmap, and advisor features; this endpoint does not automatically mutate those records.
+`overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result includes role fit, ATS keywords, skill gaps, writing improvements, prioritized actions, interview topics, and a learning plan. These outputs are educational guidance, must remain grounded in the supplied evidence, and do not automatically mutate profile, recommendation, roadmap, or job-application records. Resume-analysis metadata is included in account export; uploaded bytes, extracted text, prompts, and raw provider responses are not stored.
 
 ### `POST /api/resume/analyses/puter`
 
 Persists a structured report produced by the browser-side CVsense-compatible Puter flow. The browser separately loads Puter.js, confirms or requests the user’s Puter sign-in, uploads the selected PDF to Puter, sends the file attachment plus the role prompt to `claude-sonnet-4-6`, tolerates the supported Puter response shapes, and extracts the JSON object before calling this endpoint. Pathfinder authentication remains required for persistence; Puter authentication does not replace the Pathfinder session.
 
-The JSON request contains `fileName`, `companyName`, `jobRole`, and `analysis`. The server treats the report as untrusted input, re-validates all fields and bounded lists, forces the stored provider label to `puter`, and stores only the normalized structured report and user-owned metadata. It does not receive or persist the resume bytes. After the Puter response is received or fails, the browser makes a best-effort deletion request for the temporary Puter file; cleanup failure never replaces the analysis or persistence error. Malformed reports return a safe validation error instead of being stored.
+The JSON request contains `fileName`, `companyName`, `jobRole`, optional `preferredOutputs`, and `analysis`. The server treats the report as untrusted input, re-validates all fields and bounded lists, forces the stored provider label to `puter`, and stores only the normalized structured report and user-owned metadata. It does not receive or persist the resume bytes. After the Puter response is received or fails, the browser makes a best-effort deletion request for the temporary Puter file; cleanup failure never replaces the analysis or persistence error. Malformed reports return a safe validation error instead of being stored.
 
 ```json
 {
@@ -666,8 +677,25 @@ The JSON request contains `fileName`, `companyName`, `jobRole`, and `analysis`. 
     "strengths": ["Relevant project evidence"],
     "improvements": ["Add measurable outcomes"],
     "recommendations": ["Document a dashboard project"],
-    "summary": "A strong evidence-based match."
-  }
+    "summary": "A strong evidence-based match.",
+    "roleFit": "The resume provides direct evidence for the target role.",
+    "atsKeywords": ["Python", "SQL"],
+    "priorityActions": ["Add measurable outcomes"],
+    "interviewTopics": ["Explain the data project"],
+    "learningPlan": ["Build a dashboard project"],
+    "preferredOutputs": [
+      "role_fit",
+      "ats_keywords",
+      "skill_gaps",
+      "learning_plan"
+    ]
+  },
+  "preferredOutputs": [
+    "role_fit",
+    "ats_keywords",
+    "skill_gaps",
+    "learning_plan"
+  ]
 }
 ```
 

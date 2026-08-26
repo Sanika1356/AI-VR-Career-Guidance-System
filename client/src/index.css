@@ -3615,6 +3615,65 @@ em {
   border-style: dashed;
   cursor: pointer;
 }
+.resume-output-preferences {
+  border: 1px solid #dce5c4;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+}
+.resume-output-preferences legend {
+  color: #202222;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 5px;
+}
+.resume-output-preferences__hint {
+  color: #777b73;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+.resume-output-preferences__grid {
+  display: grid;
+  gap: 10px;
+}
+.resume-output-preferences__option {
+  align-items: flex-start;
+  background: #fff;
+  border: 1px solid #e1e5dd;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  padding: 11px 12px;
+}
+.resume-output-preferences__option:focus-within {
+  border-color: #829d31;
+  box-shadow: 0 0 0 3px rgba(130, 157, 49, 0.12);
+}
+.resume-output-preferences__option input {
+  accent-color: #829d31;
+  margin-top: 3px;
+  width: auto;
+}
+.resume-output-preferences__option span {
+  display: grid;
+  gap: 3px;
+}
+.resume-output-preferences__option strong {
+  color: #202222;
+  font-size: 13px;
+}
+.resume-output-preferences__option small {
+  color: #777b73;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.resume-result__lead {
+  color: #4d5546;
+  line-height: 1.7;
+  margin: 0;
+}
 .resume-file__selected {
   align-items: center;
   background: #f1f3e9;

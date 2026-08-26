@@ -9,11 +9,52 @@ import {
   type ResumeAnalysis,
   type ResumeAnalysisHistoryItem,
   type ResumeAnalysisResponse,
+  type ResumeOutputFocus,
 } from '../services/resume-analyzer';
 import { analyzeResumeWithPuter } from '../services/puter-resume-analyzer';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const RESULT_STORAGE_KEY = 'pathfinder.resume-analysis.result';
+const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
+  'role_fit',
+  'ats_keywords',
+  'skill_gaps',
+  'writing_improvements',
+  'interview_prep',
+  'learning_plan',
+];
+const OUTPUT_OPTIONS: Array<{ value: ResumeOutputFocus; label: string; description: string }> = [
+  {
+    value: 'role_fit',
+    label: 'Role fit',
+    description: 'Evidence-based fit explanation and alignment score.',
+  },
+  {
+    value: 'ats_keywords',
+    label: 'ATS keywords',
+    description: 'Relevant terms to clarify or add where truthful.',
+  },
+  {
+    value: 'skill_gaps',
+    label: 'Skill gaps',
+    description: 'Missing requirements and a learning sequence.',
+  },
+  {
+    value: 'writing_improvements',
+    label: 'Writing improvements',
+    description: 'Specific resume clarity and impact suggestions.',
+  },
+  {
+    value: 'interview_prep',
+    label: 'Interview prep',
+    description: 'Evidence-backed topics to prepare and discuss.',
+  },
+  {
+    value: 'learning_plan',
+    label: 'Learning plan',
+    description: 'Prioritized next steps for the target role.',
+  },
+];
 
 function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
@@ -233,6 +274,13 @@ export function ResumeAnalysisResultsPage({
   }
 
   const { analysis } = result;
+  const preferredOutputs = analysis.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
+  const roleFit = analysis.roleFit ?? analysis.summary;
+  const atsKeywords = analysis.atsKeywords ?? analysis.matchingSkills;
+  const priorityActions = analysis.priorityActions ?? analysis.recommendations;
+  const interviewTopics = analysis.interviewTopics ?? [];
+  const learningPlan = analysis.learningPlan ?? analysis.recommendations;
+  const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
     <section className="page-frame resume-results-page">
       <div className="page-frame__header">
@@ -262,6 +310,15 @@ export function ResumeAnalysisResultsPage({
         </div>
       </Card>
 
+      {shows('role_fit') && (
+        <Card
+          title="Role fit"
+          description="Why the supplied resume evidence aligns with the target role."
+        >
+          <p className="resume-result__lead">{roleFit}</p>
+        </Card>
+      )}
+
       <div className="resume-result__grid resume-result__grid--two">
         <Card
           title="Matching skills"
@@ -283,6 +340,18 @@ export function ResumeAnalysisResultsPage({
         </Card>
       </div>
 
+      {shows('ats_keywords') && (
+        <Card
+          title="ATS keywords to review"
+          description="Use only terms that accurately describe your experience."
+        >
+          <ResultList
+            items={atsKeywords}
+            emptyLabel="No additional role keywords were identified."
+          />
+        </Card>
+      )}
+
       <div className="resume-result__grid resume-result__grid--two">
         <Card title="Strengths" description="Evidence that supports your target application.">
           <ResultList
@@ -301,12 +370,39 @@ export function ResumeAnalysisResultsPage({
         </Card>
       </div>
 
+      {shows('writing_improvements') && (
+        <Card
+          title="Resume writing improvements"
+          description="Changes that can improve clarity without inventing experience."
+        >
+          <ResultList
+            items={analysis.improvements}
+            emptyLabel="No writing improvements were returned."
+          />
+        </Card>
+      )}
+
+      {shows('interview_prep') && (
+        <Card
+          title="Interview preparation"
+          description="Topics grounded in the evidence supplied for this application."
+        >
+          <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
+        </Card>
+      )}
+
+      {shows('learning_plan') && (
+        <Card title="Learning plan" description="A short sequence for closing relevant skill gaps.">
+          <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
+        </Card>
+      )}
+
       <Card
         title="Recommended action plan"
         description="Prioritized next steps for this application."
       >
         <ResultList
-          items={analysis.recommendations}
+          items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
           emptyLabel="No recommendations were returned by the analysis."
         />
       </Card>
@@ -334,6 +430,8 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
   const [companyName, setCompanyName] = useState('');
   const [jobRole, setJobRole] = useState('');
   const [jobDescription, setJobDescription] = useState('');
+  const [preferredOutputs, setPreferredOutputs] =
+    useState<ResumeOutputFocus[]>(DEFAULT_PREFERRED_OUTPUTS);
   const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -341,7 +439,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
 
   useEffect(() => {
     setErrorMessage('');
-  }, [companyName, jobRole, jobDescription, file]);
+  }, [companyName, jobRole, jobDescription, preferredOutputs, file]);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -377,10 +475,20 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
       );
       return;
     }
+    if (preferredOutputs.length === 0) {
+      setErrorMessage('Select at least one preferred output before analyzing.');
+      return;
+    }
     setIsAnalyzing(true);
     setErrorMessage('');
     try {
-      const result = await analyzeResumeWithPuter({ companyName, jobRole, jobDescription, file });
+      const result = await analyzeResumeWithPuter({
+        companyName,
+        jobRole,
+        jobDescription,
+        preferredOutputs,
+        file,
+      });
       saveResult(result);
       onNavigate(`/resume-analyzer/results/${encodeURIComponent(result.analysisId)}`);
     } catch (error: unknown) {
@@ -449,6 +557,34 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 required
               />
             </label>
+            <fieldset className="resume-output-preferences">
+              <legend>Preferred outputs</legend>
+              <p className="resume-output-preferences__hint">
+                Choose the sections you want the AI to prioritize. At least one is required. Resume
+                content is treated as untrusted evidence, not as instructions.
+              </p>
+              <div className="resume-output-preferences__grid">
+                {OUTPUT_OPTIONS.map((option) => (
+                  <label className="resume-output-preferences__option" key={option.value}>
+                    <input
+                      type="checkbox"
+                      checked={preferredOutputs.includes(option.value)}
+                      onChange={() =>
+                        setPreferredOutputs((current) =>
+                          current.includes(option.value)
+                            ? current.filter((value) => value !== option.value)
+                            : [...current, option.value],
+                        )
+                      }
+                    />
+                    <span>
+                      <strong>{option.label}</strong>
+                      <small>{option.description}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <label className="form-field">
               <span>Resume PDF</span>
               <input

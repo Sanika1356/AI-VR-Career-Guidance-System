@@ -1,5 +1,13 @@
 import { authenticatedRequest, authenticatedResponse } from './auth';
 
+export type ResumeOutputFocus =
+  | 'role_fit'
+  | 'ats_keywords'
+  | 'skill_gaps'
+  | 'writing_improvements'
+  | 'interview_prep'
+  | 'learning_plan';
+
 export interface ResumeAnalysis {
   overallScore: number;
   matchingSkills: string[];
@@ -8,6 +16,12 @@ export interface ResumeAnalysis {
   improvements: string[];
   recommendations: string[];
   summary: string;
+  roleFit: string;
+  atsKeywords: string[];
+  priorityActions: string[];
+  interviewTopics: string[];
+  learningPlan: string[];
+  preferredOutputs: ResumeOutputFocus[];
   provider: 'gemini' | 'groq' | 'ollama' | 'custom' | 'none' | 'puter';
 }
 
@@ -39,6 +53,7 @@ export async function getResumeAnalysis(id: string): Promise<ResumeAnalysisRespo
 export async function persistPuterResumeAnalysis(input: {
   companyName: string;
   jobRole: string;
+  preferredOutputs?: ResumeOutputFocus[];
   fileName: string;
   analysis: ResumeAnalysis;
 }): Promise<ResumeAnalysisResponse> {
@@ -54,12 +69,14 @@ export async function analyzeResume(input: {
   companyName: string;
   jobRole: string;
   jobDescription: string;
+  preferredOutputs: ResumeOutputFocus[];
   file: File;
 }): Promise<ResumeAnalysisResponse> {
   const formData = new FormData();
   formData.append('companyName', input.companyName);
   formData.append('jobRole', input.jobRole);
   formData.append('jobDescription', input.jobDescription);
+  formData.append('preferredOutputs', JSON.stringify(input.preferredOutputs));
   formData.append('resume', input.file, input.file.name);
 
   const response = await authenticatedResponse('/resume/analyze', {

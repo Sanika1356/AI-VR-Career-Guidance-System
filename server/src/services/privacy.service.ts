@@ -35,6 +35,7 @@ export interface AccountExport {
   roadmapProgress: unknown[];
   roadmapActivityEvents: unknown[];
   conversations: unknown[];
+  resumeAnalyses: unknown[];
 }
 
 interface ConsentRow {
@@ -151,6 +152,7 @@ export async function exportAccountData(
       roadmapProgress,
       roadmapActivityEvents,
       conversations,
+      resumeAnalyses,
     ] = await Promise.all([
       client.query<ProfileRow>(
         `SELECT interests, current_skills, experience, learning_preferences, created_at, updated_at
@@ -184,6 +186,11 @@ export async function exportAccountData(
       ),
       client.query(
         `SELECT id, career_id, created_at FROM conversations WHERE user_id = $1 ORDER BY created_at`,
+        [userId],
+      ),
+      client.query(
+        `SELECT id, file_name, company_name, job_role, analysis, provider, created_at
+         FROM resume_analyses WHERE user_id = $1 ORDER BY created_at`,
         [userId],
       ),
     ]);
@@ -232,6 +239,7 @@ export async function exportAccountData(
           (message) => message.conversation_id === conversation.id,
         ),
       })),
+      resumeAnalyses: resumeAnalyses.rows,
     };
   });
 }

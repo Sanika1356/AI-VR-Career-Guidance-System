@@ -193,6 +193,18 @@ test("account export includes owned data without password hashes or tokens", asy
           created_at: "2026-08-21T00:00:00.000Z",
         },
       ]);
+    if (sql.includes("FROM resume_analyses"))
+      return queryResult([
+        {
+          id: "resume_analysis_1",
+          file_name: "resume.pdf",
+          company_name: "Microsoft",
+          job_role: "Data Analyst Intern",
+          analysis: { overallScore: 82 },
+          provider: "puter",
+          created_at: "2026-08-24T00:00:00.000Z",
+        },
+      ]);
     if (sql.includes("FROM messages"))
       return queryResult([
         {
@@ -209,6 +221,18 @@ test("account export includes owned data without password hashes or tokens", asy
   assert.equal(exported.user.id, "user_demo");
   assert.equal(exported.privacy.personalizedAi, true);
   assert.equal(exported.conversations.length, 1);
+  assert.deepEqual(exported.resumeAnalyses, [
+    {
+      id: "resume_analysis_1",
+      file_name: "resume.pdf",
+      company_name: "Microsoft",
+      job_role: "Data Analyst Intern",
+      analysis: { overallScore: 82 },
+      provider: "puter",
+      created_at: "2026-08-24T00:00:00.000Z",
+    },
+  ]);
+  assert.equal(JSON.stringify(exported).includes("resume bytes"), false);
   assert.deepEqual(exported.roadmapActivityEvents, [
     {
       id: "event_1",

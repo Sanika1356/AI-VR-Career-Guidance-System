@@ -2,11 +2,28 @@ import type { Response } from "express";
 import {
   analyzeResume,
   getResumeAnalysis,
+  normalizePreferredOutputs,
   persistPuterResumeAnalysis,
   listResumeAnalyses,
 } from "../services/resume-analyzer.service.js";
 import type { AuthenticatedRequest } from "../types/auth.js";
 import { requirePool } from "../db/pool.js";
+import { recordAuditEvent, requestAuditId } from "../services/audit.service.js";
+
+function parsePreferredOutputs(value: unknown) {
+  if (value === undefined) return undefined;
+  if (Array.isArray(value)) return normalizePreferredOutputs(value);
+  if (typeof value === "string") {
+    try {
+      return normalizePreferredOutputs(JSON.parse(value));
+    } catch {
+      return normalizePreferredOutputs(
+        value.split(",").map((item) => item.trim()),
+      );
+    }
+  }
+  return normalizePreferredOutputs(value);
+}
 
 export async function analyzeResumeController(
   request: AuthenticatedRequest,
@@ -34,6 +51,7 @@ export async function analyzeResumeController(
         typeof request.body.jobDescription === "string"
           ? request.body.jobDescription
           : "",
+      preferredOutputs: parsePreferredOutputs(request.body.preferredOutputs),
       file: {
         buffer: file.buffer,
         mimetype: file.mimetype,
@@ -44,6 +62,17 @@ export async function analyzeResumeController(
     requirePool(),
   );
 
+  await recordAuditEvent({
+    eventType: "resume_analyzed",
+    userId: request.userId as string,
+    requestId: requestAuditId(response),
+    metadata: {
+      analysisId: result.analysisId,
+      provider: result.analysis.provider,
+      score: result.analysis.overallScore,
+      outputCount: result.analysis.preferredOutputs.length,
+    },
+  });
   response.status(200).json(result);
 }
 
@@ -58,13 +87,26 @@ export async function persistPuterResumeAnalysisController(
         typeof request.body.companyName === "string"
           ? request.body.companyName
           : "",
-      jobRole: typeof request.body.jobRole === "string" ? request.body.jobRole : "",
+      jobRole:
+        typeof request.body.jobRole === "string" ? request.body.jobRole : "",
+      preferredOutputs: parsePreferredOutputs(request.body.preferredOutputs),
       fileName:
         typeof request.body.fileName === "string" ? request.body.fileName : "",
       analysis: request.body.analysis,
     },
     requirePool(),
   );
+  await recordAuditEvent({
+    eventType: "resume_analyzed",
+    userId: request.userId as string,
+    requestId: requestAuditId(response),
+    metadata: {
+      analysisId: result.analysisId,
+      provider: result.analysis.provider,
+      score: result.analysis.overallScore,
+      outputCount: result.analysis.preferredOutputs.length,
+    },
+  });
   response.status(200).json(result);
 }
 
