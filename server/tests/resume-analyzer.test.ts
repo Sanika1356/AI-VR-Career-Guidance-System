@@ -18,20 +18,26 @@ const fixturePath = resolve(
   "fixtures/resume-fixture.pdf",
 );
 
+function validAnalysisJson(): string {
+  return JSON.stringify({
+    overallScore: 82,
+    matchingSkills: ["Python", "SQL", "Data analysis"],
+    missingSkills: ["Power BI"],
+    strengths: ["The resume shows relevant Python and SQL evidence."],
+    improvements: ["Add measurable outcomes to project descriptions."],
+    recommendations: [
+      "Build and document one dashboard project aligned with the role.",
+    ],
+    summary:
+      "The resume is a promising match for an entry-level data analysis role.",
+  });
+}
+
 class StructuredProvider implements AdvisorProvider {
+  constructor(private readonly output = validAnalysisJson()) {}
+
   async generate(): Promise<string> {
-    return JSON.stringify({
-      overallScore: 82,
-      matchingSkills: ["Python", "SQL", "Data analysis"],
-      missingSkills: ["Power BI"],
-      strengths: ["The resume shows relevant Python and SQL evidence."],
-      improvements: ["Add measurable outcomes to project descriptions."],
-      recommendations: [
-        "Build and document one dashboard project aligned with the role.",
-      ],
-      summary:
-        "The resume is a promising match for an entry-level data analysis role.",
-    });
+    return this.output;
   }
 }
 
@@ -196,4 +202,31 @@ test("analyzeResume rejects missing fields and non-PDF files", async () => {
 test("resume analyzer limits stay bounded for safe request handling", () => {
   assert.equal(resumeAnalyzerLimits.maxFileBytes, 8 * 1024 * 1024);
   assert.equal(resumeAnalyzerLimits.maxJobDescriptionChars, 12_000);
+});
+
+test("analyzeResume accepts fenced JSON with surrounding provider commentary", async () => {
+  const buffer = await readFile(fixturePath);
+  const wrapped = `Here is the structured resume review:\n\n\`\`\`json\n${validAnalysisJson()}\n\`\`\`\n`;
+  const result = await analyzeResume(
+    {
+      userId: "user_resume_test",
+      companyName: "Microsoft",
+      jobRole: "Data Analyst Intern",
+      jobDescription:
+        "Use SQL and Python to analyze data and communicate insights.",
+      file: {
+        buffer,
+        mimetype: "application/pdf",
+        originalname: "resume.pdf",
+        size: buffer.length,
+      },
+    },
+    createDatabase(),
+    new StructuredProvider(wrapped),
+  );
+  assert.equal(result.analysis.overallScore, 82);
+  assert.equal(
+    result.analysis.summary,
+    "The resume is a promising match for an entry-level data analysis role.",
+  );
 });

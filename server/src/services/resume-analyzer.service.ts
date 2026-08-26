@@ -73,28 +73,60 @@ function boundedList(value: unknown, maxItems = 8): string[] {
 }
 
 function parseJsonObject(value: string): Record<string, unknown> {
-  const fenced = value.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1] ?? value;
-  const start = fenced.indexOf("{");
-  const end = fenced.lastIndexOf("}");
-  if (start < 0 || end <= start) {
-    throw new AppError(
-      502,
-      "resume_analysis_invalid_response",
-      "The AI analysis returned an unreadable result.",
-    );
+  const source = value.replace(/^\uFEFF/, "").trim();
+  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1]?.trim();
+  const sources = fenced ? [fenced, source] : [source];
+
+  for (const candidateSource of sources) {
+    try {
+      const parsed: unknown = JSON.parse(candidateSource);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // Provider text may contain a short explanation before or after the JSON.
+    }
+
+    for (let start = 0; start < candidateSource.length; start += 1) {
+      if (candidateSource[start] !== "{") continue;
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+      for (let end = start; end < candidateSource.length; end += 1) {
+        const character = candidateSource[end];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (character === "\\\\") escaped = true;
+          else if (character === '"') inString = false;
+          continue;
+        }
+        if (character === '"') {
+          inString = true;
+          continue;
+        }
+        if (character === "{") depth += 1;
+        if (character === "}") depth -= 1;
+        if (depth !== 0) continue;
+        try {
+          const parsed: unknown = JSON.parse(
+            candidateSource.slice(start, end + 1),
+          );
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            return parsed as Record<string, unknown>;
+          }
+        } catch {
+          // Continue scanning in case this opening brace belongs to prose.
+        }
+        break;
+      }
+    }
   }
-  try {
-    const parsed: unknown = JSON.parse(fenced.slice(start, end + 1));
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
-      throw new Error("not an object");
-    return parsed as Record<string, unknown>;
-  } catch {
-    throw new AppError(
-      502,
-      "resume_analysis_invalid_response",
-      "The AI analysis returned an unreadable result.",
-    );
-  }
+
+  throw new AppError(
+    502,
+    "resume_analysis_invalid_response",
+    "The AI analysis returned an unreadable result.",
+  );
 }
 
 function normalizeAnalysis(
@@ -234,6 +266,7 @@ export async function analyzeResume(
         resumeText,
       ),
       provider,
+      { responseFormat: "json" },
     );
   } catch (error) {
     logResumeProviderFailure(error);

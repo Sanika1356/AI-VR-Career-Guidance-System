@@ -55,8 +55,16 @@ export interface AdvisorResponse {
   mode: "provider" | "deterministic_fallback";
 }
 
+export interface AdvisorGenerationOptions {
+  responseFormat?: "json";
+}
+
 export interface AdvisorProvider {
-  generate(prompt: string, timeoutMs?: number): Promise<string>;
+  generate(
+    prompt: string,
+    timeoutMs?: number,
+    options?: AdvisorGenerationOptions,
+  ): Promise<string>;
 }
 
 type AdvisorProviderName = "gemini" | "groq" | "ollama" | "custom" | "none";
@@ -302,6 +310,7 @@ async function generateWithRetry(
   provider: AdvisorProvider,
   prompt: string,
   deadlineAt = Date.now() + Math.max(1, env.aiRequestTimeoutMs),
+  options?: AdvisorGenerationOptions,
 ): Promise<string> {
   let lastError: unknown;
 
@@ -314,7 +323,7 @@ async function generateWithRetry(
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const providerRequest = provider.generate(prompt, remainingMs);
+      const providerRequest = provider.generate(prompt, remainingMs, options);
       const deadline = new Promise<never>((_, reject) => {
         timer = setTimeout(
           () => reject(new AdvisorProviderTimeoutError()),
@@ -418,7 +427,11 @@ export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
     } = {},
   ) {}
 
-  async generate(prompt: string, timeoutMs?: number): Promise<string> {
+  async generate(
+    prompt: string,
+    timeoutMs?: number,
+    options?: AdvisorGenerationOptions,
+  ): Promise<string> {
     const failureThreshold = Math.max(
       1,
       this.options.failureThreshold ?? env.aiCircuitFailureThreshold,
@@ -436,7 +449,7 @@ export class CircuitBreakerAdvisorProvider implements AdvisorProvider {
     }
 
     try {
-      const answer = await this.provider.generate(prompt, timeoutMs);
+      const answer = await this.provider.generate(prompt, timeoutMs, options);
       this.consecutiveFailures = 0;
       return answer;
     } catch (error) {
@@ -453,6 +466,7 @@ export class OllamaAdvisorProvider implements AdvisorProvider {
   async generate(
     prompt: string,
     timeoutMs = env.aiRequestTimeoutMs,
+    options?: AdvisorGenerationOptions,
   ): Promise<string> {
     const controller = new AbortController();
     const timeout = setTimeout(
@@ -725,6 +739,7 @@ async function requestGeminiGenerateContent(
   model: string,
   apiKey: string,
   signal: AbortSignal,
+  options?: AdvisorGenerationOptions,
 ): Promise<string> {
   const startedAt = Date.now();
   const endpoint = buildGeminiGenerateContentUrl(env.geminiBaseUrl, model);
@@ -742,6 +757,10 @@ async function requestGeminiGenerateContent(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens,
+          ...(options?.responseFormat === "json"
+            ? { responseMimeType: "application/json" }
+            : {}),
+
           ...(geminiThinkingConfig(model)
             ? { thinkingConfig: geminiThinkingConfig(model) }
             : {}),
@@ -832,6 +851,7 @@ async function requestGroqChatCompletions(
   model: string,
   apiKey: string,
   signal: AbortSignal,
+  options?: AdvisorGenerationOptions,
 ): Promise<string> {
   const startedAt = Date.now();
   const endpoint = buildGroqChatCompletionsUrl(env.groqBaseUrl);
@@ -853,6 +873,9 @@ async function requestGroqChatCompletions(
         temperature: 0.2,
         max_completion_tokens: maxCompletionTokens,
         stream: false,
+        ...(options?.responseFormat === "json"
+          ? { response_format: { type: "json_object" } }
+          : {}),
       }),
       signal,
     });
@@ -923,6 +946,7 @@ export class GroqAdvisorProvider implements AdvisorProvider {
   async generate(
     prompt: string,
     timeoutMs = env.aiRequestTimeoutMs,
+    options?: AdvisorGenerationOptions,
   ): Promise<string> {
     const apiKey = env.groqApiKey?.trim();
     if (!apiKey) {
@@ -944,6 +968,7 @@ export class GroqAdvisorProvider implements AdvisorProvider {
         normalizeGroqModel(env.groqModel),
         apiKey,
         controller.signal,
+        options,
       );
     } finally {
       clearTimeout(timeout);
@@ -955,6 +980,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
   async generate(
     prompt: string,
     timeoutMs = env.aiRequestTimeoutMs,
+    options?: AdvisorGenerationOptions,
   ): Promise<string> {
     const apiKey = env.geminiApiKey?.trim();
     if (!apiKey) {
@@ -978,6 +1004,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           requestedModel,
           apiKey,
           controller.signal,
+          options,
         );
       } catch (error) {
         if (
@@ -1005,6 +1032,7 @@ export class GeminiAdvisorProvider implements AdvisorProvider {
           discoveredModel,
           apiKey,
           controller.signal,
+          options,
         );
       }
     } catch (error) {
@@ -1063,6 +1091,7 @@ const ollamaCircuitBreaker = new CircuitBreakerAdvisorProvider(
 export async function generateAdvisorProviderText(
   prompt: string,
   provider?: AdvisorProvider,
+  options?: AdvisorGenerationOptions,
 ): Promise<{ text: string; provider: AdvisorProviderName }> {
   const providerName = selectedProviderName(provider);
   const selectedProvider =
@@ -1109,6 +1138,7 @@ export async function generateAdvisorProviderText(
       selectedProvider,
       prompt,
       primaryDeadlineAt,
+      options,
     );
     logAdvisorProviderEvent("advisor_provider_succeeded", {
       provider: providerName,
@@ -1131,6 +1161,7 @@ export async function generateAdvisorProviderText(
           groqCircuitBreaker,
           prompt,
           secondaryDeadlineAt,
+          options,
         );
         logAdvisorProviderEvent("advisor_provider_succeeded", {
           provider: "groq",

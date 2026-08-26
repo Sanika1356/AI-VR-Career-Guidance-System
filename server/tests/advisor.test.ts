@@ -1283,3 +1283,58 @@ test("default Gemini circuit breaker is shared across advisor requests", async (
     globalThis.fetch = originalFetch;
   }
 });
+
+test("Resume Analyzer JSON mode is sent only when explicitly requested", async () => {
+  const previousGeminiKey = env.geminiApiKey;
+  const previousGroqKey = env.groqApiKey;
+  const originalFetch = globalThis.fetch;
+  const requestBodies: Array<Record<string, unknown>> = [];
+  env.geminiApiKey = "test-gemini-key";
+  env.groqApiKey = "test-groq-key";
+  globalThis.fetch = (async (input, init) => {
+    requestBodies.push(
+      JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown>,
+    );
+    if (String(input).includes("generateContent")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [{ content: { parts: [{ text: '{"ok":true}' }] } }],
+        }),
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        choices: [{ message: { content: '{"ok":true}' } }],
+      }),
+    };
+  }) as typeof fetch;
+
+  try {
+    await new GeminiAdvisorProvider().generate(
+      "Return a JSON object.",
+      undefined,
+      { responseFormat: "json" },
+    );
+    await new GroqAdvisorProvider().generate(
+      "Return a JSON object.",
+      undefined,
+      { responseFormat: "json" },
+    );
+    assert.equal(
+      (requestBodies[0]?.generationConfig as Record<string, unknown>)
+        ?.responseMimeType,
+      "application/json",
+    );
+    assert.deepEqual(requestBodies[1]?.response_format, {
+      type: "json_object",
+    });
+  } finally {
+    env.geminiApiKey = previousGeminiKey;
+    env.groqApiKey = previousGroqKey;
+    globalThis.fetch = originalFetch;
+  }
+});

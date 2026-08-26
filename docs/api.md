@@ -622,7 +622,7 @@ Returns one completed analysis owned by the authenticated user. Unknown or cross
 
 Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, and `jobDescription`. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and stores only the user-owned metadata and structured result; the original resume bytes are not persisted.
 
-The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials. Provider failures are logged only as sanitized category/status/code fields.
+The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and requests provider-native JSON output for this feature only. The server still validates and normalizes the returned object before persistence, so malformed or incomplete provider output becomes a safe `502 resume_analysis_invalid_response` rather than a fabricated report. It returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials. Provider failures are logged only as sanitized category/status/code fields.
 
 Response:
 
