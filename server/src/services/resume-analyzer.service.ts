@@ -4,8 +4,11 @@ import { createId } from "../utils/id.js";
 import {
   AdvisorProviderError,
   generateAdvisorProviderText,
+  normalizeGeminiModel,
+  normalizeGroqModel,
   type AdvisorProvider,
 } from "./advisor.service.js";
+import { env } from "../config/env.js";
 import type { DatabasePool } from "../db/types.js";
 
 const MAX_JOB_DESCRIPTION_CHARS = 12_000;
@@ -187,11 +190,22 @@ function buildResumePrompt(
   ].join("\n\n");
 }
 
-function logResumeProviderFailure(error: unknown): void {
+function logResumeProviderFailure(error: unknown, startedAt: number): void {
+  const provider =
+    error instanceof AdvisorProviderError ? error.provider : "unknown";
+  const model =
+    provider === "groq"
+      ? normalizeGroqModel(env.groqModel)
+      : provider === "gemini"
+        ? normalizeGeminiModel(env.geminiModel)
+        : "unknown";
   const fields =
     error instanceof AdvisorProviderError
       ? {
+          provider,
+          model,
           category: error.category,
+          durationMs: Date.now() - startedAt,
           ...(error.statusCode === undefined
             ? {}
             : { statusCode: error.statusCode }),
@@ -199,7 +213,12 @@ function logResumeProviderFailure(error: unknown): void {
             ? {}
             : { providerErrorCode: error.providerErrorCode }),
         }
-      : { category: "unknown" };
+      : {
+          provider,
+          model,
+          category: "unknown",
+          durationMs: Date.now() - startedAt,
+        };
   console.info(
     JSON.stringify({ event: "resume_analysis_provider_failed", ...fields }),
   );
@@ -259,6 +278,7 @@ export async function analyzeResume(
   }
   const resumeText = await extractResumeText(input.file.buffer);
   let generated: { text: string; provider: ResumeAnalysis["provider"] };
+  const providerStartedAt = Date.now();
   try {
     generated = await generateAdvisorProviderText(
       buildResumePrompt(
@@ -269,7 +289,7 @@ export async function analyzeResume(
       { responseFormat: "json" },
     );
   } catch (error) {
-    logResumeProviderFailure(error);
+    logResumeProviderFailure(error, providerStartedAt);
     throw new AppError(
       503,
       "resume_analysis_provider_unavailable",

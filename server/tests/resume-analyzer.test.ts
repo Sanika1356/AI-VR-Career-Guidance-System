@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import type { AdvisorProvider } from "../src/services/advisor.js";
+import {
+  AdvisorProviderError,
+  type AdvisorProvider,
+} from "../src/services/advisor.service.js";
 import type { DatabasePool } from "../src/db/types.js";
 import {
   analyzeResume,
@@ -229,4 +232,56 @@ test("analyzeResume accepts fenced JSON with surrounding provider commentary", a
     result.analysis.summary,
     "The resume is a promising match for an entry-level data analysis role.",
   );
+});
+
+class FailingProvider implements AdvisorProvider {
+  async generate(): Promise<string> {
+    throw new AdvisorProviderError(
+      "gemini",
+      "timeout",
+      "provider request timed out",
+    );
+  }
+}
+
+test("analyzeResume logs safe provider failure diagnostics", async () => {
+  const buffer = await readFile(fixturePath);
+  const originalInfo = console.info;
+  const logs: string[] = [];
+  console.info = (...args: unknown[]) => {
+    logs.push(args.map(String).join(" "));
+  };
+
+  try {
+    await assert.rejects(
+      analyzeResume(
+        {
+          userId: "user_resume_test",
+          companyName: "Example Analytics",
+          jobRole: "Data Analyst Intern",
+          jobDescription: "Use Python and SQL to analyze product data.",
+          file: {
+            buffer,
+            mimetype: "application/pdf",
+            originalname: "resume.pdf",
+            size: buffer.length,
+          },
+        },
+        createDatabase(),
+        new FailingProvider(),
+      ),
+      { code: "resume_analysis_provider_unavailable" },
+    );
+    const failure = logs
+      .map((entry) => JSON.parse(entry) as Record<string, unknown>)
+      .find((entry) => entry.event === "resume_analysis_provider_failed");
+    assert.equal(failure?.provider, "gemini");
+    assert.equal(failure?.model, "gemini-2.5-flash-lite");
+    assert.equal(failure?.category, "timeout");
+    assert.equal(typeof failure?.durationMs, "number");
+    assert.doesNotMatch(logs.join("\n"), /provider request timed out/);
+    assert.doesNotMatch(logs.join("\n"), /Use Python and SQL/);
+  } finally {
+    console.info = originalInfo;
+  }
 });
