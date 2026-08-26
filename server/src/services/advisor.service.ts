@@ -295,6 +295,12 @@ function limitAdvisorOutput(value: string): string {
 }
 
 function isRetryableProviderFailure(error: unknown): boolean {
+  if (
+    error instanceof AdvisorProviderTimeoutError ||
+    (error instanceof Error && error.name === "AdvisorProviderTimeoutError")
+  ) {
+    return false;
+  }
   if (!(error instanceof AdvisorProviderError)) return true;
   return ["timeout", "network", "upstream_http"].includes(error.category);
 }
