@@ -14,6 +14,7 @@ const primaryLinks = [
   { href: '/assessment', label: 'Assessment' },
   { href: '/careers', label: 'Career catalog' },
   { href: '/recommendations', label: 'Recommendations' },
+  { href: '/resume-analyzer', label: 'Resume Analyzer' },
   { href: '/advisor', label: 'AI advisor' },
 ];
 
@@ -55,9 +56,17 @@ export function AppShell({
               key={link.href}
               href={link.href}
               className={
-                currentPath === link.href ? 'topnav__link topnav__link--active' : 'topnav__link'
+                currentPath === link.href ||
+                (link.href === '/resume-analyzer' && currentPath.startsWith('/resume-analyzer'))
+                  ? 'topnav__link topnav__link--active'
+                  : 'topnav__link'
               }
-              aria-current={currentPath === link.href ? 'page' : undefined}
+              aria-current={
+                currentPath === link.href ||
+                (link.href === '/resume-analyzer' && currentPath.startsWith('/resume-analyzer'))
+                  ? 'page'
+                  : undefined
+              }
               onClick={(event) => handleNavigation(event, link.href, onNavigate)}
             >
               {link.label}

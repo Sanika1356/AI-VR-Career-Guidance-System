@@ -592,6 +592,36 @@ Deletes all messages in a conversation owned by the authenticated user and prese
 }
 ```
 
+## Resume Analyzer
+
+### `POST /api/resume/analyze`
+
+Analyzes one authenticated user’s PDF resume against a target company, role, and job description. The request uses `multipart/form-data` with a `resume` PDF file and text fields `companyName`, `jobRole`, and `jobDescription`. The server keeps the uploaded bytes in memory for the request, extracts readable text, calls the existing server-side advisor provider architecture, and does not persist the resume in the MVP.
+
+The endpoint enforces an 8 MB PDF limit, rejects non-PDF uploads, applies the AI rate limiter, and returns safe validation/provider errors without exposing prompts, extracted resume text, provider responses, or credentials.
+
+Response:
+
+```json
+{
+  "analysis": {
+    "overallScore": 82,
+    "matchingSkills": ["Python", "SQL", "Data analysis"],
+    "missingSkills": ["Power BI"],
+    "strengths": ["The resume shows relevant Python and SQL evidence."],
+    "improvements": ["Add measurable outcomes to project descriptions."],
+    "recommendations": [
+      "Build and document one dashboard project aligned with the role."
+    ],
+    "summary": "The resume is a promising match for an entry-level data analysis role.",
+    "provider": "groq"
+  },
+  "analyzedAt": "2026-08-26T00:00:00.000Z"
+}
+```
+
+`overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result is designed to become a future input to profile, skill-gap, recommendation, roadmap, and advisor features; this MVP does not automatically mutate those records.
+
 ## VR support
 
 ### `GET /api/vr/environments`

@@ -156,14 +156,16 @@ export async function authenticatedResponse(
   }
 
   let response: Response;
+  const headers = new Headers(init.headers);
+  headers.set('Authorization', `Bearer ${session.token}`);
+  if (!(init.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       ...init,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${session.token}`,
-        ...init.headers,
-      },
+      headers,
     });
   } catch {
     throw new AuthApiError(
