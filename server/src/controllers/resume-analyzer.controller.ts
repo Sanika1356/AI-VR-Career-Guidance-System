@@ -2,6 +2,7 @@ import type { Response } from "express";
 import {
   analyzeResume,
   getResumeAnalysis,
+  persistPuterResumeAnalysis,
   listResumeAnalyses,
 } from "../services/resume-analyzer.service.js";
 import type { AuthenticatedRequest } from "../types/auth.js";
@@ -43,6 +44,27 @@ export async function analyzeResumeController(
     requirePool(),
   );
 
+  response.status(200).json(result);
+}
+
+export async function persistPuterResumeAnalysisController(
+  request: AuthenticatedRequest,
+  response: Response,
+): Promise<void> {
+  const result = await persistPuterResumeAnalysis(
+    {
+      userId: request.userId as string,
+      companyName:
+        typeof request.body.companyName === "string"
+          ? request.body.companyName
+          : "",
+      jobRole: typeof request.body.jobRole === "string" ? request.body.jobRole : "",
+      fileName:
+        typeof request.body.fileName === "string" ? request.body.fileName : "",
+      analysis: request.body.analysis,
+    },
+    requirePool(),
+  );
   response.status(200).json(result);
 }
 

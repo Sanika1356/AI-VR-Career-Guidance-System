@@ -23,7 +23,7 @@ export interface ResumeAnalysis {
   improvements: string[];
   recommendations: string[];
   summary: string;
-  provider: "gemini" | "groq" | "ollama" | "custom" | "none";
+  provider: "gemini" | "groq" | "ollama" | "custom" | "none" | "puter";
 }
 
 export interface ResumeAnalyzeInput {
@@ -326,6 +326,79 @@ export async function analyzeResume(
   return {
     analysisId,
     fileName: input.file.originalname,
+    analysis,
+    analyzedAt,
+  };
+}
+
+export async function persistPuterResumeAnalysis(
+  input: {
+    userId: string;
+    companyName: string;
+    jobRole: string;
+    fileName: string;
+    analysis: unknown;
+  },
+  database: DatabasePool,
+): Promise<ResumeAnalysisResponse> {
+  const companyName = boundedText(input.companyName, 160);
+  const jobRole = boundedText(input.jobRole, 160);
+  const fileName = boundedText(input.fileName, 255);
+  if (!companyName || !jobRole || !fileName) {
+    throw new AppError(
+      400,
+      "resume_fields_required",
+      "Company name, job role, and file name are required.",
+    );
+  }
+  if (!/\.pdf$/i.test(fileName)) {
+    throw new AppError(
+      415,
+      "resume_pdf_required",
+      "The persisted resume report must reference a PDF file.",
+    );
+  }
+  if (
+    !input.analysis ||
+    typeof input.analysis !== "object" ||
+    Array.isArray(input.analysis)
+  ) {
+    throw new AppError(
+      400,
+      "resume_analysis_required",
+      "A structured resume analysis is required.",
+    );
+  }
+
+  const analysis = normalizeAnalysis(
+    input.analysis as Record<string, unknown>,
+    "puter",
+  );
+  const analysisId = createId("resume_analysis");
+  const analyzedAt = new Date().toISOString();
+  const client = await database.connect();
+  try {
+    await client.query(
+      `INSERT INTO resume_analyses
+        (id, user_id, file_name, company_name, job_role, analysis, provider, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)`,
+      [
+        analysisId,
+        input.userId,
+        fileName,
+        companyName,
+        jobRole,
+        JSON.stringify(analysis),
+        "puter",
+        analyzedAt,
+      ],
+    );
+  } finally {
+    client.release();
+  }
+  return {
+    analysisId,
+    fileName,
     analysis,
     analyzedAt,
   };

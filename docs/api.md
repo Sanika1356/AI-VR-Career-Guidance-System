@@ -648,6 +648,31 @@ Response:
 
 `overallScore` is an evidence-based alignment score from 0 through 100, not a hiring probability or guarantee. The structured result can inform future profile, skill-gap, recommendation, roadmap, and advisor features; this endpoint does not automatically mutate those records.
 
+### `POST /api/resume/analyses/puter`
+
+Persists a structured report produced by the browser-side CVsense-compatible Puter flow. The browser separately loads Puter.js, confirms or requests the user’s Puter sign-in, uploads the selected PDF to Puter, sends the file attachment plus the role prompt to `claude-sonnet-4-6`, tolerates the supported Puter response shapes, and extracts the JSON object before calling this endpoint. Pathfinder authentication remains required for persistence; Puter authentication does not replace the Pathfinder session.
+
+The JSON request contains `fileName`, `companyName`, `jobRole`, and `analysis`. The server treats the report as untrusted input, re-validates all fields and bounded lists, forces the stored provider label to `puter`, and stores only the normalized structured report and user-owned metadata. It does not receive or persist the resume bytes. Malformed reports return a safe validation error instead of being stored.
+
+```json
+{
+  "fileName": "resume.pdf",
+  "companyName": "Microsoft",
+  "jobRole": "Data Analyst Intern",
+  "analysis": {
+    "overallScore": 82,
+    "matchingSkills": ["Python", "SQL"],
+    "missingSkills": ["Power BI"],
+    "strengths": ["Relevant project evidence"],
+    "improvements": ["Add measurable outcomes"],
+    "recommendations": ["Document a dashboard project"],
+    "summary": "A strong evidence-based match."
+  }
+}
+```
+
+The existing `POST /api/resume/analyze` endpoint remains available for server-side provider analysis and retains its in-memory PDF processing boundary. The new browser-assisted route is intentionally isolated so Pathfinder’s existing AI Advisor Gemini-to-Groq architecture and authentication are not changed.
+
 ## VR support
 
 ### `GET /api/vr/environments`

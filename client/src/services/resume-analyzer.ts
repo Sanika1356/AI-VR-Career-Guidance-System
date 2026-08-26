@@ -8,7 +8,7 @@ export interface ResumeAnalysis {
   improvements: string[];
   recommendations: string[];
   summary: string;
-  provider: 'gemini' | 'groq' | 'ollama' | 'custom' | 'none';
+  provider: 'gemini' | 'groq' | 'ollama' | 'custom' | 'none' | 'puter';
 }
 
 export interface ResumeAnalysisResponse {
@@ -34,6 +34,20 @@ export async function listResumeAnalyses(): Promise<{ analyses: ResumeAnalysisHi
 
 export async function getResumeAnalysis(id: string): Promise<ResumeAnalysisResponse> {
   return authenticatedRequest<ResumeAnalysisResponse>(`/resume/analyses/${encodeURIComponent(id)}`);
+}
+
+export async function persistPuterResumeAnalysis(input: {
+  companyName: string;
+  jobRole: string;
+  fileName: string;
+  analysis: ResumeAnalysis;
+}): Promise<ResumeAnalysisResponse> {
+  const response = await authenticatedResponse('/resume/analyses/puter', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  return response.json() as Promise<ResumeAnalysisResponse>;
 }
 
 export async function analyzeResume(input: {

@@ -285,3 +285,80 @@ test("analyzeResume logs safe provider failure diagnostics", async () => {
     console.info = originalInfo;
   }
 });
+
+
+test("persistPuterResumeAnalysis stores only a normalized owned report", async () => {
+  const queries: Array<{ text: string; values?: readonly unknown[] }> = [];
+  const database: DatabasePool = {
+    connect: async () => ({
+      query: async (text: string, values?: readonly unknown[]) => {
+        queries.push({ text, values });
+        return { rows: [], rowCount: 1 };
+      },
+      release: () => undefined,
+    }),
+  };
+
+  const { persistPuterResumeAnalysis } = await import(
+    "../src/services/resume-analyzer.service.js"
+  );
+  const result = await persistPuterResumeAnalysis(
+    {
+      userId: "user_puter_test",
+      companyName: "Example Analytics",
+      jobRole: "Data Analyst Intern",
+      fileName: "resume.pdf",
+      analysis: {
+        overallScore: "88",
+        matchingSkills: ["Python", "SQL"],
+        missingSkills: ["Power BI"],
+        strengths: ["Relevant project evidence"],
+        improvements: ["Add measurable outcomes"],
+        recommendations: ["Document a dashboard project"],
+        summary: "A strong evidence-based match.",
+        provider: "gemini",
+      },
+    },
+    database,
+  );
+
+  assert.equal(result.analysis.provider, "puter");
+  assert.equal(result.analysis.overallScore, 88);
+  assert.equal(queries.length, 1);
+  assert.equal(queries[0]?.values?.[1], "user_puter_test");
+  assert.equal(queries[0]?.values?.includes("resume bytes"), false);
+});
+
+test("persistPuterResumeAnalysis rejects malformed or non-PDF reports", async () => {
+  const { persistPuterResumeAnalysis } = await import(
+    "../src/services/resume-analyzer.service.js"
+  );
+  await assert.rejects(
+    () =>
+      persistPuterResumeAnalysis(
+        {
+          userId: "user_puter_test",
+          companyName: "Example Analytics",
+          jobRole: "Data Analyst Intern",
+          fileName: "resume.txt",
+          analysis: {},
+        },
+        createDatabase(),
+      ),
+    /PDF file/,
+  );
+  await assert.rejects(
+    () =>
+      persistPuterResumeAnalysis(
+        {
+          userId: "user_puter_test",
+          companyName: "Example Analytics",
+          jobRole: "Data Analyst Intern",
+          fileName: "resume.pdf",
+          analysis: { overallScore: 90 },
+        },
+        createDatabase(),
+      ),
+    /incomplete/,
+  );
+});

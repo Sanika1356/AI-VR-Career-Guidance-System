@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS resume_analyses (
   company_name TEXT NOT NULL,
   job_role TEXT NOT NULL,
   analysis JSONB NOT NULL,
-  provider TEXT NOT NULL CHECK (provider IN ('gemini', 'groq', 'ollama', 'custom', 'none')),
+  provider TEXT NOT NULL CHECK (provider IN ('gemini', 'groq', 'ollama', 'custom', 'none', 'puter')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT resume_analyses_analysis_object CHECK (jsonb_typeof(analysis) = 'object')
 );

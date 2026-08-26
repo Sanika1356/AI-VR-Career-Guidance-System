@@ -9,6 +9,7 @@ import { env } from "../config/env.js";
 import {
   analyzeResumeController,
   getResumeAnalysisController,
+  persistPuterResumeAnalysisController,
   listResumeAnalysesController,
 } from "../controllers/resume-analyzer.controller.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -71,6 +72,13 @@ resumeAnalyzerRouter.get(
   requireAuth,
   resumeRateLimiter,
   listResumeAnalysesController,
+);
+resumeAnalyzerRouter.post(
+  "/analyses/puter",
+  requireAuth,
+  requireFeature(env.aiAdvisorEnabled, "AI resume analysis"),
+  resumeRateLimiter,
+  persistPuterResumeAnalysisController,
 );
 resumeAnalyzerRouter.get(
   "/analyses/:analysisId",
