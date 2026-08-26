@@ -62,6 +62,65 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     const token = registered.body.token as string;
     const authHeaders = { Authorization: `Bearer ${token}` };
 
+    const unauthenticatedPuter = await request('/resume/analyses/puter', {
+      method: 'POST',
+      body: JSON.stringify({
+        fileName: 'resume.pdf',
+        companyName: 'Example Co',
+        jobRole: 'Data Analyst',
+        analysis: {
+          overallScore: 82,
+          matchingSkills: ['Python', 'SQL'],
+          missingSkills: ['Power BI'],
+          strengths: ['Relevant project evidence'],
+          improvements: ['Add measurable outcomes'],
+          recommendations: ['Document a dashboard project'],
+          summary: 'A strong evidence-based match.',
+        },
+      }),
+    });
+    assert.equal(unauthenticatedPuter.response.status, 401);
+
+    const puterReport = await request('/resume/analyses/puter', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        fileName: 'resume.pdf',
+        companyName: 'Example Co',
+        jobRole: 'Data Analyst',
+        analysis: {
+          overallScore: 82,
+          matchingSkills: ['Python', 'SQL'],
+          missingSkills: ['Power BI'],
+          strengths: ['Relevant project evidence'],
+          improvements: ['Add measurable outcomes'],
+          recommendations: ['Document a dashboard project'],
+          summary: 'A strong evidence-based match.',
+          provider: 'gemini',
+        },
+      }),
+    });
+    assert.equal(puterReport.response.status, 200);
+    assert.equal(puterReport.body.analysis.provider, 'puter');
+    assert.equal(puterReport.body.fileName, 'resume.pdf');
+
+    const malformedPuter = await request('/resume/analyses/puter', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        fileName: 'resume.pdf',
+        companyName: 'Example Co',
+        jobRole: 'Data Analyst',
+        analysis: { overallScore: 82 },
+      }),
+    });
+    assert.equal(malformedPuter.response.status, 502);
+    assert.equal(malformedPuter.body.error, 'resume_analysis_invalid_response');
+
+    const resumeHistory = await request('/resume/analyses', { headers: authHeaders });
+    assert.equal(resumeHistory.response.status, 200);
+    assert.ok(resumeHistory.body.analyses.some((item: { id: string }) => item.id === puterReport.body.analysisId));
+
     const unauthenticatedResume = new FormData();
     unauthenticatedResume.append('companyName', 'Example Co');
     unauthenticatedResume.append('jobRole', 'Data Analyst');

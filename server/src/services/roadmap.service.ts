@@ -194,7 +194,7 @@ export async function updateRoadmapProgress(
     }>(
       `INSERT INTO roadmap_progress
         (user_id, step_id, completed, target_date, status, notes, evidence_links, position, updated_at)
-       VALUES ($1, $2, $3, $4, COALESCE($5, CASE WHEN $3 THEN 'completed' ELSE 'not_started' END), $6, COALESCE($7, '[]'::jsonb), $8, NOW())
+       VALUES ($1, $2, $3, $4, COALESCE($5, CASE WHEN $3 THEN 'completed' ELSE 'not_started' END), COALESCE($6, ''), COALESCE($7, '[]'::jsonb), $8, NOW())
        ON CONFLICT (user_id, step_id)
        DO UPDATE SET completed = EXCLUDED.completed,
                      target_date = CASE WHEN $4::date IS NULL THEN roadmap_progress.target_date ELSE EXCLUDED.target_date END,
