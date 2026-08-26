@@ -14,6 +14,8 @@ interface VRPageProps {
   onNavigate: (href: string) => void;
 }
 
+const visibleEnvironmentKeys = new Set(['ai-engineer-lab']);
+
 export function VRPage({ onNavigate }: VRPageProps) {
   const requestedEnvironment = useMemo(
     () => new URLSearchParams(window.location.search).get('environment'),
@@ -29,11 +31,14 @@ export function VRPage({ onNavigate }: VRPageProps) {
     setErrorMessage('');
     getVREnvironments()
       .then((items) => {
-        setEnvironments(items);
+        const visibleItems = items.filter((item) => visibleEnvironmentKeys.has(item.key));
+        setEnvironments(visibleItems);
         setSelectedKey((current) =>
-          current && items.some((item) => item.key === current) ? current : (items[0]?.key ?? null),
+          current && visibleItems.some((item) => item.key === current)
+            ? current
+            : (visibleItems[0]?.key ?? null),
         );
-        setStatus(items.length > 0 ? 'success' : 'empty');
+        setStatus(visibleItems.length > 0 ? 'success' : 'empty');
       })
       .catch((error: unknown) => {
         setStatus('error');
