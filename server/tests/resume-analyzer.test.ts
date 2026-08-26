@@ -13,6 +13,7 @@ import {
   extractResumeText,
   getResumeAnalysis,
   listResumeAnalyses,
+  normalizePreferredOutputs,
   resumeAnalyzerLimits,
 } from "../src/services/resume-analyzer.service.js";
 
@@ -33,6 +34,18 @@ function validAnalysisJson(): string {
     ],
     summary:
       "The resume is a promising match for an entry-level data analysis role.",
+    roleFit:
+      "The resume provides direct evidence for the target analysis role.",
+    atsKeywords: ["Python", "SQL"],
+    priorityActions: ["Add measurable outcomes to project descriptions."],
+    interviewTopics: ["Explain the SQL analysis project."],
+    learningPlan: ["Build a dashboard project using the target data tools."],
+    preferredOutputs: [
+      "role_fit",
+      "ats_keywords",
+      "skill_gaps",
+      "learning_plan",
+    ],
   });
 }
 
@@ -82,6 +95,7 @@ test("analyzeResume returns bounded structured results and persists no resume by
       jobRole: "Data Analyst Intern",
       jobDescription:
         "Use SQL and Python to analyze data and communicate insights.",
+      preferredOutputs: ["role_fit", "ats_keywords"],
       file: {
         buffer,
         mimetype: "application/pdf",
@@ -100,6 +114,12 @@ test("analyzeResume returns bounded structured results and persists no resume by
     "Data analysis",
   ]);
   assert.equal(result.analysis.provider, "custom");
+  assert.deepEqual(result.analysis.preferredOutputs, [
+    "role_fit",
+    "ats_keywords",
+  ]);
+  assert.equal(result.analysis.roleFit.length > 0, true);
+  assert.equal(result.analysis.learningPlan.length > 0, true);
   assert.match(queries[0]?.text ?? "", /INSERT INTO resume_analyses/);
   assert.equal(queries[0]?.values?.[1], "user_resume_test");
   assert.equal(queries[0]?.values?.includes(buffer), false);
@@ -207,6 +227,22 @@ test("resume analyzer limits stay bounded for safe request handling", () => {
   assert.equal(resumeAnalyzerLimits.maxJobDescriptionChars, 12_000);
 });
 
+test("preferred output focuses are bounded, unique, and stable", () => {
+  assert.deepEqual(normalizePreferredOutputs(["role_fit", "learning_plan"]), [
+    "role_fit",
+    "learning_plan",
+  ]);
+  assert.equal(normalizePreferredOutputs(undefined).length, 6);
+  assert.throws(
+    () => normalizePreferredOutputs(["role_fit", "role_fit"]),
+    /unsupported or repeated/,
+  );
+  assert.throws(
+    () => normalizePreferredOutputs(["unknown"]),
+    /unsupported or repeated/,
+  );
+});
+
 test("analyzeResume accepts fenced JSON with surrounding provider commentary", async () => {
   const buffer = await readFile(fixturePath);
   const wrapped = `Here is the structured resume review:\n\n\`\`\`json\n${validAnalysisJson()}\n\`\`\`\n`;
@@ -217,6 +253,7 @@ test("analyzeResume accepts fenced JSON with surrounding provider commentary", a
       jobRole: "Data Analyst Intern",
       jobDescription:
         "Use SQL and Python to analyze data and communicate insights.",
+      preferredOutputs: ["role_fit", "ats_keywords"],
       file: {
         buffer,
         mimetype: "application/pdf",
@@ -286,7 +323,6 @@ test("analyzeResume logs safe provider failure diagnostics", async () => {
   }
 });
 
-
 test("persistPuterResumeAnalysis stores only a normalized owned report", async () => {
   const queries: Array<{ text: string; values?: readonly unknown[] }> = [];
   const database: DatabasePool = {
@@ -299,9 +335,8 @@ test("persistPuterResumeAnalysis stores only a normalized owned report", async (
     }),
   };
 
-  const { persistPuterResumeAnalysis } = await import(
-    "../src/services/resume-analyzer.service.js"
-  );
+  const { persistPuterResumeAnalysis } =
+    await import("../src/services/resume-analyzer.service.js");
   const result = await persistPuterResumeAnalysis(
     {
       userId: "user_puter_test",
@@ -330,9 +365,8 @@ test("persistPuterResumeAnalysis stores only a normalized owned report", async (
 });
 
 test("persistPuterResumeAnalysis rejects malformed or non-PDF reports", async () => {
-  const { persistPuterResumeAnalysis } = await import(
-    "../src/services/resume-analyzer.service.js"
-  );
+  const { persistPuterResumeAnalysis } =
+    await import("../src/services/resume-analyzer.service.js");
   await assert.rejects(
     () =>
       persistPuterResumeAnalysis(

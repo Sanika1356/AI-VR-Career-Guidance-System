@@ -255,3 +255,18 @@ test("resume-analysis migration stores only bounded user-owned metadata and stru
     /resume_bytes|job_description|extracted_text|bytea/i,
   );
 });
+
+const resumeAnalysisAuditMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/021_resume_analysis_audit.sql",
+);
+test("resume-analysis audit migration allows only redacted event metadata", async () => {
+  const sql = await readFile(resumeAnalysisAuditMigrationPath, "utf8");
+  assert.match(sql, /DROP CONSTRAINT IF EXISTS audit_events_event_type_check/);
+  assert.match(sql, /'resume_analyzed'/);
+  assert.match(sql, /ADD CONSTRAINT audit_events_event_type_check/);
+  assert.doesNotMatch(
+    sql,
+    /resume_bytes|extracted_text|raw_prompt|raw_response/i,
+  );
+});
