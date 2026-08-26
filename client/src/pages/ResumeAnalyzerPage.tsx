@@ -484,8 +484,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         <Card
           className="resume-analyzer__explainer"
           title="What you will receive"
-                      description="A structured review generated through Pathfinder’s separate Puter-assisted Resume Analyzer flow."
-
+          description="A structured review generated through Pathfinder’s separate Puter-assisted Resume Analyzer flow."
         >
           <ol className="resume-analyzer__steps">
             <li>

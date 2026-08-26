@@ -151,7 +151,11 @@ function extractJsonFromText(text: string): Record<string, unknown> {
 
 function boundedText(value: unknown, maxLength: number): string {
   return typeof value === 'string'
-    ? value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, maxLength)
+    ? value
+        .replace(/[\u0000-\u001f\u007f]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, maxLength)
     : '';
 }
 
@@ -192,7 +196,10 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeout = setTimeout(() => reject(new Error('Resume analysis timed out. Please try again.')), timeoutMs);
+      timeout = setTimeout(
+        () => reject(new Error('Resume analysis timed out. Please try again.')),
+        timeoutMs,
+      );
     });
     return await Promise.race([promise, timeoutPromise]);
   } finally {

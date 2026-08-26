@@ -14,6 +14,28 @@ jobs:
     name: Client, server, migration, and dependency checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ai_vr_career_guidance
+      AUTH_SECRET: ci-only-auth-secret-with-at-least-32-characters
+      CORS_ORIGIN: http://localhost:5173
+      AI_ADVISOR_ENABLED: true
+      OLLAMA_ENABLED: false
+      GEMINI_ENABLED: false
+      SECONDARY_AI_ENABLED: false
+      RUN_SEED_DATA: true
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ai_vr_career_guidance
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ai_vr_career_guidance"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,6 +55,12 @@ jobs:
       - name: Check server types and production build
         run: pnpm --dir server typecheck && pnpm --dir server build
       - name: Run server, migration, privacy, and contract-facing tests
+        run: pnpm --dir server test
+      - name: Apply migrations to disposable PostgreSQL
+        run: pnpm --dir server db:migrate
+      - name: Run PostgreSQL-backed API integration test
+        env:
+          RUN_DB_INTEGRATION_TESTS: true
         run: pnpm --dir server test
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level=high
