@@ -34,6 +34,20 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     return { response, body };
   }
 
+  async function multipartRequest(
+    path: string,
+    formData: FormData,
+    headers: Record<string, string> = {},
+  ): Promise<{ response: Response; body: any }> {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      body: formData,
+      headers: { Origin: 'http://localhost:5173', ...headers },
+    });
+    const body = await response.json();
+    return { response, body };
+  }
+
   try {
     const unauthenticated = await request('/recommendations');
     assert.equal(unauthenticated.response.status, 401);
@@ -47,6 +61,36 @@ test('real API contract flow works against PostgreSQL', { skip: !integrationEnab
     assert.equal(registered.response.headers.get('access-control-allow-origin'), 'http://localhost:5173');
     const token = registered.body.token as string;
     const authHeaders = { Authorization: `Bearer ${token}` };
+
+    const unauthenticatedResume = new FormData();
+    unauthenticatedResume.append('companyName', 'Example Co');
+    unauthenticatedResume.append('jobRole', 'Data Analyst');
+    unauthenticatedResume.append('jobDescription', 'Analyze data and communicate findings.');
+    unauthenticatedResume.append('resume', new Blob(['%PDF-1.4'], { type: 'application/pdf' }), 'resume.pdf');
+    const resumeWithoutAuth = await multipartRequest('/resume/analyze', unauthenticatedResume);
+    assert.equal(resumeWithoutAuth.response.status, 401);
+
+    const invalidResume = new FormData();
+    invalidResume.append('companyName', 'Example Co');
+    invalidResume.append('jobRole', 'Data Analyst');
+    invalidResume.append('jobDescription', 'Analyze data and communicate findings.');
+    invalidResume.append('resume', new Blob(['not a pdf'], { type: 'text/plain' }), 'resume.txt');
+    const invalidResumeResponse = await multipartRequest('/resume/analyze', invalidResume, authHeaders);
+    assert.equal(invalidResumeResponse.response.status, 415);
+    assert.equal(invalidResumeResponse.body.error, 'resume_pdf_required');
+
+    const oversizedResume = new FormData();
+    oversizedResume.append('companyName', 'Example Co');
+    oversizedResume.append('jobRole', 'Data Analyst');
+    oversizedResume.append('jobDescription', 'Analyze data and communicate findings.');
+    oversizedResume.append(
+      'resume',
+      new Blob([new Uint8Array(8 * 1024 * 1024 + 1)], { type: 'application/pdf' }),
+      'resume.pdf',
+    );
+    const oversizedResumeResponse = await multipartRequest('/resume/analyze', oversizedResume, authHeaders);
+    assert.equal(oversizedResumeResponse.response.status, 413);
+    assert.equal(oversizedResumeResponse.body.error, 'resume_file_too_large');
 
     const login = await request('/auth/login', {
       method: 'POST',

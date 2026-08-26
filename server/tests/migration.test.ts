@@ -217,7 +217,41 @@ test("learner-context migration stores optional bounded goals and time budget", 
   assert.match(sql, /jsonb_array_length\(goals\) <= 20/);
   assert.match(sql, /jsonb_array_length\(constraints\) <= 20/);
   assert.match(sql, /jsonb_array_length\(preferred_work_conditions\) <= 20/);
-  assert.match(sql, /education_stage IN \('secondary', 'undergraduate', 'graduate', 'career-changer', 'working-professional', 'other'\)/);
+  assert.match(
+    sql,
+    /education_stage IN \('secondary', 'undergraduate', 'graduate', 'career-changer', 'working-professional', 'other'\)/,
+  );
   assert.match(sql, /weekly_time_budget_minutes BETWEEN 30 AND 10080/);
   assert.match(sql, /Rollback:/);
+});
+
+const resumeAnalysesMigrationPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/020_resume_analyses.sql",
+);
+
+test("resume-analysis migration stores only bounded user-owned metadata and structured results", async () => {
+  const sql = await readFile(resumeAnalysesMigrationPath, "utf8");
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS resume_analyses/);
+  assert.match(sql, /id TEXT PRIMARY KEY/);
+  assert.match(
+    sql,
+    /user_id TEXT NOT NULL REFERENCES users\(id\) ON DELETE CASCADE/,
+  );
+  for (const column of [
+    "file_name",
+    "company_name",
+    "job_role",
+    "analysis JSONB NOT NULL",
+    "provider",
+    "created_at",
+  ]) {
+    assert.match(sql, new RegExp(column));
+  }
+  assert.match(sql, /idx_resume_analyses_user_created/);
+  assert.match(sql, /jsonb_typeof\(analysis\) = 'object'/);
+  assert.doesNotMatch(
+    sql,
+    /resume_bytes|job_description|extracted_text|bytea/i,
+  );
 });

@@ -6,8 +6,13 @@ import {
 } from "express";
 import multer from "multer";
 import { env } from "../config/env.js";
-import { analyzeResumeController } from "../controllers/resume-analyzer.controller.js";
+import {
+  analyzeResumeController,
+  getResumeAnalysisController,
+  listResumeAnalysesController,
+} from "../controllers/resume-analyzer.controller.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireFeature } from "../middleware/feature-flag.js";
 import { createRateLimiter } from "../middleware/rate-limit.js";
 import { resumeAnalyzerLimits } from "../services/resume-analyzer.service.js";
 
@@ -61,9 +66,22 @@ const resumeRateLimiter = createRateLimiter({
   maxRequests: Math.min(env.aiRateLimitMax, 10),
 });
 
+resumeAnalyzerRouter.get(
+  "/analyses",
+  requireAuth,
+  resumeRateLimiter,
+  listResumeAnalysesController,
+);
+resumeAnalyzerRouter.get(
+  "/analyses/:analysisId",
+  requireAuth,
+  resumeRateLimiter,
+  getResumeAnalysisController,
+);
 resumeAnalyzerRouter.post(
   "/analyze",
   requireAuth,
+  requireFeature(env.aiAdvisorEnabled, "AI resume analysis"),
   resumeRateLimiter,
   uploadResumeFile,
   analyzeResumeController,

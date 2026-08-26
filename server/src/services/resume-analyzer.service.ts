@@ -1,9 +1,12 @@
 import { PDFParse } from "pdf-parse";
 import { AppError } from "../utils/app-error.js";
+import { createId } from "../utils/id.js";
 import {
+  AdvisorProviderError,
   generateAdvisorProviderText,
   type AdvisorProvider,
 } from "./advisor.service.js";
+import type { DatabasePool } from "../db/types.js";
 
 const MAX_JOB_DESCRIPTION_CHARS = 12_000;
 const MAX_EXTRACTED_RESUME_CHARS = 24_000;
@@ -21,6 +24,7 @@ export interface ResumeAnalysis {
 }
 
 export interface ResumeAnalyzeInput {
+  userId: string;
   companyName: string;
   jobRole: string;
   jobDescription: string;
@@ -30,6 +34,23 @@ export interface ResumeAnalyzeInput {
     originalname: string;
     size: number;
   };
+}
+
+export interface ResumeAnalysisHistoryItem {
+  id: string;
+  fileName: string;
+  companyName: string;
+  jobRole: string;
+  overallScore: number;
+  status: "completed";
+  analyzedAt: string;
+}
+
+export interface ResumeAnalysisResponse {
+  analysisId: string;
+  fileName: string;
+  analysis: ResumeAnalysis;
+  analyzedAt: string;
 }
 
 function boundedText(value: unknown, maxLength: number): string {
@@ -125,13 +146,31 @@ function buildResumePrompt(
     "Return ONLY valid JSON matching the requested fields. Do not use Markdown fences, commentary, a confidence label, or a feedback question.",
     "Do not invent experience, skills, achievements, companies, or certifications. Base every observation on the supplied resume and job description. If evidence is missing, say so in improvements or recommendations.",
     "Scoring rule: overallScore is a whole number from 0 to 100 representing evidence-based alignment with the target role, not a prediction of hiring outcome.",
-    'Required JSON shape: {"overallScore":number,"matchingSkills":string[],"missingSkills":string[],"strengths":string[],"improvements":string[],"recommendations":string[],"summary":string}',
+    '{"overallScore":number,"matchingSkills":string[],"missingSkills":string[],"strengths":string[],"improvements":string[],"recommendations":string[],"summary":string}',
     `Target company: ${boundedText(input.companyName, 160)}`,
     `Target role: ${boundedText(input.jobRole, 160)}`,
     `Job description: ${boundedText(input.jobDescription, MAX_JOB_DESCRIPTION_CHARS)}`,
     `Resume text: ${boundedText(resumeText, MAX_EXTRACTED_RESUME_CHARS)}`,
     "Keep each list focused and specific. Mention measurable resume improvements where the evidence supports them. Do not include URLs.",
   ].join("\n\n");
+}
+
+function logResumeProviderFailure(error: unknown): void {
+  const fields =
+    error instanceof AdvisorProviderError
+      ? {
+          category: error.category,
+          ...(error.statusCode === undefined
+            ? {}
+            : { statusCode: error.statusCode }),
+          ...(error.providerErrorCode === undefined
+            ? {}
+            : { providerErrorCode: error.providerErrorCode }),
+        }
+      : { category: "unknown" };
+  console.info(
+    JSON.stringify({ event: "resume_analysis_provider_failed", ...fields }),
+  );
 }
 
 export async function extractResumeText(buffer: Buffer): Promise<string> {
@@ -160,8 +199,9 @@ export async function extractResumeText(buffer: Buffer): Promise<string> {
 
 export async function analyzeResume(
   input: ResumeAnalyzeInput,
+  database: DatabasePool,
   provider?: AdvisorProvider,
-): Promise<ResumeAnalysis> {
+): Promise<ResumeAnalysisResponse> {
   const companyName = boundedText(input.companyName, 160);
   const jobRole = boundedText(input.jobRole, 160);
   const jobDescription = boundedText(
@@ -195,14 +235,125 @@ export async function analyzeResume(
       ),
       provider,
     );
-  } catch {
+  } catch (error) {
+    logResumeProviderFailure(error);
     throw new AppError(
       503,
       "resume_analysis_provider_unavailable",
-      "The resume analysis service is temporarily unavailable. Please try again.",
+      "The resume analysis service is temporarily unavailable. Please try again after the AI provider is available.",
     );
   }
-  return normalizeAnalysis(parseJsonObject(generated.text), generated.provider);
+
+  const analysis = normalizeAnalysis(
+    parseJsonObject(generated.text),
+    generated.provider,
+  );
+  const analysisId = createId("resume_analysis");
+  const analyzedAt = new Date().toISOString();
+  const client = await database.connect();
+  try {
+    await client.query(
+      `INSERT INTO resume_analyses
+        (id, user_id, file_name, company_name, job_role, analysis, provider, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)`,
+      [
+        analysisId,
+        input.userId,
+        input.file.originalname,
+        companyName,
+        jobRole,
+        JSON.stringify(analysis),
+        generated.provider,
+        analyzedAt,
+      ],
+    );
+  } finally {
+    client.release();
+  }
+  return {
+    analysisId,
+    fileName: input.file.originalname,
+    analysis,
+    analyzedAt,
+  };
+}
+
+export async function listResumeAnalyses(
+  userId: string,
+  database: DatabasePool,
+): Promise<ResumeAnalysisHistoryItem[]> {
+  const client = await database.connect();
+  try {
+    const result = await client.query<{
+      id: string;
+      file_name: string;
+      company_name: string;
+      job_role: string;
+      overall_score: number;
+      created_at: string | Date;
+    }>(
+      `SELECT id, file_name, company_name, job_role,
+          COALESCE((analysis->>'overallScore')::integer, 0) AS overall_score,
+          created_at
+       FROM resume_analyses
+       WHERE user_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [userId],
+    );
+    return result.rows.map((row) => ({
+      id: row.id,
+      fileName: row.file_name,
+      companyName: row.company_name,
+      jobRole: row.job_role,
+      overallScore: Number(row.overall_score),
+      status: "completed",
+      analyzedAt: new Date(row.created_at).toISOString(),
+    }));
+  } finally {
+    client.release();
+  }
+}
+
+export async function getResumeAnalysis(
+  userId: string,
+  analysisId: string,
+  database: DatabasePool,
+): Promise<ResumeAnalysisResponse> {
+  const client = await database.connect();
+  try {
+    const result = await client.query<{
+      id: string;
+      file_name: string;
+      analysis: unknown;
+      created_at: string | Date;
+    }>(
+      `SELECT id, file_name, analysis, created_at
+       FROM resume_analyses
+       WHERE id = $1 AND user_id = $2`,
+      [analysisId, userId],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      throw new AppError(
+        404,
+        "resume_analysis_not_found",
+        "The resume analysis was not found.",
+      );
+    }
+    const parsed =
+      typeof row.analysis === "string"
+        ? JSON.parse(row.analysis)
+        : row.analysis;
+    return {
+      analysisId: row.id,
+      fileName: row.file_name,
+      analysis: parsed as ResumeAnalysis,
+      analyzedAt: new Date(row.created_at).toISOString(),
+    };
+  } finally {
+    client.release();
+  }
 }
 
 export const resumeAnalyzerLimits = {

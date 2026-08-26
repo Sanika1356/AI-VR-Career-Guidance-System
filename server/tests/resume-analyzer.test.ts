@@ -4,9 +4,12 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import type { AdvisorProvider } from "../src/services/advisor.js";
+import type { DatabasePool } from "../src/db/types.js";
 import {
   analyzeResume,
   extractResumeText,
+  getResumeAnalysis,
+  listResumeAnalyses,
   resumeAnalyzerLimits,
 } from "../src/services/resume-analyzer.service.js";
 
@@ -32,6 +35,17 @@ class StructuredProvider implements AdvisorProvider {
   }
 }
 
+function createDatabase(
+  rows: Array<Record<string, unknown>> = [],
+): DatabasePool {
+  return {
+    connect: async () => ({
+      query: async () => ({ rows, rowCount: rows.length }),
+      release: () => undefined,
+    }),
+  };
+}
+
 test("extractResumeText reads a text-readable PDF without storing it", async () => {
   const buffer = await readFile(fixturePath);
   const text = await extractResumeText(buffer);
@@ -39,10 +53,22 @@ test("extractResumeText reads a text-readable PDF without storing it", async () 
   assert.match(text, /SQL/);
 });
 
-test("analyzeResume returns bounded structured results from the existing provider interface", async () => {
+test("analyzeResume returns bounded structured results and persists no resume bytes", async () => {
   const buffer = await readFile(fixturePath);
+  const queries: Array<{ text: string; values?: readonly unknown[] }> = [];
+  const database: DatabasePool = {
+    connect: async () => ({
+      query: async (text: string, values?: readonly unknown[]) => {
+        queries.push({ text, values });
+        return { rows: [], rowCount: 1 };
+      },
+      release: () => undefined,
+    }),
+  };
+
   const result = await analyzeResume(
     {
+      userId: "user_resume_test",
       companyName: "Microsoft",
       jobRole: "Data Analyst Intern",
       jobDescription:
@@ -54,12 +80,73 @@ test("analyzeResume returns bounded structured results from the existing provide
         size: buffer.length,
       },
     },
+    database,
     new StructuredProvider(),
   );
 
-  assert.equal(result.overallScore, 82);
-  assert.deepEqual(result.matchingSkills, ["Python", "SQL", "Data analysis"]);
-  assert.equal(result.provider, "custom");
+  assert.equal(result.analysis.overallScore, 82);
+  assert.deepEqual(result.analysis.matchingSkills, [
+    "Python",
+    "SQL",
+    "Data analysis",
+  ]);
+  assert.equal(result.analysis.provider, "custom");
+  assert.match(queries[0]?.text ?? "", /INSERT INTO resume_analyses/);
+  assert.equal(queries[0]?.values?.[1], "user_resume_test");
+  assert.equal(queries[0]?.values?.includes(buffer), false);
+});
+
+test("resume history maps only the authenticated user’s stored analysis metadata", async () => {
+  const history = await listResumeAnalyses(
+    "user_resume_test",
+    createDatabase([
+      {
+        id: "resume_analysis_1",
+        file_name: "resume.pdf",
+        company_name: "Microsoft",
+        job_role: "Data Analyst Intern",
+        overall_score: 82,
+        created_at: "2026-08-26T00:00:00.000Z",
+      },
+    ]),
+  );
+  assert.deepEqual(history, [
+    {
+      id: "resume_analysis_1",
+      fileName: "resume.pdf",
+      companyName: "Microsoft",
+      jobRole: "Data Analyst Intern",
+      overallScore: 82,
+      status: "completed",
+      analyzedAt: "2026-08-26T00:00:00.000Z",
+    },
+  ]);
+});
+
+test("resume analysis detail is ownership-scoped and returns the stored structured report", async () => {
+  const result = await getResumeAnalysis(
+    "user_resume_test",
+    "resume_analysis_1",
+    createDatabase([
+      {
+        id: "resume_analysis_1",
+        file_name: "resume.pdf",
+        analysis: {
+          overallScore: 82,
+          matchingSkills: ["SQL"],
+          missingSkills: [],
+          strengths: ["Relevant evidence"],
+          improvements: [],
+          recommendations: ["Build a dashboard"],
+          summary: "Promising match.",
+          provider: "groq",
+        },
+        created_at: "2026-08-26T00:00:00.000Z",
+      },
+    ]),
+  );
+  assert.equal(result.analysisId, "resume_analysis_1");
+  assert.equal(result.analysis.provider, "groq");
 });
 
 test("analyzeResume rejects missing fields and non-PDF files", async () => {
@@ -68,6 +155,7 @@ test("analyzeResume rejects missing fields and non-PDF files", async () => {
     () =>
       analyzeResume(
         {
+          userId: "user_resume_test",
           companyName: "",
           jobRole: "Data Analyst",
           jobDescription: "SQL",
@@ -78,6 +166,7 @@ test("analyzeResume rejects missing fields and non-PDF files", async () => {
             size: buffer.length,
           },
         },
+        createDatabase(),
         new StructuredProvider(),
       ),
     /Company name, job role, and job description are required/,
@@ -86,6 +175,7 @@ test("analyzeResume rejects missing fields and non-PDF files", async () => {
     () =>
       analyzeResume(
         {
+          userId: "user_resume_test",
           companyName: "Microsoft",
           jobRole: "Data Analyst",
           jobDescription: "SQL",
@@ -96,6 +186,7 @@ test("analyzeResume rejects missing fields and non-PDF files", async () => {
             size: buffer.length,
           },
         },
+        createDatabase(),
         new StructuredProvider(),
       ),
     /Upload your resume as a PDF file/,

@@ -1,4 +1,4 @@
-import { authenticatedResponse } from './auth';
+import { authenticatedRequest, authenticatedResponse } from './auth';
 
 export interface ResumeAnalysis {
   overallScore: number;
@@ -12,8 +12,28 @@ export interface ResumeAnalysis {
 }
 
 export interface ResumeAnalysisResponse {
+  analysisId: string;
+  fileName: string;
   analysis: ResumeAnalysis;
   analyzedAt: string;
+}
+
+export interface ResumeAnalysisHistoryItem {
+  id: string;
+  fileName: string;
+  companyName: string;
+  jobRole: string;
+  overallScore: number;
+  status: 'completed';
+  analyzedAt: string;
+}
+
+export async function listResumeAnalyses(): Promise<{ analyses: ResumeAnalysisHistoryItem[] }> {
+  return authenticatedRequest<{ analyses: ResumeAnalysisHistoryItem[] }>('/resume/analyses');
+}
+
+export async function getResumeAnalysis(id: string): Promise<ResumeAnalysisResponse> {
+  return authenticatedRequest<ResumeAnalysisResponse>(`/resume/analyses/${encodeURIComponent(id)}`);
 }
 
 export async function analyzeResume(input: {
