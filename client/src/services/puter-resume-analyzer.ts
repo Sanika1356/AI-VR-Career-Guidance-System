@@ -27,6 +27,7 @@ type PuterApi = {
   };
   fs: {
     upload: (files: File[] | Blob[]) => Promise<PuterFile | undefined>;
+    delete?: (path: string) => Promise<void>;
   };
   ai: {
     chat: (
@@ -225,29 +226,39 @@ export async function analyzeResumeWithPuter(input: {
   const puterPath = typeof uploadedFile?.path === 'string' ? uploadedFile.path : '';
   if (!puterPath) throw new Error('The resume could not be uploaded to the analysis service.');
 
-  const prompt = buildPrompt(input.jobRole, input.jobDescription);
-  const response = await withTimeout(
-    puter.ai.chat(
-      [
-        {
-          role: 'user',
-          content: [
-            { type: 'file', puter_path: puterPath },
-            { type: 'text', text: prompt },
-          ],
-        },
-      ],
-      { model: 'claude-sonnet-4-6' },
-    ),
-    AI_TIMEOUT_MS,
-  );
-  if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
+  try {
+    const prompt = buildPrompt(input.jobRole, input.jobDescription);
+    const response = await withTimeout(
+      puter.ai.chat(
+        [
+          {
+            role: 'user',
+            content: [
+              { type: 'file', puter_path: puterPath },
+              { type: 'text', text: prompt },
+            ],
+          },
+        ],
+        { model: 'claude-sonnet-4-6' },
+      ),
+      AI_TIMEOUT_MS,
+    );
+    if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
 
-  const analysis = normalizeAnalysis(extractJsonFromText(getResponseText(response)));
-  return persistPuterResumeAnalysis({
-    companyName: input.companyName,
-    jobRole: input.jobRole,
-    fileName: input.file.name,
-    analysis,
-  });
+    const analysis = normalizeAnalysis(extractJsonFromText(getResponseText(response)));
+    return persistPuterResumeAnalysis({
+      companyName: input.companyName,
+      jobRole: input.jobRole,
+      fileName: input.file.name,
+      analysis,
+    });
+  } finally {
+    if (typeof puter.fs.delete === 'function') {
+      try {
+        await withTimeout(Promise.resolve(puter.fs.delete(puterPath)), 15_000);
+      } catch {
+        // Cleanup is best effort and must not hide the analysis or persistence error.
+      }
+    }
+  }
 }

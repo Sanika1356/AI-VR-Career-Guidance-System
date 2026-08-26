@@ -652,7 +652,7 @@ Response:
 
 Persists a structured report produced by the browser-side CVsense-compatible Puter flow. The browser separately loads Puter.js, confirms or requests the user’s Puter sign-in, uploads the selected PDF to Puter, sends the file attachment plus the role prompt to `claude-sonnet-4-6`, tolerates the supported Puter response shapes, and extracts the JSON object before calling this endpoint. Pathfinder authentication remains required for persistence; Puter authentication does not replace the Pathfinder session.
 
-The JSON request contains `fileName`, `companyName`, `jobRole`, and `analysis`. The server treats the report as untrusted input, re-validates all fields and bounded lists, forces the stored provider label to `puter`, and stores only the normalized structured report and user-owned metadata. It does not receive or persist the resume bytes. Malformed reports return a safe validation error instead of being stored.
+The JSON request contains `fileName`, `companyName`, `jobRole`, and `analysis`. The server treats the report as untrusted input, re-validates all fields and bounded lists, forces the stored provider label to `puter`, and stores only the normalized structured report and user-owned metadata. It does not receive or persist the resume bytes. After the Puter response is received or fails, the browser makes a best-effort deletion request for the temporary Puter file; cleanup failure never replaces the analysis or persistence error. Malformed reports return a safe validation error instead of being stored.
 
 ```json
 {
