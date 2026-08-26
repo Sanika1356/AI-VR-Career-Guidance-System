@@ -1148,6 +1148,13 @@ export async function generateAdvisorProviderText(
   } catch (error) {
     finalError = error;
     if (canUseGroqFailover && isTemporaryProviderFailure(error)) {
+      const primaryFailure = providerFailureDetails(error);
+      logAdvisorProviderEvent("advisor_provider_fallback", {
+        provider: "gemini",
+        model: normalizeGeminiModel(env.geminiModel),
+        durationMs: Date.now() - startedAt,
+        ...primaryFailure,
+      });
       logAdvisorProviderEvent("advisor_secondary_provider_selected", {
         primaryProvider: "gemini",
         provider: "groq",
