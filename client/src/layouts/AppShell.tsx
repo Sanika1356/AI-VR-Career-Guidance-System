@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 
 interface AppShellProps {
   children: ReactNode;
@@ -36,8 +36,23 @@ export function AppShell({
   onSignOut,
   userName,
 }: AppShellProps) {
+  const lastFocusedPath = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (lastFocusedPath.current === null) {
+      lastFocusedPath.current = currentPath;
+      return;
+    }
+    if (lastFocusedPath.current === currentPath) return;
+    lastFocusedPath.current = currentPath;
+    document.getElementById('main-content')?.focus();
+  }, [currentPath]);
+
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <header className="topbar">
         <a
           className="brand"
@@ -88,7 +103,9 @@ export function AppShell({
           </button>
         )}
       </header>
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>
+        {children}
+      </main>
       <footer className="footer">
         <span>AI-VR Career Guidance System</span> <span aria-hidden="true">•</span>{' '}
         <span>Built for curious minds</span>{' '}

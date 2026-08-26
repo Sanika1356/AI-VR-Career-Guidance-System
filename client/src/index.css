@@ -28,6 +28,25 @@ a {
   min-height: 100vh;
   overflow: hidden;
 }
+.skip-link {
+  background: #202222;
+  color: #fff;
+  left: 16px;
+  padding: 11px 16px;
+  position: fixed;
+  top: 16px;
+  transform: translateY(-160%);
+  transition: transform 160ms ease;
+  z-index: 20;
+}
+.skip-link:focus {
+  outline: 3px solid #c8ef65;
+  outline-offset: 3px;
+  transform: translateY(0);
+}
+main:focus {
+  outline: none;
+}
 .topbar {
   align-items: center;
   display: flex;
