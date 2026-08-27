@@ -643,6 +643,32 @@ export async function getResumeAnalysis(
   }
 }
 
+export async function deleteResumeAnalysis(
+  userId: string,
+  analysisId: string,
+  database: DatabasePool,
+): Promise<{ analysisId: string }> {
+  const client = await database.connect();
+  try {
+    const result = await client.query<{ id: string }>(
+      `DELETE FROM resume_analyses
+       WHERE id = $1 AND user_id = $2
+       RETURNING id`,
+      [analysisId, userId],
+    );
+    if (!result.rows[0]) {
+      throw new AppError(
+        404,
+        "resume_analysis_not_found",
+        "The resume analysis was not found.",
+      );
+    }
+    return { analysisId: result.rows[0].id };
+  } finally {
+    client.release();
+  }
+}
+
 export const resumeAnalyzerLimits = {
   maxFileBytes: MAX_FILE_BYTES,
   maxJobDescriptionChars: MAX_JOB_DESCRIPTION_CHARS,
