@@ -11,6 +11,74 @@ interface PlayerState {
   yaw: number;
 }
 
+type HotspotKind = 'monitor' | 'whiteboard' | 'server' | 'notes' | 'bookshelf' | 'mug' | 'core';
+
+interface KnowledgeHotspot {
+  id: string;
+  kind: HotspotKind;
+  title: string;
+  represents: string;
+  content: string;
+}
+
+const AI_ENGINEERING_HOTSPOTS: KnowledgeHotspot[] = [
+  {
+    id: 'desk-monitor',
+    kind: 'monitor',
+    title: 'Desk + monitor',
+    represents: 'Daily coding work',
+    content:
+      'AI engineers write production code daily—often Python, plus tools like PyTorch or TensorFlow.',
+  },
+  {
+    id: 'whiteboard-workflow',
+    kind: 'whiteboard',
+    title: 'Whiteboard workflow',
+    represents: 'The ML workflow',
+    content:
+      'A typical pipeline moves from data collection to cleaning, training, evaluation, and deployment.',
+  },
+  {
+    id: 'server-rack',
+    kind: 'server',
+    title: 'Server rack',
+    represents: 'Infrastructure and deployment',
+    content:
+      'Models do not just run on a laptop—engineers deploy GPU clusters or cloud infrastructure like AWS or GCP.',
+  },
+  {
+    id: 'sticky-notes',
+    kind: 'notes',
+    title: 'Sticky notes and task board',
+    represents: 'Day-to-day collaboration',
+    content: 'Most AI teams work in sprints alongside data scientists and product managers.',
+  },
+  {
+    id: 'bookshelf-certificates',
+    kind: 'bookshelf',
+    title: 'Bookshelf and certificates',
+    represents: 'Skills and background',
+    content:
+      'Common backgrounds include a computer science degree, ML coursework, or self-taught projects and Kaggle work.',
+  },
+  {
+    id: 'coffee-mug',
+    kind: 'mug',
+    title: 'Coffee mug and desk clutter',
+    represents: 'Ambience only',
+    content:
+      'Not every object needs to be interactive. Real workspaces include room for focus, breaks, and everyday routines.',
+  },
+  {
+    id: 'ai-core',
+    kind: 'core',
+    title: 'AI core',
+    represents: 'The role at a glance',
+    content:
+      'AI engineering combines software development, data, model evaluation, and deployment into systems people can use.',
+  },
+];
+
 const WORLD_LIMIT = 7;
 
 function clamp(value: number, minimum: number, maximum: number): number {
@@ -120,6 +188,138 @@ function drawPortal(
   context.restore();
 }
 
+interface HotspotAnchor {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+function getHotspotAnchor(
+  hotspot: KnowledgeHotspot,
+  width: number,
+  horizon: number,
+): HotspotAnchor {
+  const centerX = width / 2;
+  const anchors: Record<HotspotKind, { x: number; y: number; radius: number }> = {
+    monitor: { x: -62, y: 30, radius: 30 },
+    whiteboard: { x: -118, y: -42, radius: 28 },
+    server: { x: 118, y: -36, radius: 28 },
+    notes: { x: 55, y: 32, radius: 25 },
+    bookshelf: { x: 142, y: 26, radius: 28 },
+    mug: { x: -24, y: 44, radius: 20 },
+    core: { x: 0, y: -36, radius: 27 },
+  };
+  const anchor = anchors[hotspot.kind];
+  return { x: centerX + anchor.x, y: horizon + anchor.y, radius: anchor.radius };
+}
+
+function drawHotspotObject(
+  context: CanvasRenderingContext2D,
+  hotspot: KnowledgeHotspot,
+  anchor: HotspotAnchor,
+  accent: string,
+  selected: boolean,
+  time: number,
+) {
+  const { x, y } = anchor;
+  context.save();
+  context.translate(x, y);
+  if (selected) {
+    context.shadowColor = accent;
+    context.shadowBlur = 16 + Math.sin(time / 280) * 4;
+  }
+  context.strokeStyle = accent;
+  context.fillStyle = selected ? 'rgba(200, 239, 101, 0.22)' : 'rgba(25, 33, 32, 0.9)';
+  context.lineWidth = selected ? 3 : 2;
+
+  if (hotspot.kind === 'monitor') {
+    context.fillRect(-20, -13, 40, 25);
+    context.strokeRect(-20, -13, 40, 25);
+    context.fillStyle = accent;
+    context.fillRect(-14, -7, 28, 12);
+    context.fillStyle = '#222a29';
+    context.fillRect(-3, 12, 6, 12);
+    context.fillRect(-14, 24, 28, 3);
+  } else if (hotspot.kind === 'whiteboard') {
+    context.fillStyle = '#f1f1e8';
+    context.fillRect(-24, -18, 48, 30);
+    context.strokeRect(-24, -18, 48, 30);
+    context.strokeStyle = '#6b7e46';
+    context.beginPath();
+    context.moveTo(-17, -8);
+    context.lineTo(-4, 0);
+    context.lineTo(6, -10);
+    context.lineTo(17, 2);
+    context.stroke();
+    context.fillStyle = '#222a29';
+    context.fillRect(-19, 12, 4, 18);
+    context.fillRect(15, 12, 4, 18);
+  } else if (hotspot.kind === 'server') {
+    context.fillStyle = '#1b292a';
+    context.fillRect(-18, -25, 36, 50);
+    context.strokeRect(-18, -25, 36, 50);
+    for (let index = 0; index < 3; index += 1) {
+      context.fillStyle = accent;
+      context.fillRect(-11, -16 + index * 13, 22, 3);
+      context.fillStyle = '#8c9584';
+      context.beginPath();
+      context.arc(11, -14 + index * 13, 2, 0, Math.PI * 2);
+      context.fill();
+    }
+  } else if (hotspot.kind === 'notes') {
+    const notes = [
+      { x: -18, y: -5, color: '#e4b75d' },
+      { x: 0, y: -15, color: '#c8ef65' },
+      { x: 16, y: -2, color: '#e98d78' },
+    ];
+    notes.forEach((note) => {
+      context.fillStyle = note.color;
+      context.fillRect(note.x, note.y, 18, 16);
+    });
+    context.strokeStyle = '#273331';
+    context.beginPath();
+    context.moveTo(-25, 15);
+    context.lineTo(25, 15);
+    context.stroke();
+  } else if (hotspot.kind === 'bookshelf') {
+    context.fillStyle = '#5b493a';
+    context.fillRect(-22, -28, 44, 56);
+    context.strokeRect(-22, -28, 44, 56);
+    context.fillStyle = '#e4b75d';
+    context.fillRect(-16, -21, 6, 17);
+    context.fillStyle = '#91b7c1';
+    context.fillRect(-7, -21, 7, 17);
+    context.fillStyle = '#d88473';
+    context.fillRect(3, -21, 7, 17);
+    context.fillStyle = '#dce5c4';
+    context.fillRect(-16, 3, 26, 10);
+  } else if (hotspot.kind === 'mug') {
+    context.fillStyle = '#e7e1d2';
+    context.fillRect(-11, -11, 22, 20);
+    context.strokeRect(-11, -11, 22, 20);
+    context.beginPath();
+    context.arc(12, -1, 7, -Math.PI / 2, Math.PI / 2);
+    context.stroke();
+  } else {
+    context.fillStyle = accent;
+    context.beginPath();
+    context.moveTo(0, -25 - Math.sin(time / 500) * 3);
+    context.lineTo(14, -2);
+    context.lineTo(0, 22);
+    context.lineTo(-14, -2);
+    context.closePath();
+    context.fill();
+    context.stroke();
+  }
+
+  context.shadowBlur = 0;
+  context.fillStyle = '#202a29';
+  context.font = '700 8px DM Mono, monospace';
+  context.textAlign = 'center';
+  context.fillText(hotspot.title.toUpperCase(), 0, anchor.radius + 13);
+  context.restore();
+}
+
 function drawScene(
   context: CanvasRenderingContext2D,
   width: number,
@@ -127,6 +327,7 @@ function drawScene(
   environment: VREnvironment,
   player: PlayerState,
   time: number,
+  selectedHotspotId: string | null,
 ) {
   const isData = environment.key === 'data-insights-studio';
   const accent = isData ? '#6fe3f7' : '#c8ef65';
@@ -221,6 +422,19 @@ function drawScene(
   context.fill();
   context.restore();
 
+  if (environment.key === 'ai-engineer-lab') {
+    AI_ENGINEERING_HOTSPOTS.forEach((hotspot) => {
+      drawHotspotObject(
+        context,
+        hotspot,
+        getHotspotAnchor(hotspot, width, horizon),
+        accent,
+        selectedHotspotId === hotspot.id,
+        time,
+      );
+    });
+  }
+
   context.fillStyle = '#26302e';
   context.font = '700 12px DM Mono, monospace';
   context.fillText('PATHFINDER HUB', 22, 32);
@@ -236,8 +450,16 @@ function drawScene(
 export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCanvasSupported, setIsCanvasSupported] = useState(true);
+  const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(
+    environment.key === 'ai-engineer-lab' ? 'ai-core' : null,
+  );
   const playerRef = useRef<PlayerState>({ x: 0, y: 0, yaw: 0 });
   const pointerRef = useRef({ active: false, x: 0 });
+  const pointerDownRef = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setSelectedHotspotId(environment.key === 'ai-engineer-lab' ? 'ai-core' : null);
+  }, [environment.key]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -278,6 +500,7 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
     };
     const onPointerDown = (event: PointerEvent) => {
       pointerRef.current = { active: true, x: event.clientX };
+      pointerDownRef.current = { x: event.clientX, y: event.clientY };
       canvas.setPointerCapture(event.pointerId);
     };
     const onPointerMove = (event: PointerEvent) => {
@@ -289,8 +512,21 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
       );
       pointerRef.current.x = event.clientX;
     };
-    const onPointerUp = () => {
+    const onPointerUp = (event: PointerEvent) => {
+      const moved =
+        Math.abs(event.clientX - pointerDownRef.current.x) > 8 ||
+        Math.abs(event.clientY - pointerDownRef.current.y) > 8;
       pointerRef.current.active = false;
+      if (moved || environment.key !== 'ai-engineer-lab' || width <= 0 || height <= 0) return;
+      const bounds = canvas.getBoundingClientRect();
+      const pointX = event.clientX - bounds.left;
+      const pointY = event.clientY - bounds.top;
+      const horizon = height * 0.47;
+      const hotspot = AI_ENGINEERING_HOTSPOTS.find((candidate) => {
+        const anchor = getHotspotAnchor(candidate, width, horizon);
+        return Math.hypot(pointX - anchor.x, pointY - anchor.y) <= anchor.radius + 12;
+      });
+      if (hotspot) setSelectedHotspotId(hotspot.id);
     };
 
     resize();
@@ -313,7 +549,15 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
       player.x = clamp(player.x, -WORLD_LIMIT, WORLD_LIMIT);
       player.y = clamp(player.y, -WORLD_LIMIT, WORLD_LIMIT);
       if (width > 0 && height > 0) {
-        drawScene(context, width, height, environment, player, prefersReducedMotion ? 0 : time);
+        drawScene(
+          context,
+          width,
+          height,
+          environment,
+          player,
+          prefersReducedMotion ? 0 : time,
+          selectedHotspotId,
+        );
       }
       animationFrame = window.requestAnimationFrame(render);
     };
@@ -329,7 +573,7 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
     };
-  }, [environment]);
+  }, [environment, selectedHotspotId]);
 
   return (
     <div className="vr-world" aria-label={`${environment.title} desktop 3D career environment`}>
@@ -343,8 +587,8 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
             tabIndex={0}
           />
           <p className="vr-world__hint">
-            <strong>Desktop controls:</strong> click the scene, then use WASD or arrow keys to move;
-            drag horizontally to look around.
+            <strong>Desktop controls:</strong> click a hotspot to inspect it; use WASD or arrow keys
+            to move; drag horizontally to look around.
           </p>
         </>
       ) : (
@@ -355,6 +599,36 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
             career actions below instead.
           </span>
         </div>
+      )}
+      {environment.key === 'ai-engineer-lab' && (
+        <section className="vr-hotspots" aria-label="AI Engineering Lab knowledge hotspots">
+          <div className="vr-hotspots__list" role="list">
+            {AI_ENGINEERING_HOTSPOTS.map((hotspot) => (
+              <button
+                key={hotspot.id}
+                className={`vr-hotspot-chip${selectedHotspotId === hotspot.id ? ' vr-hotspot-chip--active' : ''}`}
+                type="button"
+                onClick={() => setSelectedHotspotId(hotspot.id)}
+                aria-pressed={selectedHotspotId === hotspot.id}
+              >
+                <strong>{hotspot.title}</strong>
+                <span>{hotspot.represents}</span>
+              </button>
+            ))}
+          </div>
+          {(() => {
+            const selectedHotspot = AI_ENGINEERING_HOTSPOTS.find(
+              (hotspot) => hotspot.id === selectedHotspotId,
+            );
+            return selectedHotspot ? (
+              <article className="vr-hotspot-detail" aria-live="polite">
+                <p className="eyebrow">Knowledge hotspot</p>
+                <h3>{selectedHotspot.title}</h3>
+                <p>{selectedHotspot.content}</p>
+              </article>
+            ) : null;
+          })()}
+        </section>
       )}
     </div>
   );
