@@ -71,17 +71,6 @@ export function readResumeAnalysisResult(): ResumeAnalysisResponse | null {
   }
 }
 
-function ResultList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
-  if (items.length === 0) return <p className="resume-result__empty">{emptyLabel}</p>;
-  return (
-    <ul className="resume-result__list">
-      {items.map((item, index) => (
-        <li key={`${item}-${index}`}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
 function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView: () => void }) {
   return (
     <article className="resume-history__card">
@@ -374,17 +363,40 @@ export function ResumeAnalysisResultsPage({
 
   const { analysis } = result;
   const preferredOutputs = analysis.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
-  const roleFit = analysis.roleFit ?? analysis.summary;
   const atsKeywords = analysis.atsKeywords ?? analysis.matchingSkills;
   const priorityActions = analysis.priorityActions ?? analysis.recommendations;
-  const interviewTopics = analysis.interviewTopics ?? [];
-  const learningPlan = analysis.learningPlan ?? analysis.recommendations;
-  const categoryBreakdown = analysis.categoryBreakdown ?? {
-    ats: { score: null, tips: atsKeywords },
-    toneAndStyle: { score: null, tips: analysis.improvements },
-    content: { score: null, tips: analysis.strengths },
-    structure: { score: null, tips: analysis.recommendations },
-    skills: { score: null, tips: analysis.missingSkills },
+  const savedCategoryBreakdown = analysis.categoryBreakdown;
+  const categoryBreakdown = {
+    ats: {
+      score: savedCategoryBreakdown?.ats?.score ?? null,
+      tips: savedCategoryBreakdown?.ats?.tips?.length
+        ? savedCategoryBreakdown.ats.tips
+        : atsKeywords,
+    },
+    toneAndStyle: {
+      score: savedCategoryBreakdown?.toneAndStyle?.score ?? null,
+      tips: savedCategoryBreakdown?.toneAndStyle?.tips?.length
+        ? savedCategoryBreakdown.toneAndStyle.tips
+        : analysis.improvements,
+    },
+    content: {
+      score: savedCategoryBreakdown?.content?.score ?? null,
+      tips: savedCategoryBreakdown?.content?.tips?.length
+        ? savedCategoryBreakdown.content.tips
+        : analysis.strengths,
+    },
+    structure: {
+      score: savedCategoryBreakdown?.structure?.score ?? null,
+      tips: savedCategoryBreakdown?.structure?.tips?.length
+        ? savedCategoryBreakdown.structure.tips
+        : analysis.recommendations,
+    },
+    skills: {
+      score: savedCategoryBreakdown?.skills?.score ?? null,
+      tips: savedCategoryBreakdown?.skills?.tips?.length
+        ? savedCategoryBreakdown.skills.tips
+        : analysis.missingSkills,
+    },
   };
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
@@ -470,36 +482,6 @@ export function ResumeAnalysisResultsPage({
             </div>
           </Card>
 
-          {shows('role_fit') && (
-            <Card
-              title="Role fit"
-              description="Why the supplied resume evidence aligns with the target role."
-            >
-              <p className="resume-result__lead">{roleFit}</p>
-            </Card>
-          )}
-
-          <div className="resume-result__grid resume-result__grid--two">
-            <Card
-              title="Matching skills"
-              description="Skills and keywords supported by both the resume and target role."
-            >
-              <ResultList
-                items={analysis.matchingSkills}
-                emptyLabel="No direct matches were identified in the supplied evidence."
-              />
-            </Card>
-            <Card
-              title="Skills to strengthen"
-              description="Relevant requirements that are not clearly evidenced in the resume."
-            >
-              <ResultList
-                items={analysis.missingSkills}
-                emptyLabel="No major missing skills were identified."
-              />
-            </Card>
-          </div>
-
           {shows('ats_keywords') && (
             <Card
               title="ATS Compatibility Analysis"
@@ -576,39 +558,6 @@ export function ResumeAnalysisResultsPage({
                 }
               />
             </div>
-
-            {shows('writing_improvements') && (
-              <Card
-                title="Resume writing improvements"
-                description="Changes that can improve clarity without inventing experience."
-              >
-                <EvidenceItems
-                  items={analysis.improvements}
-                  emptyLabel="No writing improvements were returned."
-                />
-              </Card>
-            )}
-
-            {shows('interview_prep') && (
-              <Card
-                title="Interview preparation"
-                description="Topics grounded in the evidence supplied for this application."
-              >
-                <EvidenceItems
-                  items={interviewTopics}
-                  emptyLabel="No interview topics were returned."
-                />
-              </Card>
-            )}
-
-            {shows('learning_plan') && (
-              <Card
-                title="Learning plan"
-                description="A short sequence for closing relevant skill gaps."
-              >
-                <EvidenceItems items={learningPlan} emptyLabel="No learning plan was returned." />
-              </Card>
-            )}
           </section>
 
           <div className="resume-results__actions">
