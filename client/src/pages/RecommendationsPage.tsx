@@ -12,15 +12,28 @@ interface RecommendationsPageProps {
 
 function CareerPathRow({
   recommendation,
+  position,
   onSelect,
 }: {
   recommendation: Recommendation;
+  position: number;
   onSelect: () => void;
 }) {
   return (
     <Card className="recommendation-card recommendation-card--path">
-      <button className="recommendation-card__path-button" type="button" onClick={onSelect}>
-        {recommendation.career}
+      <button
+        className="recommendation-card__path-button"
+        type="button"
+        onClick={onSelect}
+        aria-label={`Open Job Insights for ${recommendation.career}`}
+      >
+        <span className="recommendation-card__path-index" aria-hidden="true">
+          {String(position).padStart(2, '0')}
+        </span>
+        <span className="recommendation-card__path-name">{recommendation.career}</span>
+        <span className="recommendation-card__path-arrow" aria-hidden="true">
+          ↗
+        </span>
       </button>
     </Card>
   );
@@ -63,7 +76,12 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
   return (
     <div className="page-frame recommendations-page recommendations-page--minimal">
       <header className="page-frame__header recommendations-page__header">
+        <p className="eyebrow">Career direction</p>
         <h1>Job Insights</h1>
+        <p className="recommendations-page__intro">
+          Choose a path to explore your skill profile and find live opportunities that match your
+          direction.
+        </p>
       </header>
 
       {status === 'loading' && (
@@ -93,10 +111,11 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
           className="recommendations-list recommendations-list--paths"
           aria-label="Career paths"
         >
-          {recommendations.map((recommendation) => (
+          {recommendations.map((recommendation, index) => (
             <CareerPathRow
               key={recommendation.careerId}
               recommendation={recommendation}
+              position={index + 1}
               onSelect={() => onNavigate(buildJobInsightsDetailPath(recommendation.careerId))}
             />
           ))}
