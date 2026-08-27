@@ -4535,7 +4535,7 @@ em {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #6c8db0;
+  color: #60792f;
   font-size: clamp(1.55rem, 3vw, 2.25rem);
   letter-spacing: -0.06em;
 }
@@ -4545,8 +4545,8 @@ em {
   height: 34px;
   place-items: center;
   border-radius: 9px;
-  background: #75a8d5;
-  color: #fff;
+  background: #829d31;
+  color: #f8faef;
   font-family: 'DM Mono', monospace;
   font-size: 13px;
   letter-spacing: -0.08em;
@@ -4558,7 +4558,7 @@ em {
   display: grid;
   gap: 5px;
   justify-items: end;
-  color: #6c8db0;
+  color: #60792f;
   font-family: 'DM Mono', monospace;
   font-size: 10px;
   letter-spacing: 0.06em;
