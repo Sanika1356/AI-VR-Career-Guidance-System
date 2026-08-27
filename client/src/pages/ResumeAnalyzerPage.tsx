@@ -983,7 +983,10 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         type="button"
         onClick={() => onNavigate('/resume-analyzer')}
       >
-        ← Back to Resume History
+        <span className="resume-analyzer__back-icon" aria-hidden="true">
+          ←
+        </span>
+        <span>Back to Resume History</span>
       </button>
 
       <div className="resume-analyzer__layout">

@@ -6830,7 +6830,47 @@ em {
 }
 
 .resume-analyzer__back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 0.55rem;
+  width: fit-content;
   margin-top: -1.1rem;
+  padding: 0.58rem 0.9rem;
+  border: 1px solid #cfd7b8;
+  border-radius: 999px;
+  background: #f7f8f1;
+  color: #5b6f2f;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.045em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background 180ms ease-out,
+    border-color 180ms ease-out,
+    color 180ms ease-out,
+    transform 180ms ease-out;
+}
+
+.resume-analyzer__back:hover,
+.resume-analyzer__back:focus-visible {
+  border-color: #93a559;
+  background: #eaf0d9;
+  color: #39491c;
+  text-decoration: none;
+  transform: translateX(-2px);
+}
+
+.resume-analyzer__back:focus-visible {
+  outline: 3px solid rgba(130, 157, 49, 0.2);
+  outline-offset: 2px;
+}
+
+.resume-analyzer__back-icon {
+  font-size: 0.92rem;
+  line-height: 0.8;
 }
 
 .resume-analyzer__layout {
