@@ -356,6 +356,14 @@ function EvidenceItems({
   );
 }
 
+function storedCategoryScore(
+  score: number | null | undefined,
+  tips: Array<unknown> | undefined,
+): number | null {
+  if (typeof score !== 'number') return null;
+  return score === 0 && (!tips || tips.length === 0) ? null : score;
+}
+
 function derivedScore(
   score: number | null,
   overallScore: number,
@@ -544,7 +552,10 @@ export function ResumeAnalysisResultsPage({
   const savedCategoryBreakdown = analysis.categoryBreakdown;
   const categoryBreakdown = {
     ats: {
-      score: savedCategoryBreakdown?.ats?.score ?? null,
+      score: storedCategoryScore(
+        savedCategoryBreakdown?.ats?.score,
+        savedCategoryBreakdown?.ats?.tips,
+      ),
       tips: uniqueFindings(
         savedCategoryBreakdown?.ats?.tips ?? [],
         atsKeywords,
@@ -554,7 +565,10 @@ export function ResumeAnalysisResultsPage({
       ),
     },
     toneAndStyle: {
-      score: savedCategoryBreakdown?.toneAndStyle?.score ?? null,
+      score: storedCategoryScore(
+        savedCategoryBreakdown?.toneAndStyle?.score,
+        savedCategoryBreakdown?.toneAndStyle?.tips,
+      ),
       tips: uniqueFindings(
         savedCategoryBreakdown?.toneAndStyle?.tips ?? [],
         analysis.improvements,
@@ -563,7 +577,10 @@ export function ResumeAnalysisResultsPage({
       ),
     },
     content: {
-      score: savedCategoryBreakdown?.content?.score ?? null,
+      score: storedCategoryScore(
+        savedCategoryBreakdown?.content?.score,
+        savedCategoryBreakdown?.content?.tips,
+      ),
       tips: uniqueFindings(
         savedCategoryBreakdown?.content?.tips ?? [],
         analysis.strengths,
@@ -572,7 +589,10 @@ export function ResumeAnalysisResultsPage({
       ),
     },
     structure: {
-      score: savedCategoryBreakdown?.structure?.score ?? null,
+      score: storedCategoryScore(
+        savedCategoryBreakdown?.structure?.score,
+        savedCategoryBreakdown?.structure?.tips,
+      ),
       tips: uniqueFindings(
         savedCategoryBreakdown?.structure?.tips ?? [],
         analysis.recommendations,
@@ -581,7 +601,10 @@ export function ResumeAnalysisResultsPage({
       ),
     },
     skills: {
-      score: savedCategoryBreakdown?.skills?.score ?? null,
+      score: storedCategoryScore(
+        savedCategoryBreakdown?.skills?.score,
+        savedCategoryBreakdown?.skills?.tips,
+      ),
       tips: uniqueFindings(
         savedCategoryBreakdown?.skills?.tips ?? [],
         analysis.missingSkills,

@@ -4766,7 +4766,7 @@ em {
   font-size: 11px;
 }
 .resume-results__detail-score-row strong {
-  color: #5e91bf;
+  color: #829d31;
   font-family: 'DM Mono', monospace;
   font-size: 12px;
 }
@@ -4785,7 +4785,7 @@ em {
   background: rgba(248, 249, 246, 0.74);
 }
 .resume-results__evidence-card > span {
-  color: #6e9fca;
+  color: #829d31;
   font-family: 'DM Mono', monospace;
   font-size: 12px;
   font-weight: 700;
