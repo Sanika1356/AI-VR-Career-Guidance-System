@@ -249,22 +249,35 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
       ? `This resume received a ${normalizedScore}% match score for the target role. The report highlights evidence-backed strengths and the highest-impact improvements.`
       : '',
   );
+  const fallbackEvidence =
+    normalizedScore >= 0
+      ? [
+          `The analyzer returned a ${normalizedScore}% role-match score for the selected target role.`,
+        ]
+      : [];
+  const fallbackAction =
+    normalizedScore >= 0
+      ? ['Review the category feedback and address the highest-impact gap before applying.']
+      : [];
   const analysis: ResumeAnalysis = {
     overallScore: normalizedScore,
     matchingSkills,
     missingSkills,
-    strengths,
+    strengths: firstNonEmptyList(strengths, categoryGoodTips, matchingSkills, fallbackEvidence),
     improvements: firstNonEmptyList(
       value.improvements,
       weaknesses,
       nestedRecord(value, 'toneAndStyle').tips,
       categoryImproveTips,
+      missingSkills,
+      fallbackAction,
     ),
     recommendations: firstNonEmptyList(
       value.recommendations,
       suggestions,
       weaknesses,
       missingSkills,
+      fallbackAction,
     ),
     summary,
     roleFit: firstText(
@@ -280,21 +293,26 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
       suggestions,
       weaknesses,
       missingSkills,
+      fallbackAction,
     ),
-    interviewTopics: firstNonEmptyList(value.interviewTopics, skills.tips, matchingSkills),
-    learningPlan: firstNonEmptyList(value.learningPlan, suggestions, missingSkills, weaknesses),
+    interviewTopics: firstNonEmptyList(
+      value.interviewTopics,
+      skills.tips,
+      matchingSkills,
+      fallbackEvidence,
+    ),
+    learningPlan: firstNonEmptyList(
+      value.learningPlan,
+      suggestions,
+      missingSkills,
+      weaknesses,
+      fallbackAction,
+    ),
     preferredOutputs: DEFAULT_PREFERRED_OUTPUTS,
     provider: 'puter',
   };
-  if (
-    analysis.overallScore < 0 ||
-    !analysis.summary ||
-    !analysis.roleFit ||
-    analysis.strengths.length === 0 ||
-    analysis.recommendations.length === 0 ||
-    analysis.learningPlan.length === 0
-  ) {
-    throw new Error('The AI returned an incomplete resume analysis. Please try again.');
+  if (analysis.overallScore < 0 || !analysis.summary || !analysis.roleFit) {
+    throw new Error('The AI did not return a usable scored resume report. Please try again.');
   }
   return analysis;
 }
