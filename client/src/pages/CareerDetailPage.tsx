@@ -12,6 +12,233 @@ interface CareerDetailPageProps {
   onNavigate: (href: string) => void;
 }
 
+const CAREER_DETAIL_ENRICHMENTS: Record<
+  string,
+  {
+    additionalSkills: string[];
+    jobSearches: Array<{
+      role: string;
+      links: Array<{ label: string; url: string }>;
+    }>;
+  }
+> = {
+  career_ai_engineer: {
+    additionalSkills: [
+      'Deep Learning',
+      'Natural Language Processing',
+      'Generative AI',
+      'MLOps',
+      'Cloud Deployment',
+      'Model Evaluation',
+    ],
+    jobSearches: [
+      {
+        role: 'AI Engineer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/ai-engineer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-ai-engineer-jobs.html' },
+        ],
+      },
+      {
+        role: 'Machine Learning Engineer',
+        links: [
+          {
+            label: 'Naukri',
+            url: 'https://www.naukri.com/machine-learning-engineer-jobs',
+          },
+          {
+            label: 'Indeed',
+            url: 'https://www.indeed.com/q-machine-learning-engineer-jobs.html',
+          },
+        ],
+      },
+      {
+        role: 'AI Developer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/ai-developer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-ai-developer-jobs.html' },
+        ],
+      },
+      {
+        role: 'MLOps Engineer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/mlops-engineer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-mlops-engineer-jobs.html' },
+        ],
+      },
+    ],
+  },
+  career_cybersecurity_analyst: {
+    additionalSkills: [
+      'Threat Modeling',
+      'Incident Response',
+      'SIEM',
+      'Network Security',
+      'Penetration Testing',
+      'Identity and Access Management',
+    ],
+    jobSearches: [
+      {
+        role: 'Cybersecurity Analyst',
+        links: [
+          {
+            label: 'Naukri',
+            url: 'https://www.naukri.com/cyber-security-analyst-jobs',
+          },
+          {
+            label: 'Indeed',
+            url: 'https://www.indeed.com/q-cybersecurity-analyst-jobs.html',
+          },
+        ],
+      },
+      {
+        role: 'Security Engineer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/security-engineer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-security-engineer-jobs.html' },
+        ],
+      },
+      {
+        role: 'Penetration Tester',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/penetration-testing-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-penetration-tester-jobs.html' },
+        ],
+      },
+      {
+        role: 'SOC Analyst',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/soc-analyst-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-soc-analyst-jobs.html' },
+        ],
+      },
+    ],
+  },
+  career_data_analyst: {
+    additionalSkills: [
+      'Statistics',
+      'Microsoft Excel',
+      'Data Visualization',
+      'Power BI',
+      'Tableau',
+      'ETL Fundamentals',
+    ],
+    jobSearches: [
+      {
+        role: 'Data Analyst',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/data-analyst-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-data-analyst-jobs.html' },
+        ],
+      },
+      {
+        role: 'Business Intelligence Analyst',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/business-intelligence-analyst-jobs' },
+          {
+            label: 'Indeed',
+            url: 'https://www.indeed.com/q-business-intelligence-analyst-jobs.html',
+          },
+        ],
+      },
+      {
+        role: 'Data Visualization Analyst',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/data-visualization-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-data-visualization-jobs.html' },
+        ],
+      },
+      {
+        role: 'Reporting Analyst',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/reporting-analyst-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-reporting-analyst-jobs.html' },
+        ],
+      },
+    ],
+  },
+  career_product_designer: {
+    additionalSkills: [
+      'User Research',
+      'Wireframing',
+      'Prototyping',
+      'Design Systems',
+      'Accessibility',
+      'Figma',
+    ],
+    jobSearches: [
+      {
+        role: 'Product Designer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/product-designer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-product-designer-jobs.html' },
+        ],
+      },
+      {
+        role: 'UX/UI Designer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/ux-ui-designer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-ux-ui-designer-jobs.html' },
+        ],
+      },
+      {
+        role: 'Interaction Designer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/interaction-designer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-interaction-designer-jobs.html' },
+        ],
+      },
+      {
+        role: 'Design Systems Designer',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/design-system-designer-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-design-systems-designer-jobs.html' },
+        ],
+      },
+    ],
+  },
+  career_ux_researcher: {
+    additionalSkills: [
+      'User Interviews',
+      'Usability Testing',
+      'Qualitative Research',
+      'Survey Design',
+      'Information Architecture',
+      'Accessibility Research',
+    ],
+    jobSearches: [
+      {
+        role: 'UX Researcher',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/ux-researcher-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-ux-researcher-jobs.html' },
+        ],
+      },
+      {
+        role: 'User Researcher',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/user-researcher-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-user-researcher-jobs.html' },
+        ],
+      },
+      {
+        role: 'Usability Tester',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/usability-testing-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-usability-tester-jobs.html' },
+        ],
+      },
+      {
+        role: 'Product Researcher',
+        links: [
+          { label: 'Naukri', url: 'https://www.naukri.com/product-researcher-jobs' },
+          { label: 'Indeed', url: 'https://www.indeed.com/q-product-researcher-jobs.html' },
+        ],
+      },
+    ],
+  },
+};
+
 export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps) {
   const [career, setCareer] = useState<CareerDetail | null>(null);
   const [resources, setResources] = useState<LearningResource[] | null>(null);
@@ -98,6 +325,10 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
   }
 
   const displayedResources = resources ?? career.learningResources;
+  const careerEnrichment = CAREER_DETAIL_ENRICHMENTS[career.id];
+  const skillsToBuild = [
+    ...new Set([...(career.skills ?? []), ...(careerEnrichment?.additionalSkills ?? [])]),
+  ];
 
   return (
     <div className="page-frame career-page career-detail-page">
@@ -135,9 +366,9 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
 
       <section className="career-detail-grid">
         <Card title="Skills to build" description="The capabilities connected to this career path.">
-          {career.skills.length > 0 ? (
+          {skillsToBuild.length > 0 ? (
             <div className="career-detail__tags">
-              {career.skills.map((skill) => (
+              {skillsToBuild.map((skill) => (
                 <Badge key={skill} tone="info">
                   {skill}
                 </Badge>
@@ -249,6 +480,46 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
           )}
         </Card>
       </section>
+
+      {careerEnrichment && careerEnrichment.jobSearches.length > 0 && (
+        <section className="career-detail-grid career-detail-grid--jobs">
+          <Card
+            title="Real-world job opportunities"
+            description="Open live search pages to see current roles and availability for this career direction."
+          >
+            <div className="job-opportunity-list">
+              {careerEnrichment.jobSearches.map((jobSearch) => (
+                <article className="job-opportunity" key={jobSearch.role}>
+                  <div className="job-opportunity__role">
+                    <strong>{jobSearch.role}</strong>
+                    <small>Current openings and requirements</small>
+                  </div>
+                  <div
+                    className="job-opportunity__links"
+                    aria-label={`${jobSearch.role} job searches`}
+                  >
+                    {jobSearch.links.map((link) => (
+                      <a
+                        className="job-opportunity__link"
+                        href={link.url}
+                        key={link.label}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {link.label} <span aria-hidden="true">↗</span>
+                      </a>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+            <p className="job-opportunity-note">
+              Job listings, locations, and counts change frequently. Use the search filters on each
+              site to refine the results.
+            </p>
+          </Card>
+        </section>
+      )}
     </div>
   );
 }
