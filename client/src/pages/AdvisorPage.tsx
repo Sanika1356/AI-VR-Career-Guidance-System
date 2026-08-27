@@ -15,6 +15,13 @@ import { chatAdvisor, clearAdvisorHistory, getAdvisorCareerId } from '../service
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_MESSAGE_LENGTH = 3;
+const ADVISOR_PROMPTS = [
+  'Which career is the best fit for my interests?',
+  'What skills should I learn next?',
+  'How can I switch into AI or ML?',
+  'What projects should I build?',
+  'How can I improve my resume?',
+] as const;
 
 function getValidationMessage(value: string): string {
   const length = value.trim().length;
@@ -336,19 +343,60 @@ export function AdvisorPage() {
 
   return (
     <div className="page-frame advisor-page">
-      <header className="page-frame__header">
-        <div>
-          <p className="eyebrow">Grounded guidance</p>
-          <h1>Talk with your AI career advisor</h1>
-          <p>
-            Ask about your options, skill gaps, or next steps. Responses are guidance, not promises,
-            and are grounded in the profile and progress saved to your account.
+      <header className="advisor-hero">
+        <div className="advisor-hero__copy">
+          <p className="eyebrow">AI career advisor</p>
+          <h1>
+            Your questions
+            <br />
+            <strong>Smarter clarity.</strong>
+            <br />
+            <em>Stronger you.</em>
+          </h1>
+          <p className="advisor-hero__intro">
+            Get personalized guidance about careers, skills, opportunities, and next steps — all
+            grounded in your profile and progress.
           </p>
+          <div className="advisor-hero__features" aria-label="Advisor features">
+            <span>
+              <b aria-hidden="true">✣</b> Personalized
+              <br />
+              guidance
+            </span>
+            <span>
+              <b aria-hidden="true">□</b> Private &amp;
+              <br />
+              secure
+            </span>
+            <span>
+              <b aria-hidden="true">✦</b> Actionable
+              <br />
+              insights
+            </span>
+          </div>
         </div>
-        <Badge tone="success">Personalized</Badge>
+        <div className="advisor-hero__visual" aria-hidden="true">
+          <div className="advisor-hero__orbit advisor-hero__orbit--one" />
+          <div className="advisor-hero__orbit advisor-hero__orbit--two" />
+          <div className="advisor-hero__bubble advisor-hero__bubble--prompt">
+            <i /> <i /> <i />
+          </div>
+          <div className="advisor-hero__bubble advisor-hero__bubble--spark">✦</div>
+          <div className="advisor-hero__leaf advisor-hero__leaf--one" />
+          <div className="advisor-hero__leaf advisor-hero__leaf--two" />
+          <div className="advisor-hero__leaf advisor-hero__leaf--three" />
+        </div>
       </header>
 
-      <Card className="advisor-card">
+      <div className="advisor-feature-note">
+        <Badge tone="success">Personalized</Badge>
+        <span>
+          Ask anything about your next career move. The advisor uses your saved context to make the
+          answer more relevant.
+        </span>
+      </div>
+
+      <Card className="advisor-card advisor-conversation-card">
         <div className="advisor-card__actions">
           <Button
             variant="outline"
@@ -471,6 +519,30 @@ export function AdvisorPage() {
           )}
         </form>
       </Card>
+
+      <section className="advisor-popular" aria-labelledby="advisor-popular-title">
+        <div className="advisor-popular__header">
+          <div>
+            <p className="eyebrow">Popular things to ask</p>
+            <h2 id="advisor-popular-title">Start with a question that matters.</h2>
+          </div>
+          <span>Choose a prompt to get started ↗</span>
+        </div>
+        <div className="advisor-popular__grid">
+          {ADVISOR_PROMPTS.map((prompt, index) => (
+            <button
+              className="advisor-popular__prompt"
+              key={prompt}
+              type="button"
+              onClick={() => setDraft(prompt)}
+              disabled={isSending}
+            >
+              <b aria-hidden="true">{['◌', '◈', '≡', '⌘', '▣'][index]}</b>
+              <span>{prompt}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <p className="advisor-page__disclaimer">
         This advisor offers educational guidance, not guaranteed outcomes or professional advice.
