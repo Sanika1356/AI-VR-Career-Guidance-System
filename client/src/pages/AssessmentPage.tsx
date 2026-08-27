@@ -124,7 +124,7 @@ function AssessmentIntro({ onStart }: { onStart: () => void }) {
       </div>
       <div className="assessment-page__intro-art">
         <img
-          src="/assets/assessment-discovery-reference.png"
+          src="/career-direction-hd.png"
           alt="A winding path through a soft green mountain landscape with signposts for strengths, interests, work style, and growth."
         />
       </div>
