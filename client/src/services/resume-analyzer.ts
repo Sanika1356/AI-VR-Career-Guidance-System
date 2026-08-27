@@ -8,9 +8,14 @@ export type ResumeOutputFocus =
   | 'interview_prep'
   | 'learning_plan';
 
+export interface ResumeFinding {
+  title: string;
+  detail: string;
+}
+
 export interface ResumeCategoryDetail {
   score: number | null;
-  tips: string[];
+  tips: ResumeFinding[];
 }
 
 export interface ResumeAnalysis {

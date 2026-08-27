@@ -4687,6 +4687,16 @@ em {
   font-size: 12px;
   font-weight: 700;
 }
+.resume-results__evidence-card > div {
+  display: grid;
+  gap: 4px;
+}
+.resume-results__evidence-card strong {
+  color: #6e8b35;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+}
 .resume-results__evidence-card p {
   margin: 0;
   color: #6f766e;
@@ -6846,7 +6856,13 @@ em {
 }
 
 .resume-results__report-header h1 {
-  color: #20231f;
+  color: #6e8b35;
+}
+
+.resume-results__report > .ui-card .ui-card__title,
+.resume-results__section-heading h2,
+.resume-results__category-card > header strong {
+  color: #6e8b35;
 }
 
 .resume-results__report > .ui-card {

@@ -17,6 +17,7 @@ import {
   type ResumeAnalysis,
   type ResumeAnalysisHistoryItem,
   type ResumeAnalysisResponse,
+  type ResumeFinding,
   type ResumeOutputFocus,
 } from '../services/resume-analyzer';
 import { analyzeResumeWithPuter, signInToPuter } from '../services/puter-resume-analyzer';
@@ -285,16 +286,48 @@ function ScoreRing({
   );
 }
 
-function EvidenceItems({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
-  if (items.length === 0) {
+function toFinding(item: string | ResumeFinding, index: number): ResumeFinding {
+  return typeof item === 'string' ? { title: `Finding ${index + 1}`, detail: item } : item;
+}
+
+function uniqueFindings(...lists: Array<Array<string | ResumeFinding>>): ResumeFinding[] {
+  const seen = new Set<string>();
+  return lists
+    .flatMap((items) => items)
+    .reduce<ResumeFinding[]>((result, item, index) => {
+      const finding = toFinding(item, index);
+      const key = `${finding.title}:${finding.detail}`;
+      if (finding.detail && !seen.has(key)) {
+        seen.add(key);
+        result.push(finding);
+      }
+      return result;
+    }, []);
+}
+
+function EvidenceItems({
+  items,
+  emptyLabel,
+}: {
+  items: Array<string | ResumeFinding>;
+  emptyLabel: string;
+}) {
+  const findings = items.map(toFinding);
+  if (findings.length === 0) {
     return <p className="resume-results__empty-detail">{emptyLabel}</p>;
   }
   return (
     <div className="resume-results__evidence-grid">
-      {items.map((item, index) => (
-        <article className="resume-results__evidence-card" key={`${item}-${index}`}>
+      {findings.map((finding, index) => (
+        <article
+          className="resume-results__evidence-card"
+          key={`${finding.title}-${finding.detail}-${index}`}
+        >
           <span aria-hidden="true">{index % 2 === 0 ? '✓' : '•'}</span>
-          <p>{item}</p>
+          <div>
+            <strong>{finding.title}</strong>
+            <p>{finding.detail}</p>
+          </div>
         </article>
       ))}
     </div>
@@ -346,7 +379,7 @@ function CategoryDetailCard({
 }: {
   label: string;
   score: number | null;
-  tips: string[];
+  tips: Array<string | ResumeFinding>;
 }) {
   return (
     <article className="resume-results__category-card">
@@ -468,33 +501,35 @@ export function ResumeAnalysisResultsPage({
   const categoryBreakdown = {
     ats: {
       score: savedCategoryBreakdown?.ats?.score ?? null,
-      tips: savedCategoryBreakdown?.ats?.tips?.length
-        ? savedCategoryBreakdown.ats.tips
-        : atsKeywords,
+      tips: uniqueFindings(savedCategoryBreakdown?.ats?.tips ?? [], atsKeywords),
     },
     toneAndStyle: {
       score: savedCategoryBreakdown?.toneAndStyle?.score ?? null,
-      tips: savedCategoryBreakdown?.toneAndStyle?.tips?.length
-        ? savedCategoryBreakdown.toneAndStyle.tips
-        : analysis.improvements,
+      tips: uniqueFindings(savedCategoryBreakdown?.toneAndStyle?.tips ?? [], analysis.improvements),
     },
     content: {
       score: savedCategoryBreakdown?.content?.score ?? null,
-      tips: savedCategoryBreakdown?.content?.tips?.length
-        ? savedCategoryBreakdown.content.tips
-        : analysis.strengths,
+      tips: uniqueFindings(
+        savedCategoryBreakdown?.content?.tips ?? [],
+        analysis.strengths,
+        analysis.improvements,
+      ),
     },
     structure: {
       score: savedCategoryBreakdown?.structure?.score ?? null,
-      tips: savedCategoryBreakdown?.structure?.tips?.length
-        ? savedCategoryBreakdown.structure.tips
-        : analysis.recommendations,
+      tips: uniqueFindings(
+        savedCategoryBreakdown?.structure?.tips ?? [],
+        analysis.recommendations,
+        analysis.improvements,
+      ),
     },
     skills: {
       score: savedCategoryBreakdown?.skills?.score ?? null,
-      tips: savedCategoryBreakdown?.skills?.tips?.length
-        ? savedCategoryBreakdown.skills.tips
-        : analysis.missingSkills,
+      tips: uniqueFindings(
+        savedCategoryBreakdown?.skills?.tips ?? [],
+        analysis.missingSkills,
+        analysis.matchingSkills,
+      ),
     },
   };
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
@@ -596,7 +631,9 @@ export function ResumeAnalysisResultsPage({
               </div>
               <EvidenceItems
                 items={
-                  categoryBreakdown.ats.tips.length > 0 ? categoryBreakdown.ats.tips : atsKeywords
+                  categoryBreakdown.ats.tips.length > 0
+                    ? uniqueFindings(categoryBreakdown.ats.tips, atsKeywords)
+                    : atsKeywords
                 }
                 emptyLabel="No additional ATS findings were returned."
               />
@@ -609,7 +646,7 @@ export function ResumeAnalysisResultsPage({
             description="Prioritized next steps for this application."
           >
             <EvidenceItems
-              items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
+              items={uniqueFindings(priorityActions, analysis.recommendations)}
               emptyLabel="No recommendations were returned by the analysis."
             />
           </Card>
@@ -625,7 +662,7 @@ export function ResumeAnalysisResultsPage({
                 score={categoryBreakdown.toneAndStyle.score}
                 tips={
                   categoryBreakdown.toneAndStyle.tips.length > 0
-                    ? categoryBreakdown.toneAndStyle.tips
+                    ? uniqueFindings(categoryBreakdown.toneAndStyle.tips, analysis.improvements)
                     : analysis.improvements
                 }
               />
@@ -634,7 +671,7 @@ export function ResumeAnalysisResultsPage({
                 score={categoryBreakdown.content.score}
                 tips={
                   categoryBreakdown.content.tips.length > 0
-                    ? categoryBreakdown.content.tips
+                    ? uniqueFindings(categoryBreakdown.content.tips, analysis.strengths)
                     : analysis.strengths
                 }
               />
@@ -643,7 +680,7 @@ export function ResumeAnalysisResultsPage({
                 score={categoryBreakdown.structure.score}
                 tips={
                   categoryBreakdown.structure.tips.length > 0
-                    ? categoryBreakdown.structure.tips
+                    ? uniqueFindings(categoryBreakdown.structure.tips, analysis.recommendations)
                     : analysis.recommendations
                 }
               />
@@ -652,8 +689,12 @@ export function ResumeAnalysisResultsPage({
                 score={categoryBreakdown.skills.score}
                 tips={
                   categoryBreakdown.skills.tips.length > 0
-                    ? categoryBreakdown.skills.tips
-                    : analysis.missingSkills
+                    ? uniqueFindings(
+                        categoryBreakdown.skills.tips,
+                        analysis.missingSkills,
+                        analysis.matchingSkills,
+                      )
+                    : uniqueFindings(analysis.missingSkills, analysis.matchingSkills)
                 }
               />
             </div>

@@ -3,6 +3,7 @@ import {
   type ResumeAnalysis,
   type ResumeAnalysisResponse,
   type ResumeCategoryDetail,
+  type ResumeFinding,
   type ResumeOutputFocus,
 } from './resume-analyzer';
 import { getPuterResponseText } from './puter-response';
@@ -209,6 +210,24 @@ function categoryTips(value: Record<string, unknown>, type?: 'good' | 'improve')
     });
   });
 }
+function normalizeFindings(value: unknown, maxItems = 8): ResumeFinding[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      if (typeof item === 'string') {
+        return { title: `Finding ${index + 1}`, detail: boundedText(item, 240) };
+      }
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return null;
+      const record = item as Record<string, unknown>;
+      const title = boundedText(record.title ?? record.tip, 140);
+      const detail = boundedText(record.detail ?? record.explanation ?? record.description, 320);
+      if (!title && !detail) return null;
+      return { title: title || `Finding ${index + 1}`, detail: detail || title };
+    })
+    .filter((item): item is ResumeFinding => item !== null && Boolean(item.detail))
+    .slice(0, maxItems);
+}
+
 function normalizeCategoryDetail(value: unknown): ResumeCategoryDetail {
   const record =
     value && typeof value === 'object' && !Array.isArray(value)
@@ -217,7 +236,7 @@ function normalizeCategoryDetail(value: unknown): ResumeCategoryDetail {
   const score = Number(record.score);
   return {
     score: Number.isFinite(score) ? Math.min(100, Math.max(0, Math.round(score))) : null,
-    tips: boundedList(record.tips),
+    tips: normalizeFindings(record.tips),
   };
 }
 
