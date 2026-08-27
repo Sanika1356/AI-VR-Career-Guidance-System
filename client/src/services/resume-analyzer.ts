@@ -64,6 +64,12 @@ export async function getResumeAnalysis(id: string): Promise<ResumeAnalysisRespo
   return authenticatedRequest<ResumeAnalysisResponse>(`/resume/analyses/${encodeURIComponent(id)}`);
 }
 
+export async function deleteResumeAnalysis(id: string): Promise<void> {
+  await authenticatedResponse(`/resume/analyses/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function persistPuterResumeAnalysis(input: {
   companyName: string;
   jobRole: string;

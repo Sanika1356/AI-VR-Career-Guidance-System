@@ -9,6 +9,7 @@ import { env } from "../config/env.js";
 import {
   analyzeResumeController,
   getResumeAnalysisController,
+  deleteResumeAnalysisController,
   persistPuterResumeAnalysisController,
   listResumeAnalysesController,
 } from "../controllers/resume-analyzer.controller.js";
@@ -85,6 +86,12 @@ resumeAnalyzerRouter.get(
   requireAuth,
   resumeRateLimiter,
   getResumeAnalysisController,
+);
+resumeAnalyzerRouter.delete(
+  "/analyses/:analysisId",
+  requireAuth,
+  resumeRateLimiter,
+  deleteResumeAnalysisController,
 );
 resumeAnalyzerRouter.post(
   "/analyze",

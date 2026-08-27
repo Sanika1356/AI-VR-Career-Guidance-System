@@ -11,6 +11,7 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import {
+  deleteResumeAnalysis,
   getResumeAnalysis,
   listResumeAnalyses,
   type ResumeAnalysis,
@@ -71,7 +72,17 @@ export function readResumeAnalysisResult(): ResumeAnalysisResponse | null {
   }
 }
 
-function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView: () => void }) {
+function HistoryCard({
+  item,
+  onView,
+  onDelete,
+  isDeleting,
+}: {
+  item: ResumeAnalysisHistoryItem;
+  onView: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
   return (
     <article className="resume-history__card">
       <div className="resume-history__card-main">
@@ -89,9 +100,23 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
           <span className="resume-history__score-label">Match score</span>
           <strong className="resume-history__score">{item.overallScore}%</strong>
         </div>
-        <Button variant="outline" type="button" onClick={onView}>
-          View analysis
-        </Button>
+        <div className="resume-history__card-buttons">
+          <button
+            className="resume-history__delete"
+            type="button"
+            onClick={onDelete}
+            disabled={isDeleting}
+            aria-label={`Delete analysis for ${item.fileName}`}
+            title="Delete analysis"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M5 7h14M10 11v6M14 11v6M9 7V5h6v2m-9 0 1 13h8l1-13" />
+            </svg>
+          </button>
+          <Button variant="outline" type="button" onClick={onView} disabled={isDeleting}>
+            View analysis
+          </Button>
+        </div>
       </div>
     </article>
   );
@@ -101,6 +126,7 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   const [items, setItems] = useState<ResumeAnalysisHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deletingId, setDeletingId] = useState<string>();
 
   useEffect(() => {
     let active = true;
@@ -123,6 +149,27 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
       active = false;
     };
   }, []);
+
+  async function handleDelete(item: ResumeAnalysisHistoryItem): Promise<void> {
+    if (deletingId) return;
+    const confirmed = window.confirm(
+      `Delete the saved analysis for ${item.fileName}? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setErrorMessage('');
+    setDeletingId(item.id);
+    try {
+      await deleteResumeAnalysis(item.id);
+      setItems((current) => current.filter((analysis) => analysis.id !== item.id));
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'The resume analysis could not be deleted.',
+      );
+    } finally {
+      setDeletingId(undefined);
+    }
+  }
 
   return (
     <section className="page-frame resume-history-page resume-theme-page">
@@ -195,6 +242,8 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
               key={item.id}
               item={item}
               onView={() => onNavigate(`/resume-analyzer/results/${encodeURIComponent(item.id)}`)}
+              onDelete={() => void handleDelete(item)}
+              isDeleting={deletingId === item.id}
             />
           ))}
         </div>

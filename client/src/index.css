@@ -5405,6 +5405,49 @@ em {
   gap: 4px;
   text-align: right;
 }
+.resume-history__card-buttons {
+  align-items: end;
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+.resume-history__delete {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: #888d84;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+.resume-history__delete svg {
+  fill: none;
+  height: 15px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+  width: 15px;
+}
+.resume-history__delete:hover,
+.resume-history__delete:focus-visible {
+  background: #f1f3e9;
+  color: #9b4939;
+  outline: 0;
+}
+.resume-history__delete:focus-visible {
+  box-shadow: 0 0 0 3px rgba(130, 157, 49, 0.18);
+}
+.resume-history__delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
 .resume-history__score {
   color: #556d1f;
   font-size: 22px;
@@ -5434,6 +5477,13 @@ em {
   }
   .resume-history__card-action {
     gap: 16px;
+  }
+  .resume-history__card-buttons {
+    align-items: stretch;
+    justify-items: stretch;
+  }
+  .resume-history__delete {
+    align-self: flex-end;
   }
   .resume-history__card-action > div {
     text-align: left;

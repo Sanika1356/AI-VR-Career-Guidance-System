@@ -2,6 +2,7 @@ import type { Response } from "express";
 import {
   analyzeResume,
   getResumeAnalysis,
+  deleteResumeAnalysis,
   normalizePreferredOutputs,
   persistPuterResumeAnalysis,
   listResumeAnalyses,
@@ -131,6 +132,23 @@ export async function getResumeAnalysisController(
       ? rawAnalysisId
       : (rawAnalysisId?.[0] ?? "");
   const result = await getResumeAnalysis(
+    request.userId as string,
+    analysisId,
+    requirePool(),
+  );
+  response.status(200).json(result);
+}
+
+export async function deleteResumeAnalysisController(
+  request: AuthenticatedRequest,
+  response: Response,
+): Promise<void> {
+  const rawAnalysisId = request.params.analysisId;
+  const analysisId =
+    typeof rawAnalysisId === "string"
+      ? rawAnalysisId
+      : (rawAnalysisId?.[0] ?? "");
+  const result = await deleteResumeAnalysis(
     request.userId as string,
     analysisId,
     requirePool(),

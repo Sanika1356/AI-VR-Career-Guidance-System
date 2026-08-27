@@ -10,6 +10,7 @@ import {
 import type { DatabasePool } from "../src/db/types.js";
 import {
   analyzeResume,
+  deleteResumeAnalysis,
   extractResumeText,
   getResumeAnalysis,
   listResumeAnalyses,
@@ -180,6 +181,44 @@ test("resume analysis detail is ownership-scoped and returns the stored structur
   assert.equal(result.companyName, "Microsoft");
   assert.equal(result.jobRole, "Data Analyst Intern");
   assert.equal(result.analysis.provider, "groq");
+});
+
+test("delete resume analysis removes only the authenticated user’s row", async () => {
+  const queries: Array<{ text: string; values?: readonly unknown[] }> = [];
+  const database: DatabasePool = {
+    connect: async () => ({
+      query: async (text: string, values?: readonly unknown[]) => {
+        queries.push({ text, values });
+        return { rows: [{ id: "resume_analysis_1" }], rowCount: 1 };
+      },
+      release: () => undefined,
+    }),
+  };
+
+  const result = await deleteResumeAnalysis(
+    "user_resume_test",
+    "resume_analysis_1",
+    database,
+  );
+
+  assert.deepEqual(result, { analysisId: "resume_analysis_1" });
+  assert.match(queries[0]?.text ?? "", /DELETE FROM resume_analyses/);
+  assert.deepEqual(queries[0]?.values, [
+    "resume_analysis_1",
+    "user_resume_test",
+  ]);
+});
+
+test("delete resume analysis rejects missing or differently owned rows", async () => {
+  await assert.rejects(
+    () =>
+      deleteResumeAnalysis(
+        "user_resume_test",
+        "resume_analysis_missing",
+        createDatabase(),
+      ),
+    /The resume analysis was not found/,
+  );
 });
 
 test("analyzeResume rejects missing fields and non-PDF files", async () => {
