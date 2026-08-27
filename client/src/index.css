@@ -4310,3 +4310,307 @@ em {
     width: 100%;
   }
 }
+
+/* Selected-career Job Insights view */
+.recommendations-list--paths {
+  gap: 0.75rem;
+}
+
+.recommendation-card--path {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.recommendation-card--path.is-selected {
+  border-color: #91aa32;
+  background: #fbfdea;
+}
+
+.recommendation-card__path-button {
+  width: 100%;
+  border: 0;
+  padding: 1.35rem 1.5rem;
+  background: transparent;
+  color: #171b18;
+  font: inherit;
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.recommendation-card__path-button:hover,
+.recommendation-card__path-button:focus-visible {
+  background: #f1f6d8;
+  color: #5c7216;
+}
+
+.recommendation-card__path-button:focus-visible {
+  outline: 3px solid rgba(126, 157, 39, 0.38);
+  outline-offset: -3px;
+}
+
+.job-insights-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.7fr);
+  align-items: start;
+  gap: 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.skill-dna-card,
+.job-insights-jobs-panel {
+  min-width: 0;
+  border-color: #dadbd3;
+  background: #fff;
+  border-radius: 0.85rem;
+}
+
+.skill-dna-card {
+  padding: 1.5rem;
+}
+
+.skill-dna-card__header h2,
+.job-insights-jobs-panel h2 {
+  margin: 0.25rem 0 0;
+  color: #171b18;
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  line-height: 1.15;
+}
+
+.skill-dna-card__header p:last-child,
+.job-insights-jobs-panel__role {
+  margin: 0.35rem 0 0;
+  color: #6d716d;
+  line-height: 1.45;
+}
+
+.skill-dna-chart-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 0.75rem auto 0;
+}
+
+.skill-dna-chart {
+  display: block;
+  width: min(100%, 30rem);
+  height: auto;
+  overflow: visible;
+}
+
+.skill-dna-chart__ring {
+  fill: none;
+  stroke: #d9ddd2;
+  stroke-width: 1;
+}
+
+.skill-dna-chart__axis {
+  stroke: #e0e2dc;
+  stroke-width: 1;
+}
+
+.skill-dna-chart__label {
+  fill: #5d625d;
+  font-size: 12px;
+}
+
+.skill-dna-chart__target {
+  fill: rgba(154, 157, 148, 0.08);
+  stroke: #afb2aa;
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.skill-dna-chart__current {
+  fill: rgba(132, 168, 37, 0.26);
+  stroke: #7fa229;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.skill-dna-chart__current-dot {
+  fill: #7fa229;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.skill-dna-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  color: #6d716d;
+  font-size: 0.85rem;
+}
+
+.skill-dna-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.skill-dna-legend__swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.15rem;
+}
+
+.skill-dna-legend__swatch--current {
+  background: #7fa229;
+}
+
+.skill-dna-legend__swatch--target {
+  background: #b3b5ad;
+}
+
+.skill-dna-gaps {
+  margin-top: 1.25rem;
+  border-top: 1px solid #e1e2dc;
+  padding-top: 1rem;
+}
+
+.skill-dna-gaps__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.skill-dna-gaps__header .eyebrow {
+  margin: 0;
+}
+
+.skill-dna-gaps__header > span {
+  color: #898d87;
+  font-size: 0.78rem;
+}
+
+.skill-dna-gaps__list {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.skill-dna-gap {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.skill-dna-gap strong {
+  color: #272c28;
+  font-size: 0.95rem;
+}
+
+.skill-dna-gap span {
+  color: #777c76;
+  font-size: 0.86rem;
+}
+
+.job-insights-jobs-panel {
+  position: sticky;
+  top: 1rem;
+  padding: 1.5rem;
+}
+
+.job-insights-jobs-panel h2 {
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+}
+
+.job-insights-platform-grid {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+
+.job-insights-platform-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #d8dccd;
+  border-radius: 0.65rem;
+  padding: 0.95rem 1rem;
+  background: #fbfdea;
+  color: #242a23;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.job-insights-platform-link:hover,
+.job-insights-platform-link:focus-visible {
+  border-color: #8da52e;
+  background: #f1f6d8;
+  transform: translateY(-1px);
+}
+
+.job-insights-platform-link:focus-visible {
+  outline: 3px solid rgba(126, 157, 39, 0.32);
+  outline-offset: 2px;
+}
+
+.job-insights-platform-link > span:first-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.job-insights-platform-link strong {
+  font-size: 1rem;
+}
+
+.job-insights-platform-link small {
+  color: #747a72;
+  font-size: 0.8rem;
+}
+
+.job-insights-platform-link > span:last-child {
+  color: #6d831e;
+  font-size: 1.15rem;
+}
+
+.job-insights-jobs-panel .job-opportunity-note {
+  margin: 1.25rem 0 0;
+}
+
+@media (max-width: 900px) {
+  .job-insights-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .job-insights-jobs-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .skill-dna-card,
+  .job-insights-jobs-panel {
+    padding: 1rem;
+  }
+
+  .skill-dna-chart__label {
+    font-size: 11px;
+  }
+
+  .skill-dna-gaps__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .recommendation-card__path-button {
+    padding: 1.1rem 1.15rem;
+  }
+}
