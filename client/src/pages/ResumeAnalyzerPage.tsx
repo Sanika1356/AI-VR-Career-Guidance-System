@@ -447,8 +447,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         active = false;
       };
     }
-    window.puter.auth
-      .isSignedIn()
+    Promise.resolve(window.puter.auth.isSignedIn())
       .then((signedIn) => {
         if (active) setPuterSignedIn(signedIn);
       })

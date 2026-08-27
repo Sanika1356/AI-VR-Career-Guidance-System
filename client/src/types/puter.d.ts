@@ -12,7 +12,7 @@ declare global {
   }
 
   interface PuterAuth {
-    isSignedIn: () => Promise<boolean>;
+    isSignedIn: () => boolean | Promise<boolean>;
     signIn: () => Promise<void>;
     getUser: () => Promise<PuterUser>;
   }

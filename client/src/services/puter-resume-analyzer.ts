@@ -23,7 +23,7 @@ type PuterChatResponse = {
 
 type PuterApi = {
   auth: {
-    isSignedIn: () => Promise<boolean>;
+    isSignedIn: () => boolean | Promise<boolean>;
     signIn: () => Promise<void>;
   };
   fs: {
