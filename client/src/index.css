@@ -1600,6 +1600,7 @@ em {
   display: block;
   height: auto;
   max-width: 100%;
+  mix-blend-mode: multiply;
   object-fit: contain;
   width: min(360px, 100%);
 }
