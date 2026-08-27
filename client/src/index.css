@@ -6814,13 +6814,42 @@ em {
 
 .resume-upload__form-card,
 .resume-upload__explainer-card {
-  border-radius: 0.9rem;
-  box-shadow: 0 14px 35px rgba(38, 42, 31, 0.07);
+  border-radius: 1.1rem;
+  box-shadow: 0 18px 48px rgba(38, 42, 31, 0.08);
 }
 
 .resume-upload__form-card {
-  border-color: #dfddd4;
-  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  border-color: #d9dfc9;
+  background: linear-gradient(145deg, #ffffff 0%, #f8faf3 100%);
+}
+
+.resume-upload__form-card::before {
+  content: '';
+  display: block;
+  height: 4px;
+  background: linear-gradient(90deg, #829d31 0%, #c8ef65 58%, #e8eedc 100%);
+}
+
+.resume-upload__form-card .ui-card__header {
+  border-bottom-color: #e3e8da;
+  background: rgba(247, 249, 241, 0.76);
+  padding: 1.55rem 1.75rem 1.35rem;
+}
+
+.resume-upload__form-card .ui-card__title {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  letter-spacing: -0.055em;
+}
+
+.resume-upload__form-card .ui-card__description {
+  max-width: 39rem;
+  line-height: 1.65;
+}
+
+.resume-upload__form-card .ui-card__body {
+  padding: 1.6rem 1.75rem 1.75rem;
 }
 
 .resume-upload__explainer-card {
@@ -6828,15 +6857,39 @@ em {
   top: 5rem;
 }
 
+.resume-upload__context-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.resume-analyzer__form {
+  gap: 1.15rem;
+}
+
+.resume-analyzer__form .form-field {
+  gap: 0.55rem;
+}
+
+.resume-analyzer__form .form-field > span {
+  color: #4d5546;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .resume-analyzer__form input,
 .resume-analyzer__form textarea {
-  border-color: #d0d4c9;
-  border-radius: 0.55rem;
-  background: #fcfcf9;
+  border-color: #d0d7c3;
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.78);
   transition:
     border-color 180ms ease-out,
     box-shadow 180ms ease-out,
-    background 180ms ease-out;
+    background 180ms ease-out,
+    transform 180ms ease-out;
 }
 
 .resume-analyzer__form input:hover,
@@ -6850,6 +6903,74 @@ em {
   border-color: #829d31;
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(130, 157, 49, 0.13);
+}
+
+.resume-upload__description-field textarea {
+  min-height: 13rem;
+  line-height: 1.65;
+}
+
+.resume-upload__file-field {
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed #aebe8e;
+  border-radius: 0.85rem;
+  background: rgba(241, 244, 232, 0.72);
+}
+
+.resume-upload__file-field input[type='file'] {
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  padding: 0.25rem 0;
+  box-shadow: none;
+}
+
+.resume-upload__file-field input[type='file']:hover,
+.resume-upload__file-field input[type='file']:focus {
+  background: transparent;
+  box-shadow: none;
+}
+
+.resume-upload__form-card .resume-puter-auth {
+  border: 1px solid #d8e2c2;
+  border-radius: 0.75rem;
+  background: #f2f6e9;
+  padding: 0.8rem 1rem;
+}
+
+.resume-upload__form-card .resume-puter-auth p {
+  margin: 0;
+}
+
+.resume-upload__form-card .resume-puter-auth__ready {
+  color: #526438;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.resume-file__selected {
+  border-radius: 0.75rem;
+  background: #eef3e4;
+}
+
+.resume-upload__form-card > .ui-card__body > .resume-analyzer__form > .ui-button {
+  min-height: 3.2rem;
+  border-radius: 0.75rem;
+  background: #263026;
+  box-shadow: 0 10px 22px rgba(38, 48, 38, 0.16);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.resume-upload__form-card
+  > .ui-card__body
+  > .resume-analyzer__form
+  > .ui-button:hover:not(:disabled) {
+  background: #4b5940;
+  box-shadow: 0 13px 26px rgba(38, 48, 38, 0.22);
 }
 
 .resume-analysis-progress {
@@ -6974,6 +7095,16 @@ em {
 
   .resume-history__card {
     align-items: stretch;
+  }
+
+  .resume-upload__context-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resume-upload__form-card .ui-card__header,
+  .resume-upload__form-card .ui-card__body {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
   }
 
   .resume-upload__hero-meta {

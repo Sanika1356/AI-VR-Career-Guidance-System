@@ -914,26 +914,64 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 </>
               )}
             </div>
-            <label className="form-field">
-              <span>Company name</span>
-              <input
-                value={companyName}
-                onChange={(event) => setCompanyName(event.target.value)}
-                placeholder="e.g. Microsoft"
-                required
-              />
-            </label>
-            <label className="form-field">
-              <span>Job role</span>
-              <input
-                value={jobRole}
-                onChange={(event) => setJobRole(event.target.value)}
-                placeholder="e.g. Data Analyst Intern"
-                required
-              />
-            </label>
-            <label className="form-field">
+            {isAnalyzing && (
+              <div className="resume-analysis-progress" role="status" aria-live="polite">
+                <div className="resume-analysis-progress__visual" aria-hidden="true">
+                  <div className="resume-analysis-progress__document">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="resume-analysis-progress__magnifier">
+                    <span />
+                  </div>
+                  <div className="resume-analysis-progress__scan-line" />
+                </div>
+                <div className="resume-analysis-progress__header">
+                  <div>
+                    <strong>Analyzing your resume</strong>
+                    <p>{ANALYSIS_STAGES[analysisStage].label}</p>
+                    <small>{ANALYSIS_STAGES[analysisStage].detail}</small>
+                  </div>
+                </div>
+                <ol className="resume-analysis-progress__stages">
+                  {ANALYSIS_STAGES.map((stage, index) => (
+                    <li className={index === analysisStage ? 'is-current' : ''} key={stage.label}>
+                      <span aria-hidden="true">{index + 1}</span>
+                      {stage.label}
+                    </li>
+                  ))}
+                </ol>
+                <p className="resume-analysis-progress__note">
+                  This indicator reflects the analysis workflow; the AI service may take longer at
+                  any stage. Keep this page open while the report is prepared.
+                </p>
+              </div>
+            )}
+            <div className="resume-upload__context-grid">
+              <label className="form-field">
+                <span>Company name</span>
+                <input
+                  value={companyName}
+                  onChange={(event) => setCompanyName(event.target.value)}
+                  placeholder="e.g. Microsoft"
+                  required
+                />
+              </label>
+              <label className="form-field">
+                <span>Job role</span>
+                <input
+                  value={jobRole}
+                  onChange={(event) => setJobRole(event.target.value)}
+                  placeholder="e.g. Data Analyst Intern"
+                  required
+                />
+              </label>
+            </div>
+            <label className="form-field resume-upload__description-field">
               <span>Job description</span>
+
               <textarea
                 value={jobDescription}
                 onChange={(event) => setJobDescription(event.target.value)}
@@ -942,7 +980,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 required
               />
             </label>
-            <label className="form-field">
+            <label className="form-field resume-upload__file-field">
               <span>Resume PDF</span>
               <input
                 ref={fileInputRef}
