@@ -12,15 +12,10 @@ interface CareerDetailPageProps {
   onNavigate: (href: string) => void;
 }
 
-import { JOB_MARKET_PLATFORMS } from '../lib/jobMarket';
-
 const CAREER_DETAIL_ENRICHMENTS: Record<
   string,
   {
     additionalSkills: string[];
-    jobSearches: Array<{
-      role: string;
-    }>;
   }
 > = {
   career_ai_engineer: {
@@ -32,20 +27,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
       'Cloud Deployment',
       'Model Evaluation',
     ],
-    jobSearches: [
-      {
-        role: 'AI Engineer',
-      },
-      {
-        role: 'Machine Learning Engineer',
-      },
-      {
-        role: 'AI Developer',
-      },
-      {
-        role: 'MLOps Engineer',
-      },
-    ],
   },
   career_cybersecurity_analyst: {
     additionalSkills: [
@@ -55,20 +36,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
       'Network Security',
       'Penetration Testing',
       'Identity and Access Management',
-    ],
-    jobSearches: [
-      {
-        role: 'Cybersecurity Analyst',
-      },
-      {
-        role: 'Security Engineer',
-      },
-      {
-        role: 'Penetration Tester',
-      },
-      {
-        role: 'SOC Analyst',
-      },
     ],
   },
   career_data_analyst: {
@@ -80,20 +47,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
       'Tableau',
       'ETL Fundamentals',
     ],
-    jobSearches: [
-      {
-        role: 'Data Analyst',
-      },
-      {
-        role: 'Business Intelligence Analyst',
-      },
-      {
-        role: 'Data Visualization Analyst',
-      },
-      {
-        role: 'Reporting Analyst',
-      },
-    ],
   },
   career_product_designer: {
     additionalSkills: [
@@ -104,20 +57,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
       'Accessibility',
       'Figma',
     ],
-    jobSearches: [
-      {
-        role: 'Product Designer',
-      },
-      {
-        role: 'UX/UI Designer',
-      },
-      {
-        role: 'Interaction Designer',
-      },
-      {
-        role: 'Design Systems Designer',
-      },
-    ],
   },
   career_ux_researcher: {
     additionalSkills: [
@@ -127,20 +66,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
       'Survey Design',
       'Information Architecture',
       'Accessibility Research',
-    ],
-    jobSearches: [
-      {
-        role: 'UX Researcher',
-      },
-      {
-        role: 'User Researcher',
-      },
-      {
-        role: 'Usability Tester',
-      },
-      {
-        role: 'Product Researcher',
-      },
     ],
   },
 };
@@ -386,55 +311,6 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
           )}
         </Card>
       </section>
-
-      {careerEnrichment && careerEnrichment.jobSearches.length > 0 && (
-        <section className="career-detail-grid career-detail-grid--jobs">
-          <Card
-            title="Real-world job opportunities"
-            description="Open live search pages to see current roles and availability for this career direction."
-          >
-            <div className="job-opportunity-list">
-              {careerEnrichment.jobSearches.map((jobSearch) => (
-                <article className="job-opportunity" key={jobSearch.role}>
-                  <div className="job-opportunity__role">
-                    <strong>{jobSearch.role}</strong>
-                    <small>Current openings and requirements</small>
-                  </div>
-                  <details className="job-opportunity__chooser">
-                    <summary className="job-opportunity__apply-button">
-                      Apply for jobs <span aria-hidden="true">↗</span>
-                    </summary>
-                    <div
-                      className="job-opportunity__links"
-                      aria-label={`${jobSearch.role} job platforms`}
-                    >
-                      {JOB_MARKET_PLATFORMS.map((platform) => (
-                        <a
-                          className="job-opportunity__link"
-                          href={platform.buildUrl(jobSearch.role)}
-                          key={platform.label}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <span>
-                            <strong>{platform.label}</strong>
-                            <small>{platform.description}</small>
-                          </span>
-                          <span aria-hidden="true">↗</span>
-                        </a>
-                      ))}
-                    </div>
-                  </details>
-                </article>
-              ))}
-            </div>
-            <p className="job-opportunity-note">
-              Job listings, locations, and counts change frequently. Use the search filters on each
-              site to refine the results.
-            </p>
-          </Card>
-        </section>
-      )}
     </div>
   );
 }
