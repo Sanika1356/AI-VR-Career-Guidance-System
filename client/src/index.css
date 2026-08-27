@@ -4715,28 +4715,45 @@ em {
   }
 }
 
-/* Selected-career Job Insights view */
+/* Connected Job Insights career map */
 .recommendations-page--minimal {
   position: relative;
+  isolation: isolate;
+  min-height: 42rem;
+  overflow: hidden;
 }
 
-.recommendations-page--minimal::before {
+.recommendations-page--minimal::before,
+.recommendations-page--minimal::after {
   position: absolute;
   z-index: -1;
-  top: -4rem;
-  right: -8rem;
-  width: 20rem;
-  height: 20rem;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(221, 239, 167, 0.7), rgba(221, 239, 167, 0));
   content: '';
   pointer-events: none;
 }
 
+.recommendations-page--minimal::before {
+  top: -8rem;
+  right: -5rem;
+  width: 25rem;
+  height: 25rem;
+  background: radial-gradient(circle, rgba(218, 235, 161, 0.72), rgba(218, 235, 161, 0));
+}
+
+.recommendations-page--minimal::after {
+  bottom: -12rem;
+  left: -8rem;
+  width: 28rem;
+  height: 28rem;
+  background: radial-gradient(circle, rgba(224, 233, 194, 0.58), rgba(224, 233, 194, 0));
+}
+
 .recommendations-page--minimal .recommendations-page__header {
   position: relative;
-  max-width: 42rem;
+  z-index: 1;
+  max-width: 45rem;
   gap: 0.65rem;
+  padding: 1.5rem 0 0.5rem;
 }
 
 .recommendations-page--minimal .recommendations-page__header::after {
@@ -4757,59 +4774,122 @@ em {
   line-height: 1.65;
 }
 
-.recommendations-list--paths {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.recommendation-card--path {
+.career-map {
   position: relative;
-  gap: 0;
-  min-height: 8.25rem;
-  padding: 0;
+  min-height: 34rem;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(207, 216, 181, 0.85);
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at 54% 44%, rgba(251, 255, 235, 0.95), rgba(251, 255, 235, 0) 28%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(239, 244, 220, 0.66));
+  box-shadow: 0 22px 60px rgba(87, 101, 45, 0.1);
   overflow: hidden;
-  border-color: #dedfd7;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 10px 28px rgba(34, 40, 34, 0.045);
-  transition:
-    border-color 180ms ease,
-    background-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
 }
 
-.recommendation-card--path::before {
+.career-map::before,
+.career-map::after {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 0.32rem;
-  height: 100%;
-  background: #dceca7;
+  border-radius: 50%;
   content: '';
-  transition: background-color 180ms ease;
+  pointer-events: none;
 }
 
-.recommendation-card--path:hover {
-  border-color: #afc968;
-  background: #fbfdea;
-  box-shadow: 0 16px 34px rgba(77, 96, 31, 0.12);
-  transform: translateY(-3px);
+.career-map::before {
+  top: 2.5rem;
+  right: 8%;
+  width: 11rem;
+  height: 11rem;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(229, 239, 185, 0.1));
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
-.recommendation-card--path:hover::before {
-  background: #829d31;
+.career-map::after {
+  bottom: -9rem;
+  left: 26%;
+  width: 20rem;
+  height: 20rem;
+  background: radial-gradient(circle, rgba(207, 225, 174, 0.3), rgba(207, 225, 174, 0));
 }
 
-.recommendation-card__path-button {
+.career-map__canvas {
+  position: relative;
+  width: min(100%, 68rem);
+  min-height: 34rem;
+  margin: 0 auto;
+}
+
+.career-map__connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.career-map__connections path {
+  fill: none;
+  stroke: rgba(130, 157, 49, 0.3);
+  stroke-dasharray: 4 10;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+
+.career-map__nodes {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 34rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.career-map__node {
+  position: absolute;
+  z-index: 1;
+  width: min(15rem, 27%);
+}
+
+.career-map__node--1 {
+  top: 24%;
+  left: 8%;
+}
+
+.career-map__node--2 {
+  top: 23%;
+  left: 46%;
+}
+
+.career-map__node--3 {
+  top: 61%;
+  left: 18%;
+}
+
+.career-map__node--4 {
+  top: 45%;
+  left: 62%;
+}
+
+.career-map__node--5 {
+  top: 73%;
+  left: 73%;
+}
+
+.career-map__node--extra {
+  top: 10%;
+  left: 74%;
+}
+
+.career-map__node-button {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
-  min-height: 8.25rem;
-  gap: 1rem;
+  gap: 0.7rem;
   border: 0;
-  padding: 1.35rem 1.4rem 1.35rem 1.65rem;
+  padding: 0.2rem;
   background: transparent;
   color: #171b18;
   font: inherit;
@@ -4817,60 +4897,128 @@ em {
   cursor: pointer;
 }
 
-.recommendation-card__path-index {
+.career-map__node-index {
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 1px solid #d0dfa5;
-  border-radius: 0.75rem;
-  background: #f2f7dc;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #c8d9a0;
+  border-radius: 0.7rem;
+  background: rgba(244, 249, 226, 0.9);
   color: #627821;
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(84, 102, 33, 0.08);
 }
 
-.recommendation-card__path-name {
+.career-map__node-copy {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.career-map__node-copy strong {
   overflow-wrap: anywhere;
-  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  font-size: clamp(1rem, 1.8vw, 1.35rem);
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.18;
 }
 
-.recommendation-card__path-arrow {
+.career-map__node-copy span {
+  color: #798078;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.career-map__node-arrow {
   display: grid;
   place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid #cbd99c;
+  width: 2.15rem;
+  height: 2.15rem;
+  border: 1px solid rgba(171, 195, 104, 0.95);
   border-radius: 50%;
-  background: #f5f9e7;
+  background: rgba(250, 253, 239, 0.82);
   color: #657d22;
-  font-size: 1.15rem;
+  font-size: 1rem;
+  opacity: 0;
+  transform: translateX(-0.35rem);
   transition:
     background-color 180ms ease,
-    border-color 180ms ease,
     color 180ms ease,
+    opacity 180ms ease,
     transform 180ms ease;
 }
 
-.recommendation-card__path-button:hover .recommendation-card__path-arrow,
-.recommendation-card__path-button:focus-visible .recommendation-card__path-arrow {
-  border-color: #829d31;
+.career-map__node-button:hover .career-map__node-arrow,
+.career-map__node-button:focus-visible .career-map__node-arrow {
   background: #dff0aa;
   color: #263229;
-  transform: translate(2px, -2px);
+  opacity: 1;
+  transform: translate(0.1rem, -0.1rem);
 }
 
-.recommendation-card__path-button:focus-visible {
+.career-map__node-button:focus-visible {
+  border-radius: 1rem;
   outline: 3px solid rgba(126, 157, 39, 0.38);
-  outline-offset: -3px;
+  outline-offset: 0.25rem;
 }
 
 @media (max-width: 760px) {
-  .recommendations-list--paths {
-    grid-template-columns: 1fr;
+  .recommendations-page--minimal {
+    min-height: auto;
+  }
+
+  .recommendations-page--minimal .recommendations-page__header {
+    padding-top: 0.5rem;
+  }
+
+  .career-map {
+    min-height: 0;
+    border-radius: 1.25rem;
+  }
+
+  .career-map__canvas,
+  .career-map__nodes {
+    min-height: 0;
+  }
+
+  .career-map__connections {
+    display: none;
+  }
+
+  .career-map__nodes {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1rem;
+  }
+
+  .career-map__node,
+  .career-map__node--1,
+  .career-map__node--2,
+  .career-map__node--3,
+  .career-map__node--4,
+  .career-map__node--5,
+  .career-map__node--extra {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+  }
+
+  .career-map__node-button {
+    min-height: 4.5rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(207, 216, 181, 0.9);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .career-map__node-arrow {
+    opacity: 1;
+    transform: none;
   }
 }
 
