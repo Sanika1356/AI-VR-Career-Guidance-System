@@ -3452,6 +3452,8 @@ em {
 }
 .advisor-messages {
   display: grid;
+  align-content: start;
+  align-items: start;
   gap: 16px;
   max-height: 520px;
   overflow-y: auto;
@@ -6517,14 +6519,22 @@ em {
   padding: 6px 10px;
 }
 .advisor-conversation-card .advisor-messages {
+  align-content: start;
+  align-items: start;
   background: #fffefa;
-  min-height: 300px;
+  min-height: 0;
   padding: 0.4rem 0.2rem 1.5rem;
 }
 .advisor-conversation-card .advisor-message {
+  align-self: start;
   border-radius: 0.5rem;
   font-size: 0.82rem;
   padding: 0.8rem 0.95rem;
+}
+
+.advisor-conversation-card .advisor-message--welcome {
+  width: fit-content;
+  max-width: min(100%, 22rem);
 }
 .advisor-conversation-card .advisor-message--advisor {
   background: #f0f4e4;

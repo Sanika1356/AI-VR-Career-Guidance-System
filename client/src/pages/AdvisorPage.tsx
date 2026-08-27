@@ -378,7 +378,7 @@ export function AdvisorPage() {
             return (
               <div
                 key={`${item.createdAt}-${index}`}
-                className={`advisor-message advisor-message--${item.role}`}
+                className={`advisor-message advisor-message--${item.role} ${index === 0 && item.role === 'advisor' ? 'advisor-message--welcome' : ''}`.trim()}
               >
                 <span className="advisor-message__role">
                   {item.role === 'advisor' ? 'Advisor' : 'You'}
