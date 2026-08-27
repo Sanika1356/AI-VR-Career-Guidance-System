@@ -9,8 +9,6 @@ interface PuterFile {
   path?: unknown;
 }
 
-type PuterUploadResult = PuterFile | PuterFile[] | undefined;
-
 type PuterContentPart = {
   text?: unknown;
   type?: unknown;
@@ -29,11 +27,10 @@ type PuterApi = {
     signIn: () => Promise<void>;
   };
   fs: {
-    upload: (files: File[] | Blob[]) => Promise<PuterUploadResult>;
+    upload: (files: File[] | Blob[]) => Promise<PuterFile | undefined>;
     delete?: (path: string) => Promise<void>;
   };
   ai: {
-    feedback?: (path: string, message: string) => Promise<PuterChatResponse | string | undefined>;
     chat: (
       prompt: unknown,
       imageURL?: string | Record<string, unknown>,
@@ -49,7 +46,7 @@ declare global {
   }
 }
 
-const AI_TIMEOUT_MS = 45_000;
+const AI_TIMEOUT_MS = 75_000;
 const PUTER_AUTH_TIMEOUT_MS = 45_000;
 
 const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
@@ -83,11 +80,6 @@ function getPuter(): PuterApi {
     throw new Error('The resume analysis service is still loading. Please try again.');
   }
   return window.puter;
-}
-
-function getUploadedPath(uploadedFile: PuterUploadResult): string {
-  const file = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
-  return typeof file?.path === 'string' ? file.path : '';
 }
 
 export async function signInToPuter(): Promise<boolean> {
@@ -274,31 +266,29 @@ export async function analyzeResumeWithPuter(input: {
   }
 
   const uploadedFile = await withTimeout(puter.fs.upload([input.file]), AI_TIMEOUT_MS);
-  const puterPath = getUploadedPath(uploadedFile);
+  const puterPath = typeof uploadedFile?.path === 'string' ? uploadedFile.path : '';
   if (!puterPath) throw new Error('The resume could not be uploaded to the analysis service.');
 
   try {
     const preferredOutputs = input.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
     const prompt = buildPrompt(input.jobRole, input.jobDescription, preferredOutputs);
     const response = await withTimeout(
-      typeof puter.ai.feedback === 'function'
-        ? puter.ai.feedback(puterPath, prompt)
-        : puter.ai.chat(
-            [
-              {
-                role: 'user',
-                content: [
-                  { type: 'file', puter_path: puterPath },
-                  { type: 'text', text: prompt },
-                ],
-              },
+      puter.ai.chat(
+        [
+          {
+            role: 'user',
+            content: [
+              { type: 'file', puter_path: puterPath },
+              { type: 'text', text: prompt },
             ],
-            {
-              model: 'claude-sonnet-4-6',
-              max_tokens: 700,
-              temperature: 0.2,
-            },
-          ),
+          },
+        ],
+        {
+          model: 'claude-sonnet-4-6',
+          max_tokens: 700,
+          temperature: 0.2,
+        },
+      ),
       AI_TIMEOUT_MS,
     );
     if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
