@@ -201,7 +201,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             {assessmentCta} <span aria-hidden="true">↗</span>
           </button>
         </aside>
-
       </header>
 
       <div className="dashboard-primary-grid">
