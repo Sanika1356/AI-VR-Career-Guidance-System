@@ -5133,14 +5133,14 @@ em {
 
 .career-map {
   position: relative;
-  min-height: 34rem;
-  margin-top: 0.75rem;
-  border: 1px solid rgba(207, 216, 181, 0.85);
-  border-radius: 2rem;
+  min-height: 37rem;
+  margin-top: 1rem;
+  border: 1px solid rgba(207, 216, 181, 0.9);
+  border-radius: 2.25rem;
   background:
-    radial-gradient(circle at 54% 44%, rgba(251, 255, 235, 0.95), rgba(251, 255, 235, 0) 28%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(239, 244, 220, 0.66));
-  box-shadow: 0 22px 60px rgba(87, 101, 45, 0.1);
+    radial-gradient(circle at 56% 47%, rgba(255, 255, 244, 0.98), rgba(255, 255, 244, 0) 24%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(235, 242, 209, 0.8));
+  box-shadow: 0 25px 70px rgba(87, 101, 45, 0.13);
   overflow: hidden;
 }
 
@@ -5153,26 +5153,25 @@ em {
 }
 
 .career-map::before {
-  top: 2.5rem;
-  right: 8%;
-  width: 11rem;
-  height: 11rem;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(229, 239, 185, 0.1));
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+  top: -3rem;
+  right: -2rem;
+  width: 18rem;
+  height: 18rem;
+  background: radial-gradient(circle, rgba(239, 247, 192, 0.86), rgba(239, 247, 192, 0));
 }
 
 .career-map::after {
-  bottom: -9rem;
-  left: 26%;
-  width: 20rem;
-  height: 20rem;
-  background: radial-gradient(circle, rgba(207, 225, 174, 0.3), rgba(207, 225, 174, 0));
+  bottom: -12rem;
+  left: 12%;
+  width: 26rem;
+  height: 26rem;
+  background: radial-gradient(circle, rgba(207, 226, 173, 0.42), rgba(207, 226, 173, 0));
 }
 
 .career-map__canvas {
   position: relative;
-  width: min(100%, 68rem);
-  min-height: 34rem;
+  width: min(100%, 70rem);
+  min-height: 37rem;
   margin: 0 auto;
 }
 
@@ -5187,17 +5186,72 @@ em {
 
 .career-map__connections path {
   fill: none;
-  stroke: rgba(130, 157, 49, 0.3);
-  stroke-dasharray: 4 10;
+  stroke: rgba(130, 157, 49, 0.32);
+  stroke-dasharray: 2 13;
   stroke-linecap: round;
-  stroke-width: 2;
+  stroke-width: 2.25;
+}
+
+.career-map__connection-halo {
+  fill: rgba(242, 248, 215, 0.46);
+  stroke: rgba(130, 157, 49, 0.15);
+  stroke-width: 1;
+}
+
+.career-map__connection-point {
+  fill: #829d31;
+  filter: drop-shadow(0 0 8px rgba(130, 157, 49, 0.55));
+}
+
+.career-map__hub {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 10rem;
+  height: 10rem;
+  border: 1px solid rgba(166, 194, 91, 0.78);
+  border-radius: 50%;
+  background: rgba(253, 255, 242, 0.72);
+  box-shadow:
+    0 0 0 0.8rem rgba(255, 255, 255, 0.42),
+    0 0 0 1.5rem rgba(222, 238, 171, 0.28),
+    0 16px 38px rgba(83, 103, 33, 0.12);
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.career-map__hub span,
+.career-map__hub small {
+  color: #6f7f37;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.career-map__hub strong {
+  max-width: 6.7rem;
+  color: #242b20;
+  font-size: 1.1rem;
+  line-height: 1.1;
+}
+
+.career-map__hub small {
+  max-width: 7rem;
+  color: #818a76;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  text-transform: none;
 }
 
 .career-map__nodes {
   position: relative;
   display: block;
   width: 100%;
-  min-height: 34rem;
+  min-height: 37rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -5205,48 +5259,48 @@ em {
 
 .career-map__node {
   position: absolute;
-  z-index: 1;
-  width: min(15rem, 27%);
+  z-index: 2;
+  width: min(17rem, 30%);
 }
 
 .career-map__node--1 {
-  top: 24%;
-  left: 8%;
+  top: 21%;
+  left: 5%;
 }
 
 .career-map__node--2 {
-  top: 23%;
-  left: 46%;
+  top: 19%;
+  left: 64%;
 }
 
 .career-map__node--3 {
-  top: 61%;
-  left: 18%;
+  top: 63%;
+  left: 9%;
 }
 
 .career-map__node--4 {
-  top: 45%;
-  left: 62%;
+  top: 47%;
+  left: 69%;
 }
 
 .career-map__node--5 {
-  top: 73%;
-  left: 73%;
+  top: 75%;
+  left: 58%;
 }
 
 .career-map__node--extra {
-  top: 10%;
-  left: 74%;
+  top: 8%;
+  left: 42%;
 }
 
 .career-map__node-button {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   width: 100%;
-  gap: 0.7rem;
+  gap: 0.85rem;
   border: 0;
-  padding: 0.2rem;
+  padding: 0.25rem;
   background: transparent;
   color: #171b18;
   font: inherit;
@@ -5254,73 +5308,111 @@ em {
   cursor: pointer;
 }
 
-.career-map__node-index {
+.career-map__node-orb {
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid #c8d9a0;
-  border-radius: 0.7rem;
-  background: rgba(244, 249, 226, 0.9);
-  color: #627821;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.05em;
-  box-shadow: 0 4px 12px rgba(84, 102, 33, 0.08);
+  width: 5.1rem;
+  height: 5.1rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.74);
+  color: #607728;
+  font-size: 2.1rem;
+  box-shadow:
+    0 0 0 0.45rem rgba(255, 255, 255, 0.44),
+    0 0 0 0.8rem color-mix(in srgb, var(--career-map-tone) 34%, transparent),
+    0 12px 30px color-mix(in srgb, var(--career-map-tone) 28%, transparent);
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.career-map__node-orb span {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border: 1px solid color-mix(in srgb, var(--career-map-tone) 55%, #9aa38c);
+  border-radius: 40% 60% 50% 45%;
+  background: color-mix(in srgb, var(--career-map-tone) 23%, white);
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+
+.career-map__node[data-tone='sky'] {
+  --career-map-tone: #9ac9d7;
+}
+
+.career-map__node[data-tone='lime'] {
+  --career-map-tone: #b9d66d;
+}
+
+.career-map__node[data-tone='violet'] {
+  --career-map-tone: #b6b5e1;
+}
+
+.career-map__node[data-tone='coral'] {
+  --career-map-tone: #eab5a9;
+}
+
+.career-map__node[data-tone='gold'] {
+  --career-map-tone: #dbc883;
 }
 
 .career-map__node-copy {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.27rem;
   min-width: 0;
 }
 
-.career-map__node-copy strong {
-  overflow-wrap: anywhere;
-  font-size: clamp(1rem, 1.8vw, 1.35rem);
-  font-weight: 600;
-  line-height: 1.18;
-}
-
-.career-map__node-copy span {
-  color: #798078;
+.career-map__node-index,
+.career-map__node-action {
+  color: #7b8474;
   font-family: 'DM Mono', monospace;
-  font-size: 0.58rem;
+  font-size: 0.57rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.career-map__node-arrow {
-  display: grid;
-  place-items: center;
-  width: 2.15rem;
-  height: 2.15rem;
-  border: 1px solid rgba(171, 195, 104, 0.95);
-  border-radius: 50%;
-  background: rgba(250, 253, 239, 0.82);
-  color: #657d22;
-  font-size: 1rem;
-  opacity: 0;
-  transform: translateX(-0.35rem);
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease;
+.career-map__node-copy strong {
+  overflow-wrap: anywhere;
+  font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+  font-weight: 600;
+  line-height: 1.1;
 }
 
-.career-map__node-button:hover .career-map__node-arrow,
-.career-map__node-button:focus-visible .career-map__node-arrow {
-  background: #dff0aa;
-  color: #263229;
-  opacity: 1;
-  transform: translate(0.1rem, -0.1rem);
+.career-map__node-action {
+  color: #72833e;
+  letter-spacing: 0.05em;
+}
+
+.career-map__node-action b {
+  display: inline-block;
+  margin-left: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  transition: transform 180ms ease;
+}
+
+.career-map__node-button:hover .career-map__node-orb,
+.career-map__node-button:focus-visible .career-map__node-orb {
+  box-shadow:
+    0 0 0 0.45rem rgba(255, 255, 255, 0.5),
+    0 0 0 0.9rem color-mix(in srgb, var(--career-map-tone) 48%, transparent),
+    0 15px 36px color-mix(in srgb, var(--career-map-tone) 38%, transparent);
+  transform: translateY(-0.25rem) scale(1.04);
+}
+
+.career-map__node-button:hover .career-map__node-action b,
+.career-map__node-button:focus-visible .career-map__node-action b {
+  transform: translate(0.15rem, -0.1rem);
 }
 
 .career-map__node-button:focus-visible {
   border-radius: 1rem;
   outline: 3px solid rgba(126, 157, 39, 0.38);
-  outline-offset: 0.25rem;
+  outline-offset: 0.35rem;
 }
 
 @media (max-width: 760px) {
@@ -5342,7 +5434,8 @@ em {
     min-height: 0;
   }
 
-  .career-map__connections {
+  .career-map__connections,
+  .career-map__hub {
     display: none;
   }
 
@@ -5366,16 +5459,22 @@ em {
   }
 
   .career-map__node-button {
-    min-height: 4.5rem;
-    padding: 0.75rem;
+    min-height: 5.3rem;
+    padding: 0.65rem;
     border: 1px solid rgba(207, 216, 181, 0.9);
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.78);
   }
 
-  .career-map__node-arrow {
-    opacity: 1;
-    transform: none;
+  .career-map__node-orb {
+    width: 3.8rem;
+    height: 3.8rem;
+    font-size: 1.5rem;
+  }
+
+  .career-map__node-orb span {
+    width: 2.2rem;
+    height: 2.2rem;
   }
 }
 
