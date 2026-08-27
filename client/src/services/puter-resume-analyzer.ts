@@ -2,6 +2,7 @@ import {
   persistPuterResumeAnalysis,
   type ResumeAnalysis,
   type ResumeAnalysisResponse,
+  type ResumeCategoryDetail,
   type ResumeOutputFocus,
 } from './resume-analyzer';
 import { getPuterResponseText } from './puter-response';
@@ -208,6 +209,18 @@ function categoryTips(value: Record<string, unknown>, type?: 'good' | 'improve')
     });
   });
 }
+function normalizeCategoryDetail(value: unknown): ResumeCategoryDetail {
+  const record =
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
+  const score = Number(record.score);
+  return {
+    score: Number.isFinite(score) ? Math.min(100, Math.max(0, Math.round(score))) : null,
+    tips: boundedList(record.tips),
+  };
+}
+
 function firstText(...values: unknown[]): string {
   for (const value of values) {
     const text = boundedText(value, 800);
@@ -233,6 +246,7 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
     weaknesses,
     missingSkills,
   );
+  const categoryBreakdown = nestedRecord(value, 'categoryBreakdown');
   const categoryScores = ['ATS', 'ats', 'toneAndStyle', 'content', 'structure', 'skills']
     .map((key) => Number(nestedRecord(value, key).score))
     .filter((score) => Number.isFinite(score));
@@ -308,6 +322,33 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
       weaknesses,
       fallbackAction,
     ),
+    categoryBreakdown: {
+      ats: normalizeCategoryDetail(
+        Object.keys(nestedRecord(categoryBreakdown, 'ats')).length
+          ? nestedRecord(categoryBreakdown, 'ats')
+          : ats,
+      ),
+      toneAndStyle: normalizeCategoryDetail(
+        Object.keys(nestedRecord(categoryBreakdown, 'toneAndStyle')).length
+          ? nestedRecord(categoryBreakdown, 'toneAndStyle')
+          : value.toneAndStyle,
+      ),
+      content: normalizeCategoryDetail(
+        Object.keys(nestedRecord(categoryBreakdown, 'content')).length
+          ? nestedRecord(categoryBreakdown, 'content')
+          : value.content,
+      ),
+      structure: normalizeCategoryDetail(
+        Object.keys(nestedRecord(categoryBreakdown, 'structure')).length
+          ? nestedRecord(categoryBreakdown, 'structure')
+          : value.structure,
+      ),
+      skills: normalizeCategoryDetail(
+        Object.keys(nestedRecord(categoryBreakdown, 'skills')).length
+          ? nestedRecord(categoryBreakdown, 'skills')
+          : value.skills,
+      ),
+    },
     preferredOutputs: DEFAULT_PREFERRED_OUTPUTS,
     provider: 'puter',
   };

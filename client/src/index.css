@@ -4708,6 +4708,191 @@ em {
   display: grid;
   gap: 24px;
 }
+.resume-results__score-rings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.resume-results__score-ring-card {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 18px 12px 14px;
+  border: 1px solid #e5e3dc;
+  border-radius: 0.75rem;
+  background: #fbfaf7;
+  text-align: center;
+}
+.resume-results__score-ring {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  width: 108px;
+  height: 108px;
+  padding-top: 40px;
+  border: 8px solid #e5e3dc;
+  border-right-color: #45aed0;
+  border-top-color: #7351e6;
+  border-radius: 50%;
+  background: conic-gradient(#7351e6 var(--score), #e5e3dc var(--score));
+  background-clip: padding-box;
+  color: #39413a;
+}
+.resume-results__score-ring span {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+.resume-results__score-ring small {
+  color: #858b84;
+  font-size: 9px;
+}
+.resume-results__score-ring-card > strong {
+  color: #60675e;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.resume-results__score-ring-card > small {
+  color: #868a83;
+  font-size: 10px;
+}
+.resume-results__score-breakdown {
+  display: grid;
+  gap: 12px;
+}
+.resume-results__subheading {
+  color: #82887f;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.resume-results__score-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.resume-results__score-bar {
+  display: grid;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #e5e3dc;
+  border-radius: 0.6rem;
+  background: #fbfaf7;
+}
+.resume-results__score-bar > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #60675e;
+  font-size: 11px;
+}
+.resume-results__score-bar > div:first-child span {
+  color: #858b84;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+}
+.resume-results__score-bar-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6e6df;
+}
+.resume-results__score-bar-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #83bce2, #5e91bf);
+}
+.resume-results__detail-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #777b73;
+  font-size: 11px;
+}
+.resume-results__detail-score-row strong {
+  color: #5e91bf;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+.resume-results__evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.resume-results__evidence-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #e0e3e0;
+  border-radius: 0.6rem;
+  background: rgba(248, 249, 246, 0.74);
+}
+.resume-results__evidence-card > span {
+  color: #6e9fca;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+.resume-results__evidence-card p {
+  margin: 0;
+  color: #6f766e;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.resume-results__empty-detail {
+  margin: 0;
+  color: #858b84;
+  font-size: 11px;
+}
+.resume-results__category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 20px 20px;
+}
+.resume-results__category-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #e1e2dc;
+  border-radius: 0.65rem;
+  background: rgba(248, 249, 246, 0.74);
+}
+.resume-results__category-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #60675e;
+  font-size: 12px;
+}
+.resume-results__category-card > header span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e9eee4;
+  color: #6e9fca;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+}
+.resume-results__category-card .resume-results__evidence-grid {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+.resume-results__category-card .resume-results__evidence-card {
+  padding: 9px;
+  background: #fff;
+}
+.resume-results__category-card .resume-results__evidence-card p {
+  font-size: 10px;
+}
 .resume-result__summary-grid {
   display: grid;
   gap: 12px;
@@ -5093,7 +5278,12 @@ em {
     justify-items: start;
     text-align: left;
   }
-  .resume-results__category-breakdown > .resume-result__grid {
+  .resume-results__category-breakdown > .resume-result__grid,
+  .resume-results__category-grid,
+  .resume-results__evidence-grid {
+    grid-template-columns: 1fr;
+  }
+  .resume-results__score-breakdown-grid {
     grid-template-columns: 1fr;
   }
   .resume-analysis-progress__visual {
@@ -5105,6 +5295,9 @@ em {
   }
   .resume-analysis-progress__document {
     transform: scale(0.86) rotate(-5deg);
+  }
+  .resume-results__score-rings {
+    grid-template-columns: 1fr;
   }
   .resume-result__summary-grid {
     grid-template-columns: 1fr;

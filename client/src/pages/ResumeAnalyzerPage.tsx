@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -245,6 +252,61 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   );
 }
 
+function ScoreRing({ score, label }: { score: number | null; label: string }) {
+  const normalizedScore = score === null ? 0 : Math.min(100, Math.max(0, score));
+  const style = { '--score': `${normalizedScore}%` } as CSSProperties;
+
+  return (
+    <div className="resume-results__score-ring-card">
+      <div className="resume-results__score-ring" style={style}>
+        <span>{score === null ? '—' : score}</span>
+        <small>/100</small>
+      </div>
+      <strong>{label}</strong>
+      <small>{score === null ? 'Detailed score unavailable' : 'Evidence-based score'}</small>
+    </div>
+  );
+}
+
+function EvidenceItems({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
+  if (items.length === 0) {
+    return <p className="resume-results__empty-detail">{emptyLabel}</p>;
+  }
+  return (
+    <div className="resume-results__evidence-grid">
+      {items.map((item, index) => (
+        <article className="resume-results__evidence-card" key={`${item}-${index}`}>
+          <span aria-hidden="true">{index % 2 === 0 ? '✓' : '•'}</span>
+          <p>{item}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function CategoryDetailCard({
+  label,
+  score,
+  tips,
+}: {
+  label: string;
+  score: number | null;
+  tips: string[];
+}) {
+  return (
+    <article className="resume-results__category-card">
+      <header>
+        <strong>{label}</strong>
+        <span>{score === null ? '—' : `${score}/100`}</span>
+      </header>
+      <EvidenceItems
+        items={tips}
+        emptyLabel="No detailed evidence was returned for this category."
+      />
+    </article>
+  );
+}
+
 function ResumePreview({ fileName }: { fileName: string }) {
   const previewUrl = getResumePreviewUrl();
 
@@ -350,6 +412,13 @@ export function ResumeAnalysisResultsPage({
   const priorityActions = analysis.priorityActions ?? analysis.recommendations;
   const interviewTopics = analysis.interviewTopics ?? [];
   const learningPlan = analysis.learningPlan ?? analysis.recommendations;
+  const categoryBreakdown = analysis.categoryBreakdown ?? {
+    ats: { score: null, tips: atsKeywords },
+    toneAndStyle: { score: null, tips: analysis.improvements },
+    content: { score: null, tips: analysis.strengths },
+    structure: { score: null, tips: analysis.recommendations },
+    skills: { score: null, tips: analysis.missingSkills },
+  };
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
     <section className="page-frame resume-results-page resume-theme-page">
@@ -400,23 +469,32 @@ export function ResumeAnalysisResultsPage({
             title="Analysis Summary"
             description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
           >
-            <div className="resume-result__summary-grid">
-              <div className="resume-result__summary-metric resume-result__summary-metric--score">
-                <span>Overall alignment</span>
-                <strong>{analysis.overallScore}%</strong>
-                <small>Evidence-based score</small>
-              </div>
-              <div className="resume-result__summary-metric">
-                <span>Strongest evidence</span>
-                <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
-              </div>
-              <div className="resume-result__summary-metric">
-                <span>Priority gap</span>
-                <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
-              </div>
-              <div className="resume-result__summary-metric">
-                <span>Recommended next step</span>
-                <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+            <div className="resume-results__score-rings">
+              <ScoreRing score={analysis.overallScore} label="Overall resume score" />
+              <ScoreRing score={categoryBreakdown.ats.score} label="ATS compatibility score" />
+            </div>
+            <div className="resume-results__score-breakdown">
+              <span className="resume-results__subheading">Score breakdown</span>
+              <div className="resume-results__score-breakdown-grid">
+                {[
+                  ['Tone & Style', categoryBreakdown.toneAndStyle.score],
+                  ['Content', categoryBreakdown.content.score],
+                  ['Structure', categoryBreakdown.structure.score],
+                  ['Skills', categoryBreakdown.skills.score],
+                ].map(([label, score]) => {
+                  const numericScore = typeof score === 'number' ? score : 0;
+                  return (
+                    <div className="resume-results__score-bar" key={label as string}>
+                      <div>
+                        <strong>{label}</strong>
+                        <span>{typeof score === 'number' ? `${score}/100` : 'Not scored'}</span>
+                      </div>
+                      <div className="resume-results__score-bar-track">
+                        <span style={{ width: `${numericScore}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div className="resume-result__summary-copy">
@@ -458,36 +536,78 @@ export function ResumeAnalysisResultsPage({
           {shows('ats_keywords') && (
             <Card
               title="ATS Compatibility Analysis"
-              description="Keywords and evidence reviewed for applicant-tracking-system readiness."
+              description="Applicant Tracking System screening evaluates file formatting, structural clarity, keyword density, and parseability."
             >
-              <ResultList
-                items={atsKeywords}
-                emptyLabel="No additional role keywords were identified."
+              <div className="resume-results__detail-score-row">
+                <span>ATS compatibility score</span>
+                <strong>
+                  {categoryBreakdown.ats.score === null
+                    ? 'Not scored'
+                    : `${categoryBreakdown.ats.score}/100`}
+                </strong>
+              </div>
+              <EvidenceItems
+                items={
+                  categoryBreakdown.ats.tips.length > 0 ? categoryBreakdown.ats.tips : atsKeywords
+                }
+                emptyLabel="No additional ATS findings were returned."
               />
             </Card>
           )}
+
+          <Card
+            className="resume-results__recommendations"
+            title="Recommended Action Items"
+            description="Prioritized next steps for this application."
+          >
+            <EvidenceItems
+              items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
+              emptyLabel="No recommendations were returned by the analysis."
+            />
+          </Card>
 
           <section className="resume-results__category-breakdown">
             <header className="resume-results__section-heading">
               <p className="eyebrow">Deep-dive analysis</p>
               <h2>Category Detailed Breakdown</h2>
             </header>
-            <div className="resume-result__grid resume-result__grid--two">
-              <Card title="Strengths" description="Evidence that supports your target application.">
-                <ResultList
-                  items={analysis.strengths}
-                  emptyLabel="No strengths were returned by the analysis."
-                />
-              </Card>
-              <Card
-                title="Improvement areas"
-                description="Specific changes that can make the resume clearer and more persuasive."
-              >
-                <ResultList
-                  items={analysis.improvements}
-                  emptyLabel="No improvement areas were returned by the analysis."
-                />
-              </Card>
+            <div className="resume-results__category-grid">
+              <CategoryDetailCard
+                label="Tone & Style"
+                score={categoryBreakdown.toneAndStyle.score}
+                tips={
+                  categoryBreakdown.toneAndStyle.tips.length > 0
+                    ? categoryBreakdown.toneAndStyle.tips
+                    : analysis.improvements
+                }
+              />
+              <CategoryDetailCard
+                label="Content"
+                score={categoryBreakdown.content.score}
+                tips={
+                  categoryBreakdown.content.tips.length > 0
+                    ? categoryBreakdown.content.tips
+                    : analysis.strengths
+                }
+              />
+              <CategoryDetailCard
+                label="Structure"
+                score={categoryBreakdown.structure.score}
+                tips={
+                  categoryBreakdown.structure.tips.length > 0
+                    ? categoryBreakdown.structure.tips
+                    : analysis.recommendations
+                }
+              />
+              <CategoryDetailCard
+                label="Skills"
+                score={categoryBreakdown.skills.score}
+                tips={
+                  categoryBreakdown.skills.tips.length > 0
+                    ? categoryBreakdown.skills.tips
+                    : analysis.missingSkills
+                }
+              />
             </div>
 
             {shows('writing_improvements') && (
@@ -495,7 +615,7 @@ export function ResumeAnalysisResultsPage({
                 title="Resume writing improvements"
                 description="Changes that can improve clarity without inventing experience."
               >
-                <ResultList
+                <EvidenceItems
                   items={analysis.improvements}
                   emptyLabel="No writing improvements were returned."
                 />
@@ -507,7 +627,7 @@ export function ResumeAnalysisResultsPage({
                 title="Interview preparation"
                 description="Topics grounded in the evidence supplied for this application."
               >
-                <ResultList
+                <EvidenceItems
                   items={interviewTopics}
                   emptyLabel="No interview topics were returned."
                 />
@@ -519,21 +639,10 @@ export function ResumeAnalysisResultsPage({
                 title="Learning plan"
                 description="A short sequence for closing relevant skill gaps."
               >
-                <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
+                <EvidenceItems items={learningPlan} emptyLabel="No learning plan was returned." />
               </Card>
             )}
           </section>
-
-          <Card
-            className="resume-results__recommendations"
-            title="Recommended Action Items"
-            description="Prioritized next steps for this application."
-          >
-            <ResultList
-              items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
-              emptyLabel="No recommendations were returned by the analysis."
-            />
-          </Card>
 
           <div className="resume-results__actions">
             <Button

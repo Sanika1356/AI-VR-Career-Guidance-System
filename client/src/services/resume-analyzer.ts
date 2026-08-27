@@ -8,6 +8,11 @@ export type ResumeOutputFocus =
   | 'interview_prep'
   | 'learning_plan';
 
+export interface ResumeCategoryDetail {
+  score: number | null;
+  tips: string[];
+}
+
 export interface ResumeAnalysis {
   overallScore: number;
   matchingSkills: string[];
@@ -21,6 +26,13 @@ export interface ResumeAnalysis {
   priorityActions: string[];
   interviewTopics: string[];
   learningPlan: string[];
+  categoryBreakdown: {
+    ats: ResumeCategoryDetail;
+    toneAndStyle: ResumeCategoryDetail;
+    content: ResumeCategoryDetail;
+    structure: ResumeCategoryDetail;
+    skills: ResumeCategoryDetail;
+  };
   preferredOutputs: ResumeOutputFocus[];
   provider: 'gemini' | 'groq' | 'ollama' | 'custom' | 'none' | 'puter';
 }
