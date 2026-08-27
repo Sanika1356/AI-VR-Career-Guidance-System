@@ -82,6 +82,12 @@ function getPuter(): PuterApi {
   return window.puter;
 }
 
+export async function signInToPuter(): Promise<boolean> {
+  const puter = getPuter();
+  if (!(await puter.auth.isSignedIn())) await puter.auth.signIn();
+  return puter.auth.isSignedIn();
+}
+
 function buildPrompt(
   jobRole: string,
   jobDescription: string,

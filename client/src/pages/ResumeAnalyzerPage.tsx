@@ -11,7 +11,7 @@ import {
   type ResumeAnalysisResponse,
   type ResumeOutputFocus,
 } from '../services/resume-analyzer';
-import { analyzeResumeWithPuter } from '../services/puter-resume-analyzer';
+import { analyzeResumeWithPuter, signInToPuter } from '../services/puter-resume-analyzer';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const RESULT_STORAGE_KEY = 'pathfinder.resume-analysis.result';
@@ -435,7 +435,48 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
   const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [puterSignedIn, setPuterSignedIn] = useState<boolean | null>(null);
+  const [isPuterSigningIn, setIsPuterSigningIn] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!window.puter) {
+      setPuterSignedIn(false);
+      return () => {
+        active = false;
+      };
+    }
+    window.puter.auth
+      .isSignedIn()
+      .then((signedIn) => {
+        if (active) setPuterSignedIn(signedIn);
+      })
+      .catch(() => {
+        if (active) setPuterSignedIn(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handlePuterSignIn() {
+    setIsPuterSigningIn(true);
+    setErrorMessage('');
+    try {
+      const signedIn = await signInToPuter();
+      setPuterSignedIn(signedIn);
+      if (!signedIn) setErrorMessage('Sign in to Puter before analyzing your resume.');
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Puter sign-in could not be completed. Please try again.',
+      );
+    } finally {
+      setIsPuterSigningIn(false);
+    }
+  }
 
   useEffect(() => {
     setErrorMessage('');
@@ -477,6 +518,10 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     }
     if (preferredOutputs.length === 0) {
       setErrorMessage('Select at least one preferred output before analyzing.');
+      return;
+    }
+    if (puterSignedIn !== true) {
+      setErrorMessage('Click “Sign in to Puter” before analyzing your resume.');
       return;
     }
     setIsAnalyzing(true);
@@ -529,6 +574,23 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
           description="Add the role context so the analysis can distinguish relevant evidence from generic keywords."
         >
           <form className="resume-analyzer__form" onSubmit={handleSubmit} noValidate>
+            <div className="resume-puter-auth" role="status">
+              {puterSignedIn ? (
+                <p className="resume-puter-auth__ready">Puter is connected for this analysis.</p>
+              ) : (
+                <>
+                  <p>Sign in to Puter to use the CVsense-style resume analysis service.</p>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={handlePuterSignIn}
+                    disabled={isPuterSigningIn || puterSignedIn === null}
+                  >
+                    {isPuterSigningIn ? 'Opening Puter sign-in…' : 'Sign in to Puter'}
+                  </Button>
+                </>
+              )}
+            </div>
             <label className="form-field">
               <span>Company name</span>
               <input
