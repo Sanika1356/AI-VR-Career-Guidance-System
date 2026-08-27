@@ -4735,50 +4735,162 @@ em {
 }
 
 /* Selected-career Job Insights view */
+.recommendations-page--minimal {
+  position: relative;
+}
+
+.recommendations-page--minimal::before {
+  position: absolute;
+  z-index: -1;
+  top: -4rem;
+  right: -8rem;
+  width: 20rem;
+  height: 20rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(221, 239, 167, 0.7), rgba(221, 239, 167, 0));
+  content: '';
+  pointer-events: none;
+}
+
+.recommendations-page--minimal .recommendations-page__header {
+  position: relative;
+  max-width: 42rem;
+  gap: 0.65rem;
+}
+
+.recommendations-page--minimal .recommendations-page__header::after {
+  display: block;
+  width: 4.25rem;
+  height: 0.28rem;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #829d31, #d6e99b);
+  content: '';
+}
+
+.recommendations-page__intro {
+  max-width: 35rem;
+  margin: 0;
+  color: #68706a;
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
 .recommendations-list--paths {
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .recommendation-card--path {
+  position: relative;
   gap: 0;
+  min-height: 8.25rem;
   padding: 0;
   overflow: hidden;
+  border-color: #dedfd7;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 28px rgba(34, 40, 34, 0.045);
   transition:
     border-color 180ms ease,
-    background-color 180ms ease;
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
-.recommendation-card--path.is-selected {
-  border-color: #91aa32;
+.recommendation-card--path::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0.32rem;
+  height: 100%;
+  background: #dceca7;
+  content: '';
+  transition: background-color 180ms ease;
+}
+
+.recommendation-card--path:hover {
+  border-color: #afc968;
   background: #fbfdea;
+  box-shadow: 0 16px 34px rgba(77, 96, 31, 0.12);
+  transform: translateY(-3px);
+}
+
+.recommendation-card--path:hover::before {
+  background: #829d31;
 }
 
 .recommendation-card__path-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
   width: 100%;
+  min-height: 8.25rem;
+  gap: 1rem;
   border: 0;
-  padding: 1.35rem 1.5rem;
+  padding: 1.35rem 1.4rem 1.35rem 1.65rem;
   background: transparent;
   color: #171b18;
   font: inherit;
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
-  font-weight: 600;
-  line-height: 1.2;
   text-align: left;
   cursor: pointer;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
 }
 
-.recommendation-card__path-button:hover,
-.recommendation-card__path-button:focus-visible {
-  background: #f1f6d8;
-  color: #5c7216;
+.recommendation-card__path-index {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid #d0dfa5;
+  border-radius: 0.75rem;
+  background: #f2f7dc;
+  color: #627821;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.recommendation-card__path-name {
+  overflow-wrap: anywhere;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.recommendation-card__path-arrow {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #cbd99c;
+  border-radius: 50%;
+  background: #f5f9e7;
+  color: #657d22;
+  font-size: 1.15rem;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.recommendation-card__path-button:hover .recommendation-card__path-arrow,
+.recommendation-card__path-button:focus-visible .recommendation-card__path-arrow {
+  border-color: #829d31;
+  background: #dff0aa;
+  color: #263229;
+  transform: translate(2px, -2px);
 }
 
 .recommendation-card__path-button:focus-visible {
   outline: 3px solid rgba(126, 157, 39, 0.38);
   outline-offset: -3px;
+}
+
+@media (max-width: 760px) {
+  .recommendations-list--paths {
+    grid-template-columns: 1fr;
+  }
 }
 
 .job-insights-detail {
