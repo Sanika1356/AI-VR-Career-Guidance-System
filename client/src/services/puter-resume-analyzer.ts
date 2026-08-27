@@ -190,6 +190,24 @@ function nestedRecord(value: unknown, key: string): Record<string, unknown> {
     ? (nested as Record<string, unknown>)
     : {};
 }
+function firstNonEmptyList(...values: unknown[]): string[] {
+  for (const value of values) {
+    const list = boundedList(value);
+    if (list.length > 0) return list;
+  }
+  return [];
+}
+function categoryTips(value: Record<string, unknown>, type?: 'good' | 'improve'): string[] {
+  const categories = ['ATS', 'toneAndStyle', 'content', 'structure', 'skills'];
+  return categories.flatMap((category) => {
+    const record = nestedRecord(value, category);
+    const tips = Array.isArray(record.tips) ? record.tips : [];
+    return tips.filter((tip) => {
+      if (!type || !tip || typeof tip !== 'object' || Array.isArray(tip)) return true;
+      return (tip as Record<string, unknown>).type === type;
+    });
+  });
+}
 function firstText(...values: unknown[]): string {
   for (const value of values) {
     const text = boundedText(value, 800);
@@ -199,17 +217,31 @@ function firstText(...values: unknown[]): string {
 }
 function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
   const skillMatch = nestedRecord(value, 'skillMatch');
-  const ats = nestedRecord(value, 'ATS');
+  const ats = Object.keys(nestedRecord(value, 'ATS')).length
+    ? nestedRecord(value, 'ATS')
+    : nestedRecord(value, 'ats');
   const skills = nestedRecord(value, 'skills');
-  const strengths = boundedList(value.strengths);
-  const weaknesses = boundedList(value.weaknesses);
-  const suggestions = boundedList(value.suggestions);
-  const matchingSkills = boundedList(value.matchingSkills ?? skillMatch.matchedSkills);
-  const missingSkills = boundedList(value.missingSkills ?? skillMatch.missingSkills);
-  const score = Number(value.overallScore);
+  const matchingSkills = firstNonEmptyList(value.matchingSkills, skillMatch.matchedSkills);
+  const missingSkills = firstNonEmptyList(value.missingSkills, skillMatch.missingSkills);
+  const categoryGoodTips = categoryTips(value, 'good');
+  const categoryImproveTips = categoryTips(value, 'improve');
+  const strengths = firstNonEmptyList(value.strengths, categoryGoodTips);
+  const weaknesses = firstNonEmptyList(value.weaknesses, categoryImproveTips, missingSkills);
+  const suggestions = firstNonEmptyList(
+    value.suggestions,
+    value.recommendations,
+    weaknesses,
+    missingSkills,
+  );
+  const categoryScores = ['ATS', 'ats', 'toneAndStyle', 'content', 'structure', 'skills']
+    .map((key) => Number(nestedRecord(value, key).score))
+    .filter((score) => Number.isFinite(score));
+  const score = Number(value.overallScore ?? value.score ?? skillMatch.matchPercentage);
   const normalizedScore = Number.isFinite(score)
     ? Math.min(100, Math.max(0, Math.round(score)))
-    : -1;
+    : categoryScores.length > 0
+      ? Math.round(categoryScores.reduce((total, item) => total + item, 0) / categoryScores.length)
+      : -1;
   const summary = firstText(
     value.summary,
     value.executiveSummary,
@@ -222,10 +254,18 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
     matchingSkills,
     missingSkills,
     strengths,
-    improvements: boundedList(
-      value.improvements ?? value.weaknesses ?? nestedRecord(value, 'toneAndStyle').tips,
+    improvements: firstNonEmptyList(
+      value.improvements,
+      weaknesses,
+      nestedRecord(value, 'toneAndStyle').tips,
+      categoryImproveTips,
     ),
-    recommendations: boundedList(value.recommendations ?? value.suggestions),
+    recommendations: firstNonEmptyList(
+      value.recommendations,
+      suggestions,
+      weaknesses,
+      missingSkills,
+    ),
     summary,
     roleFit: firstText(
       value.roleFit,
@@ -234,10 +274,15 @@ function normalizeAnalysis(value: Record<string, unknown>): ResumeAnalysis {
         : '',
       summary,
     ),
-    atsKeywords: boundedList(value.atsKeywords ?? matchingSkills ?? ats.tips),
-    priorityActions: boundedList(value.priorityActions ?? suggestions),
-    interviewTopics: boundedList(value.interviewTopics ?? skills.tips),
-    learningPlan: boundedList(value.learningPlan ?? suggestions),
+    atsKeywords: firstNonEmptyList(value.atsKeywords, matchingSkills, ats.tips, categoryGoodTips),
+    priorityActions: firstNonEmptyList(
+      value.priorityActions,
+      suggestions,
+      weaknesses,
+      missingSkills,
+    ),
+    interviewTopics: firstNonEmptyList(value.interviewTopics, skills.tips, matchingSkills),
+    learningPlan: firstNonEmptyList(value.learningPlan, suggestions, missingSkills, weaknesses),
     preferredOutputs: DEFAULT_PREFERRED_OUTPUTS,
     provider: 'puter',
   };
