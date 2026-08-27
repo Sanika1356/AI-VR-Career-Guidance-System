@@ -516,7 +516,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     setAnalysisStage(0);
     const stageTimer = window.setInterval(() => {
       setAnalysisStage((current) => Math.min(current + 1, ANALYSIS_STAGES.length - 1));
-    }, 8_000);
+    }, 4_000);
     return () => window.clearInterval(stageTimer);
   }, [isAnalyzing]);
 

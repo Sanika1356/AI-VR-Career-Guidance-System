@@ -4593,3 +4593,195 @@ em {
 .job-insights-detail-page__header h1 {
   margin-top: 0.6rem;
 }
+
+/* Resume report presentation: scoped to the report page only. */
+.resume-results-page {
+  background: #f4f3ee;
+  color: #252625;
+  gap: 14px;
+  margin: -24px -24px -48px;
+  max-width: none;
+  padding: 56px max(24px, calc((100vw - 1040px) / 2)) 72px;
+}
+.resume-results-page .page-frame__header {
+  align-items: flex-end;
+  border-bottom: 0;
+  margin: 0;
+  padding: 0 0 16px;
+}
+.resume-results-page .page-frame__header h1 {
+  color: #171817;
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 0.98;
+  margin: 8px 0 12px;
+}
+.resume-results-page .page-frame__header > div > p:last-child {
+  color: #73756e;
+  font-size: 12px;
+  max-width: 620px;
+}
+.resume-results-page .eyebrow {
+  color: #778d38;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+.resume-results-page .ui-badge--success {
+  background: #edf2dc;
+  border-color: #91a758;
+  color: #62752f;
+  margin-bottom: 19px;
+}
+.resume-results-page .ui-card {
+  border-color: #d9d7cf;
+  border-radius: 0;
+  box-shadow: none;
+}
+.resume-results-page .ui-card__header {
+  background: #faf9f5;
+  border-bottom-color: #e4e1d9;
+  padding: 14px 18px 11px;
+}
+.resume-results-page .ui-card__title {
+  font-size: 16px;
+  letter-spacing: -0.035em;
+}
+.resume-results-page .ui-card__description {
+  color: #888981;
+  font-size: 10px;
+  margin-top: 4px;
+}
+.resume-results-page .ui-card__body {
+  background: #fffefa;
+  padding: 17px 18px;
+}
+.resume-result__summary {
+  gap: 0;
+}
+.resume-result__summary-grid {
+  gap: 0;
+  grid-template-columns: 1.05fr 1fr 1fr 1fr;
+}
+.resume-result__summary-metric {
+  background: #fffefa;
+  border: 0;
+  border-right: 1px solid #e4e1d9;
+  gap: 8px;
+  min-height: 116px;
+  padding: 15px 16px;
+}
+.resume-result__summary-metric:last-child {
+  border-right: 0;
+}
+.resume-result__summary-metric > span,
+.resume-result__summary-copy > span {
+  color: #8a8c84;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+.resume-result__summary-metric p,
+.resume-result__summary-copy p,
+.resume-result__lead {
+  color: #55584f;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.resume-result__summary-metric--score {
+  background: #252725;
+  color: #d5ed8c;
+}
+.resume-result__summary-metric--score > span,
+.resume-result__summary-metric--score small {
+  color: #b4bbab;
+}
+.resume-result__summary-metric--score strong {
+  color: #d5ed8c;
+  font-size: 31px;
+  font-weight: 600;
+}
+.resume-result__summary-copy {
+  background: #faf9f5;
+  border-left: 3px solid #93a84d;
+  margin: 0;
+  padding: 13px 16px 14px;
+}
+.resume-result__summary-copy p {
+  margin-top: 1px;
+}
+.resume-results-page .resume-result__grid {
+  gap: 14px;
+}
+.resume-results-page .resume-result__grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.resume-results-page .resume-result__list {
+  gap: 8px;
+  padding-left: 17px;
+}
+.resume-results-page .resume-result__list li {
+  color: #55584f;
+  font-size: 12px;
+  line-height: 1.55;
+  padding-left: 3px;
+}
+.resume-results-page .resume-result__list li::marker {
+  color: #879d3d;
+}
+.resume-results-page .resume-result__empty {
+  color: #8a8c84;
+  font-size: 12px;
+}
+.resume-results-page .resume-results__actions {
+  border-top: 1px solid #d9d7cf;
+  padding-top: 16px;
+}
+.resume-results-page .resume-results__actions .ui-button {
+  border-radius: 0;
+  font-size: 11px;
+  min-height: 36px;
+  padding: 9px 14px;
+}
+@media (max-width: 820px) {
+  .resume-results-page {
+    margin: -20px -16px -40px;
+    padding: 42px 16px 56px;
+  }
+  .resume-results-page .page-frame__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .resume-results-page .ui-badge--success {
+    margin-bottom: 0;
+  }
+  .resume-result__summary-grid,
+  .resume-results-page .resume-result__grid--two {
+    grid-template-columns: 1fr 1fr;
+  }
+  .resume-result__summary-metric:nth-child(2) {
+    border-right: 0;
+  }
+  .resume-result__summary-metric:nth-child(-n + 2) {
+    border-bottom: 1px solid #e4e1d9;
+  }
+}
+@media (max-width: 560px) {
+  .resume-results-page {
+    margin: -16px -12px -32px;
+    padding: 34px 12px 48px;
+  }
+  .resume-results-page .page-frame__header h1 {
+    font-size: 38px;
+  }
+  .resume-result__summary-grid,
+  .resume-results-page .resume-result__grid--two {
+    grid-template-columns: 1fr;
+  }
+  .resume-result__summary-metric {
+    border-bottom: 1px solid #e4e1d9;
+    border-right: 0;
+  }
+  .resume-result__summary-metric:last-child {
+    border-bottom: 0;
+  }
+}
