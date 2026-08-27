@@ -2924,6 +2924,10 @@ em {
   background: linear-gradient(150deg, #2b3328 0%, #20231f 100%);
   color: #f7f5ef;
 }
+.dashboard-signal-card--restored {
+  background: #20231f;
+  color: #f7f5ef;
+}
 
 .dashboard-signal-card::before {
   position: absolute;

@@ -167,6 +167,40 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </span>
           </div>
         </div>
+        <aside
+          className="dashboard-signal-card dashboard-signal-card--restored"
+          aria-label="Career signal summary"
+        >
+          <div className="dashboard-signal-card__topline">
+            <span className="dashboard-kicker">
+              {hasAssessment ? 'Latest signal' : 'Next signal'}
+            </span>
+            <span
+              className={`dashboard-status ${hasAssessment ? 'dashboard-status--success' : ''}`}
+            >
+              {hasAssessment ? 'Assessment complete' : 'Ready when you are'}
+            </span>
+          </div>
+          <p className="dashboard-signal-card__label">Your strongest starting point</p>
+          <strong className="dashboard-signal-card__title">
+            {topRecommendation?.career ??
+              (latestAssessment?.topCareerIds[0]
+                ? formatCareerName(latestAssessment.topCareerIds[0])
+                : 'Discover your career pattern')}
+          </strong>
+          <p>
+            {topRecommendation
+              ? topRecommendation.reason
+              : 'Complete the focused assessment to surface career paths that fit your profile.'}
+          </p>
+          <button
+            className="dashboard-signal-card__action"
+            type="button"
+            onClick={() => onNavigate(assessmentRoute)}
+          >
+            {assessmentCta} <span aria-hidden="true">↗</span>
+          </button>
+        </aside>
       </header>
 
       <div className="dashboard-primary-grid">
