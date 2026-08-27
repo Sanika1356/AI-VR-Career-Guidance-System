@@ -1214,12 +1214,14 @@ em {
   min-width: 0;
 }
 .assessment-page__intro-art img {
+  aspect-ratio: 4 / 3;
+  border-radius: 4px;
   display: block;
   height: auto;
-  max-height: 430px;
+  max-height: none;
   max-width: 100%;
-  object-fit: contain;
-  width: 470px;
+  object-fit: cover;
+  width: min(470px, 100%);
 }
 .assessment-page__topline {
   align-items: center;
@@ -1514,7 +1516,9 @@ em {
     margin-top: 48px;
   }
   .assessment-page__intro-art img {
-    max-height: 360px;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    max-height: none;
     width: min(470px, 100%);
   }
   .assessment-page__flow {
