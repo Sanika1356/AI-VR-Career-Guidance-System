@@ -1677,6 +1677,11 @@ em {
   flex-direction: column;
   min-height: 330px;
 }
+.career-card > .ui-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
 .career-card__topline {
   align-items: center;
   display: flex;
