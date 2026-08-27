@@ -4614,3 +4614,34 @@ em {
     padding: 1.1rem 1.15rem;
   }
 }
+
+.job-insights-detail-page__header {
+  align-items: flex-start;
+}
+
+.job-insights-back-link {
+  width: fit-content;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #687a2c;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.job-insights-back-link:hover,
+.job-insights-back-link:focus-visible {
+  color: #36450d;
+  text-decoration: underline;
+}
+
+.job-insights-back-link:focus-visible {
+  outline: 3px solid rgba(126, 157, 39, 0.32);
+  outline-offset: 4px;
+}
+
+.job-insights-detail-page__header h1 {
+  margin-top: 0.6rem;
+}

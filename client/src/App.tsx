@@ -15,6 +15,7 @@ import { VRPage } from './pages/VRPage';
 
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { JobInsightsDetailPage } from './pages/JobInsightsDetailPage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import {
   ResumeAnalysisResultsPage,
@@ -35,6 +36,7 @@ type RouteKey =
   | 'assessment'
   | 'careers'
   | 'recommendations'
+  | 'job-insights-detail'
   | 'career-details'
   | 'skill-gap'
   | 'roadmap'
@@ -53,7 +55,7 @@ interface RouteState {
 }
 
 const routes: Record<
-  Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>,
+  Exclude<RouteKey, 'home' | 'career-details' | 'job-insights-detail' | 'not-found'>,
   { title: string; description: string }
 > = {
   register: {
@@ -132,6 +134,7 @@ const protectedRouteKeys = new Set<RouteKey>([
   'dashboard',
   'assessment',
   'recommendations',
+  'job-insights-detail',
   'skill-gap',
   'roadmap',
   'advisor',
@@ -153,6 +156,12 @@ function getRoute(pathname: string): RouteState {
   if (/^\/careers\/[^/]+\/roadmap$/.test(normalizedPath)) {
     return { key: 'roadmap', careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? '') };
   }
+  if (/^\/job-insights\/[^/]+$/.test(normalizedPath)) {
+    return {
+      key: 'job-insights-detail',
+      careerId: decodeURIComponent(normalizedPath.split('/')[2] ?? ''),
+    };
+  }
   const resumeResultMatch = normalizedPath.match(/^\/resume-analyzer\/results\/([^/]+)$/);
   if (resumeResultMatch) {
     return {
@@ -170,7 +179,10 @@ function getRoute(pathname: string): RouteState {
     };
   }
 
-  const key = normalizedPath.slice(1) as Exclude<RouteKey, 'home' | 'career-details' | 'not-found'>;
+  const key = normalizedPath.slice(1) as Exclude<
+    RouteKey,
+    'home' | 'career-details' | 'job-insights-detail' | 'not-found'
+  >;
   return key in routes ? { key } : { key: 'not-found' };
 }
 
@@ -376,6 +388,9 @@ export default function App() {
       {route.key === 'dashboard' && session && <DashboardPage onNavigate={navigate} />}
       {route.key === 'assessment' && session && <AssessmentPage onNavigate={navigate} />}
       {route.key === 'recommendations' && session && <RecommendationsPage onNavigate={navigate} />}
+      {route.key === 'job-insights-detail' && session && (
+        <JobInsightsDetailPage careerId={route.careerId} onNavigate={navigate} />
+      )}
       {route.key === 'skill-gap' && session && (
         <SkillGapPage careerId={route.careerId} onNavigate={navigate} />
       )}
