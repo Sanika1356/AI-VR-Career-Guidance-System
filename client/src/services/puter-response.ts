@@ -8,6 +8,12 @@ const RESPONSE_CONTAINER_KEYS = [
   'result',
   'data',
   'choices',
+  'output',
+  'generated_text',
+  'body',
+  'payload',
+  'value',
+  'parts',
 ] as const;
 
 function isLikelyAnalysisObject(value: Record<string, unknown>): boolean {
@@ -30,8 +36,15 @@ function collectResponseText(value: unknown, depth = 0, seen = new Set<object>()
   if (isLikelyAnalysisObject(record)) return [JSON.stringify(record)];
 
   const parts: string[] = [];
+  const visitedKeys = new Set<string>();
   for (const key of RESPONSE_CONTAINER_KEYS) {
-    if (key in record) parts.push(...collectResponseText(record[key], depth + 1, seen));
+    if (key in record) {
+      visitedKeys.add(key);
+      parts.push(...collectResponseText(record[key], depth + 1, seen));
+    }
+  }
+  for (const [key, nested] of Object.entries(record)) {
+    if (!visitedKeys.has(key)) parts.push(...collectResponseText(nested, depth + 1, seen));
   }
   return parts;
 }
