@@ -1612,13 +1612,33 @@ em {
   justify-content: center;
   min-width: 0;
 }
-.career-hero__art img {
+.career-hero__art-frame {
+  aspect-ratio: 1.14;
+  isolation: isolate;
+  max-width: 420px;
+  position: relative;
+  transform: rotate(-1.5deg);
+  width: 100%;
+}
+.career-hero__art-frame::before {
+  border: 1px solid rgba(130, 157, 49, 0.5);
+  border-radius: 48% 52% 43% 57% / 36% 44% 56% 64%;
+  content: '';
+  inset: -14px -18px -16px -18px;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(-6deg);
+  z-index: -1;
+}
+.career-hero__art-frame img {
+  border-radius: 28% 15% 22% 14% / 15% 22% 13% 25%;
   display: block;
-  height: auto;
+  height: 100%;
   max-width: 100%;
   mix-blend-mode: multiply;
-  object-fit: contain;
-  width: min(360px, 100%);
+  object-fit: cover;
+  opacity: 0.88;
+  width: 100%;
 }
 .career-hero h1,
 .career-detail-hero h1 {
@@ -2099,8 +2119,8 @@ em {
     align-self: stretch;
     width: 100%;
   }
-  .career-hero__art img {
-    width: min(340px, 100%);
+  .career-hero__art-frame {
+    max-width: 360px;
   }
   .career-toolbar {
     align-items: flex-start;
