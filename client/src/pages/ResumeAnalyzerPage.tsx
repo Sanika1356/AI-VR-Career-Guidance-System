@@ -352,16 +352,34 @@ export function ResumeAnalysisResultsPage({
               <p className="eyebrow">Resume Review</p>
               <h1>Resume Review</h1>
               <p className="page-lead">
-                {result.fileName} · Target role: <strong>{result.jobRole}</strong> · Target company:{' '}
-                <strong>{result.companyName}</strong>
+                {result.fileName} · Analyzed {formatDate(result.analyzedAt)}
               </p>
             </div>
             <Badge tone="success">{analysis.overallScore}% alignment</Badge>
           </header>
 
+          <section className="resume-results__report-meta" aria-label="Report metadata">
+            <div className="resume-results__brand">
+              <span aria-hidden="true">pf</span>
+              <strong>Pathfinder</strong>
+            </div>
+            <div className="resume-results__report-meta-label">
+              <span>Resume Analysis Report</span>
+              <small>{formatDate(result.analyzedAt)}</small>
+            </div>
+            <div className="resume-results__report-meta-targets">
+              <span>
+                Target role: <strong>{result.jobRole}</strong>
+              </span>
+              <span>
+                Target company: <strong>{result.companyName}</strong>
+              </span>
+            </div>
+          </section>
+
           <Card
             className="resume-result__summary"
-            title="Executive summary"
+            title="Analysis Summary"
             description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
           >
             <div className="resume-result__summary-grid">
@@ -421,8 +439,8 @@ export function ResumeAnalysisResultsPage({
 
           {shows('ats_keywords') && (
             <Card
-              title="ATS keywords to review"
-              description="Use only terms that accurately describe your experience."
+              title="ATS Compatibility Analysis"
+              description="Keywords and evidence reviewed for applicant-tracking-system readiness."
             >
               <ResultList
                 items={atsKeywords}
@@ -431,56 +449,66 @@ export function ResumeAnalysisResultsPage({
             </Card>
           )}
 
-          <div className="resume-result__grid resume-result__grid--two">
-            <Card title="Strengths" description="Evidence that supports your target application.">
-              <ResultList
-                items={analysis.strengths}
-                emptyLabel="No strengths were returned by the analysis."
-              />
-            </Card>
-            <Card
-              title="Improvement areas"
-              description="Specific changes that can make the resume clearer and more persuasive."
-            >
-              <ResultList
-                items={analysis.improvements}
-                emptyLabel="No improvement areas were returned by the analysis."
-              />
-            </Card>
-          </div>
+          <section className="resume-results__category-breakdown">
+            <header className="resume-results__section-heading">
+              <p className="eyebrow">Deep-dive analysis</p>
+              <h2>Category Detailed Breakdown</h2>
+            </header>
+            <div className="resume-result__grid resume-result__grid--two">
+              <Card title="Strengths" description="Evidence that supports your target application.">
+                <ResultList
+                  items={analysis.strengths}
+                  emptyLabel="No strengths were returned by the analysis."
+                />
+              </Card>
+              <Card
+                title="Improvement areas"
+                description="Specific changes that can make the resume clearer and more persuasive."
+              >
+                <ResultList
+                  items={analysis.improvements}
+                  emptyLabel="No improvement areas were returned by the analysis."
+                />
+              </Card>
+            </div>
 
-          {shows('writing_improvements') && (
-            <Card
-              title="Resume writing improvements"
-              description="Changes that can improve clarity without inventing experience."
-            >
-              <ResultList
-                items={analysis.improvements}
-                emptyLabel="No writing improvements were returned."
-              />
-            </Card>
-          )}
+            {shows('writing_improvements') && (
+              <Card
+                title="Resume writing improvements"
+                description="Changes that can improve clarity without inventing experience."
+              >
+                <ResultList
+                  items={analysis.improvements}
+                  emptyLabel="No writing improvements were returned."
+                />
+              </Card>
+            )}
 
-          {shows('interview_prep') && (
-            <Card
-              title="Interview preparation"
-              description="Topics grounded in the evidence supplied for this application."
-            >
-              <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
-            </Card>
-          )}
+            {shows('interview_prep') && (
+              <Card
+                title="Interview preparation"
+                description="Topics grounded in the evidence supplied for this application."
+              >
+                <ResultList
+                  items={interviewTopics}
+                  emptyLabel="No interview topics were returned."
+                />
+              </Card>
+            )}
 
-          {shows('learning_plan') && (
-            <Card
-              title="Learning plan"
-              description="A short sequence for closing relevant skill gaps."
-            >
-              <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
-            </Card>
-          )}
+            {shows('learning_plan') && (
+              <Card
+                title="Learning plan"
+                description="A short sequence for closing relevant skill gaps."
+              >
+                <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
+              </Card>
+            )}
+          </section>
 
           <Card
-            title="Recommended action plan"
+            className="resume-results__recommendations"
+            title="Recommended Action Items"
             description="Prioritized next steps for this application."
           >
             <ResultList

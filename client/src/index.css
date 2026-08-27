@@ -4556,10 +4556,153 @@ em {
 .resume-results__report-header .ui-badge {
   flex: 0 0 auto;
 }
+.resume-results__report-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px 24px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid #d9d8d1;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.64);
+  box-shadow: 0 8px 22px rgba(38, 42, 31, 0.045);
+}
+.resume-results__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #6c8db0;
+  font-size: clamp(1.55rem, 3vw, 2.25rem);
+  letter-spacing: -0.06em;
+}
+.resume-results__brand span {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 9px;
+  background: #75a8d5;
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  letter-spacing: -0.08em;
+}
+.resume-results__brand strong {
+  font-weight: 500;
+}
+.resume-results__report-meta-label {
+  display: grid;
+  gap: 5px;
+  justify-items: end;
+  color: #6c8db0;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: right;
+  text-transform: uppercase;
+}
+.resume-results__report-meta-label small {
+  color: #656a66;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.resume-results__report-meta-targets {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  padding-top: 14px;
+  border-top: 1px solid #e5e4de;
+  color: #777b73;
+  font-size: 11px;
+}
+.resume-results__report-meta-targets strong {
+  color: #41453f;
+  font-weight: 600;
+}
 .resume-results__report > .ui-card,
 .resume-results__report > .resume-result__grid,
-.resume-results__report > .resume-results__actions {
+.resume-results__report > .resume-results__actions,
+.resume-results__category-breakdown {
   min-width: 0;
+}
+.resume-results__report > .ui-card,
+.resume-results__category-breakdown {
+  border: 1px solid #d9d8d1;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 8px 22px rgba(38, 42, 31, 0.045);
+}
+.resume-results__report > .ui-card .ui-card__header {
+  padding: 18px 20px 13px;
+}
+.resume-results__report > .ui-card .ui-card__body {
+  padding: 18px 20px 20px;
+}
+.resume-results__report > .ui-card .ui-card__title,
+.resume-results__section-heading h2 {
+  color: #41453f;
+  font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+.resume-results__report > .ui-card .ui-card__description {
+  color: #868a83;
+  font-size: 11px;
+  line-height: 1.45;
+}
+.resume-results__section-heading {
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e5e4de;
+}
+.resume-results__section-heading .eyebrow {
+  margin-bottom: 6px;
+}
+.resume-results__section-heading h2 {
+  margin: 0;
+}
+.resume-results__category-breakdown {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+}
+.resume-results__category-breakdown > .resume-result__grid,
+.resume-results__category-breakdown > .ui-card {
+  margin: 18px 20px 0;
+}
+.resume-results__category-breakdown > .ui-card:last-child {
+  margin-bottom: 20px;
+}
+.resume-results__category-breakdown > .resume-result__grid .ui-card,
+.resume-results__category-breakdown > .ui-card {
+  border: 1px solid #e1e2dc;
+  border-radius: 0.65rem;
+  background: rgba(248, 249, 246, 0.74);
+  box-shadow: none;
+}
+.resume-results__category-breakdown .ui-card__header {
+  padding: 13px 15px 10px;
+}
+.resume-results__category-breakdown .ui-card__body {
+  padding: 13px 15px 15px;
+}
+.resume-results__category-breakdown .ui-card__title {
+  font-size: 15px;
+}
+.resume-results__category-breakdown .ui-card__description {
+  font-size: 10px;
+}
+.resume-results__recommendations .resume-result__list {
+  gap: 8px;
+}
+.resume-results__recommendations .resume-result__list li {
+  padding: 10px 12px;
+  border: 1px solid #e1e2dc;
+  border-radius: 0.55rem;
+  background: rgba(248, 249, 246, 0.74);
+  list-style-position: inside;
 }
 .resume-result__summary {
   display: grid;
@@ -4882,6 +5025,11 @@ em {
   .resume-results__report {
     padding-right: 0;
   }
+  .resume-results__category-breakdown > .resume-result__grid,
+  .resume-results__category-breakdown > .ui-card {
+    margin-left: 14px;
+    margin-right: 14px;
+  }
   .resume-result__summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -4937,6 +5085,16 @@ em {
   .resume-results__report-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .resume-results__report-meta {
+    grid-template-columns: 1fr;
+  }
+  .resume-results__report-meta-label {
+    justify-items: start;
+    text-align: left;
+  }
+  .resume-results__category-breakdown > .resume-result__grid {
+    grid-template-columns: 1fr;
   }
   .resume-analysis-progress__visual {
     min-height: 9rem;
