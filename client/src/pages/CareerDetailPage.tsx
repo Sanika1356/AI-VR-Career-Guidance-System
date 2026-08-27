@@ -12,54 +12,7 @@ interface CareerDetailPageProps {
   onNavigate: (href: string) => void;
 }
 
-const toSearchSlug = (role: string) =>
-  role
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-
-const JOB_MARKET_PLATFORMS: Array<{
-  label: string;
-  description: string;
-  buildUrl: (role: string) => string;
-}> = [
-  {
-    label: 'Naukri',
-    description: 'India jobs',
-    buildUrl: (role) => `https://www.naukri.com/${toSearchSlug(role)}-jobs`,
-  },
-  {
-    label: 'Indeed',
-    description: 'Global job search',
-    buildUrl: (role) => `https://www.indeed.com/jobs?q=${encodeURIComponent(role)}`,
-  },
-  {
-    label: 'Apna',
-    description: 'Jobs across India',
-    buildUrl: (role) => `https://apna.co/jobs/${toSearchSlug(role)}-jobs`,
-  },
-  {
-    label: 'Foundit',
-    description: 'Jobs and vacancies',
-    buildUrl: (role) => `https://www.foundit.in/search/${toSearchSlug(role)}-jobs`,
-  },
-  {
-    label: 'LinkedIn Jobs',
-    description: 'Jobs and networking',
-    buildUrl: (role) =>
-      `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(role)}`,
-  },
-  {
-    label: 'Instahyre',
-    description: 'Tech and startup jobs',
-    buildUrl: (role) => `https://www.instahyre.com/${toSearchSlug(role)}-jobs/`,
-  },
-  {
-    label: 'Wellfound',
-    description: 'Startup jobs',
-    buildUrl: (role) => `https://wellfound.com/jobs?query=${encodeURIComponent(role)}`,
-  },
-];
+import { JOB_MARKET_PLATFORMS } from '../lib/jobMarket';
 
 const CAREER_DETAIL_ENRICHMENTS: Record<
   string,
@@ -67,7 +20,6 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     additionalSkills: string[];
     jobSearches: Array<{
       role: string;
-      links: Array<{ label: string; url: string }>;
     }>;
   }
 > = {
@@ -83,37 +35,15 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     jobSearches: [
       {
         role: 'AI Engineer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/ai-engineer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-ai-engineer-jobs.html' },
-        ],
       },
       {
         role: 'Machine Learning Engineer',
-        links: [
-          {
-            label: 'Naukri',
-            url: 'https://www.naukri.com/machine-learning-engineer-jobs',
-          },
-          {
-            label: 'Indeed',
-            url: 'https://www.indeed.com/q-machine-learning-engineer-jobs.html',
-          },
-        ],
       },
       {
         role: 'AI Developer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/ai-developer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-ai-developer-jobs.html' },
-        ],
       },
       {
         role: 'MLOps Engineer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/mlops-engineer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-mlops-engineer-jobs.html' },
-        ],
       },
     ],
   },
@@ -129,37 +59,15 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     jobSearches: [
       {
         role: 'Cybersecurity Analyst',
-        links: [
-          {
-            label: 'Naukri',
-            url: 'https://www.naukri.com/cyber-security-analyst-jobs',
-          },
-          {
-            label: 'Indeed',
-            url: 'https://www.indeed.com/q-cybersecurity-analyst-jobs.html',
-          },
-        ],
       },
       {
         role: 'Security Engineer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/security-engineer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-security-engineer-jobs.html' },
-        ],
       },
       {
         role: 'Penetration Tester',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/penetration-testing-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-penetration-tester-jobs.html' },
-        ],
       },
       {
         role: 'SOC Analyst',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/soc-analyst-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-soc-analyst-jobs.html' },
-        ],
       },
     ],
   },
@@ -175,34 +83,15 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     jobSearches: [
       {
         role: 'Data Analyst',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/data-analyst-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-data-analyst-jobs.html' },
-        ],
       },
       {
         role: 'Business Intelligence Analyst',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/business-intelligence-analyst-jobs' },
-          {
-            label: 'Indeed',
-            url: 'https://www.indeed.com/q-business-intelligence-analyst-jobs.html',
-          },
-        ],
       },
       {
         role: 'Data Visualization Analyst',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/data-visualization-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-data-visualization-jobs.html' },
-        ],
       },
       {
         role: 'Reporting Analyst',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/reporting-analyst-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-reporting-analyst-jobs.html' },
-        ],
       },
     ],
   },
@@ -218,31 +107,15 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     jobSearches: [
       {
         role: 'Product Designer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/product-designer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-product-designer-jobs.html' },
-        ],
       },
       {
         role: 'UX/UI Designer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/ux-ui-designer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-ux-ui-designer-jobs.html' },
-        ],
       },
       {
         role: 'Interaction Designer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/interaction-designer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-interaction-designer-jobs.html' },
-        ],
       },
       {
         role: 'Design Systems Designer',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/design-system-designer-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-design-systems-designer-jobs.html' },
-        ],
       },
     ],
   },
@@ -258,31 +131,15 @@ const CAREER_DETAIL_ENRICHMENTS: Record<
     jobSearches: [
       {
         role: 'UX Researcher',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/ux-researcher-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-ux-researcher-jobs.html' },
-        ],
       },
       {
         role: 'User Researcher',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/user-researcher-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-user-researcher-jobs.html' },
-        ],
       },
       {
         role: 'Usability Tester',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/usability-testing-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-usability-tester-jobs.html' },
-        ],
       },
       {
         role: 'Product Researcher',
-        links: [
-          { label: 'Naukri', url: 'https://www.naukri.com/product-researcher-jobs' },
-          { label: 'Indeed', url: 'https://www.indeed.com/q-product-researcher-jobs.html' },
-        ],
       },
     ],
   },
