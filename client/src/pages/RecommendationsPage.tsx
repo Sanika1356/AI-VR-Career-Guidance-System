@@ -9,6 +9,9 @@ interface RecommendationsPageProps {
   onNavigate: (href: string) => void;
 }
 
+const CAREER_MAP_TONES = ['sky', 'lime', 'violet', 'coral', 'gold'] as const;
+const CAREER_MAP_SYMBOLS = ['⌕', '◌', '✦', '◈', '▣'] as const;
+
 function CareerMapNode({
   recommendation,
   position,
@@ -18,25 +21,26 @@ function CareerMapNode({
   position: number;
   onSelect: () => void;
 }) {
+  const visualIndex = (position - 1) % CAREER_MAP_TONES.length;
   const positionClass = position <= 5 ? `career-map__node--${position}` : 'career-map__node--extra';
 
   return (
-    <li className={`career-map__node ${positionClass}`}>
+    <li className={`career-map__node ${positionClass}`} data-tone={CAREER_MAP_TONES[visualIndex]}>
       <button
         className="career-map__node-button"
         type="button"
         onClick={onSelect}
         aria-label={`Open Job Insights for ${recommendation.career}`}
       >
-        <span className="career-map__node-index" aria-hidden="true">
-          {String(position).padStart(2, '0')}
+        <span className="career-map__node-orb" aria-hidden="true">
+          <span>{CAREER_MAP_SYMBOLS[visualIndex]}</span>
         </span>
         <span className="career-map__node-copy">
+          <span className="career-map__node-index">Path {String(position).padStart(2, '0')}</span>
           <strong>{recommendation.career}</strong>
-          <span>Explore this path</span>
-        </span>
-        <span className="career-map__node-arrow" aria-hidden="true">
-          ↗
+          <span className="career-map__node-action">
+            Explore path <b>↗</b>
+          </span>
         </span>
       </button>
     </li>
@@ -121,15 +125,22 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
             >
               <title id="career-map-title">Recommended career paths</title>
               <desc id="career-map-description">
-                Connected career paths. Select a career to open its Job Insights detail page.
+                A constellation of recommended career paths. Select a career to open its Job
+                Insights detail page.
               </desc>
-              <path d="M238 190 C360 140 445 145 542 206" />
-              <path d="M542 206 C650 140 748 139 835 188" />
-              <path d="M238 190 C268 290 292 338 350 382" />
-              <path d="M350 382 C430 382 482 335 542 206" />
-              <path d="M542 206 C600 310 684 370 760 442" />
-              <path d="M350 382 C510 430 650 458 760 442" />
+              <circle className="career-map__connection-halo" cx="500" cy="280" r="98" />
+              <path d="M500 280 C420 230 315 180 170 178" />
+              <path d="M500 280 C560 220 650 155 790 176" />
+              <path d="M500 280 C425 330 320 385 232 402" />
+              <path d="M500 280 C600 278 700 275 770 294" />
+              <path d="M500 280 C595 350 700 408 820 420" />
+              <circle className="career-map__connection-point" cx="500" cy="280" r="5" />
             </svg>
+            <div className="career-map__hub" aria-hidden="true">
+              <span>PATHFINDER</span>
+              <strong>Your next move</strong>
+              <small>Choose a path to explore</small>
+            </div>
             <ul className="career-map__nodes" aria-label="Career paths">
               {recommendations.map((recommendation, index) => (
                 <CareerMapNode
