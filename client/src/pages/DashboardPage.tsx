@@ -208,10 +208,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="dashboard-section-heading">
             <div>
               <p className="section-kicker">Assessment signal</p>
-              <h2 id="assessment-signal-title">
-                {hasAssessment
-                  ? 'Your results, translated into direction.'
-                  : 'Find the pattern behind your interests.'}
+              <h2 className="dashboard-assessment-heading" id="assessment-signal-title">
+                {hasAssessment ? 'Your career signal' : 'Find your direction.'}
               </h2>
             </div>
             <button className="text-link" type="button" onClick={() => onNavigate(assessmentRoute)}>

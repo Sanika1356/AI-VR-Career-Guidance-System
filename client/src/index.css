@@ -3111,6 +3111,13 @@ em {
   line-height: 0.98;
 }
 
+.dashboard-section-heading .dashboard-assessment-heading {
+  max-width: 22rem;
+  font-size: clamp(1.65rem, 3vw, 2.55rem);
+  letter-spacing: -0.06em;
+  line-height: 1.02;
+}
+
 .dashboard-section-heading .text-link {
   flex: 0 0 auto;
   margin-bottom: 0.2rem;
