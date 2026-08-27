@@ -4601,7 +4601,7 @@ em {
   text-align: center;
 }
 .resume-results__score-ring {
-  --ring-color: #7351e6;
+  --ring-color: #829d31;
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -4617,7 +4617,7 @@ em {
   color: #39413a;
 }
 .resume-results__score-ring--ats {
-  --ring-color: #35afd1;
+  --ring-color: #a4bd61;
 }
 .resume-results__score-ring span {
   font-size: 24px;
@@ -4684,7 +4684,7 @@ em {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #83bce2, #5e91bf);
+  background: linear-gradient(90deg, #b3cc72, #829d31);
 }
 .resume-results__detail-score-row {
   display: flex;
@@ -4769,7 +4769,7 @@ em {
   padding: 3px 7px;
   border-radius: 999px;
   background: #e9eee4;
-  color: #6e9fca;
+  color: #829d31;
   font-family: 'DM Mono', monospace;
   font-size: 9px;
 }

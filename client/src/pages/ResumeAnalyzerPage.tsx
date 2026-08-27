@@ -275,14 +275,23 @@ function ScoreRing({
   score,
   label,
   tone = 'overall',
+  isDerived = false,
 }: {
   score: number | null;
   label: string;
   tone?: 'overall' | 'ats';
+  isDerived?: boolean;
 }) {
   const normalizedScore = score === null ? 0 : Math.min(100, Math.max(0, score));
   const style = { '--score': `${normalizedScore}%` } as CSSProperties;
-  const status = score === null ? 'Not scored' : score < 50 ? 'Developing' : 'Strong signal';
+  const status =
+    score === null
+      ? 'Not scored'
+      : isDerived
+        ? 'Evidence estimate'
+        : score < 50
+          ? 'Developing'
+          : 'Strong signal';
 
   return (
     <div className="resume-results__score-ring-card">
@@ -345,6 +354,20 @@ function EvidenceItems({
       ))}
     </div>
   );
+}
+
+function derivedScore(
+  score: number | null,
+  overallScore: number,
+  positiveCount: number,
+  negativeCount: number,
+): { value: number | null; isDerived: boolean } {
+  if (score !== null) return { value: score, isDerived: false };
+  const adjustment = Math.max(-12, Math.min(12, (positiveCount - negativeCount) * 3));
+  return {
+    value: Math.max(0, Math.min(100, overallScore + adjustment)),
+    isDerived: true,
+  };
 }
 
 function AnalysisProgress({ analysisStage }: { analysisStage: number }) {
@@ -510,15 +533,34 @@ export function ResumeAnalysisResultsPage({
   const preferredOutputs = analysis.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
   const atsKeywords = analysis.atsKeywords ?? analysis.matchingSkills;
   const priorityActions = analysis.priorityActions ?? analysis.recommendations;
+  const fallbackSummaryFinding: ResumeFinding = {
+    title: 'Resume signal',
+    detail: analysis.summary,
+  };
+  const fallbackFitFinding: ResumeFinding = {
+    title: 'Role fit context',
+    detail: analysis.roleFit ?? analysis.summary,
+  };
   const savedCategoryBreakdown = analysis.categoryBreakdown;
   const categoryBreakdown = {
     ats: {
       score: savedCategoryBreakdown?.ats?.score ?? null,
-      tips: uniqueFindings(savedCategoryBreakdown?.ats?.tips ?? [], atsKeywords),
+      tips: uniqueFindings(
+        savedCategoryBreakdown?.ats?.tips ?? [],
+        atsKeywords,
+        analysis.matchingSkills,
+        analysis.missingSkills,
+        [fallbackSummaryFinding],
+      ),
     },
     toneAndStyle: {
       score: savedCategoryBreakdown?.toneAndStyle?.score ?? null,
-      tips: uniqueFindings(savedCategoryBreakdown?.toneAndStyle?.tips ?? [], analysis.improvements),
+      tips: uniqueFindings(
+        savedCategoryBreakdown?.toneAndStyle?.tips ?? [],
+        analysis.improvements,
+        analysis.strengths,
+        [fallbackSummaryFinding],
+      ),
     },
     content: {
       score: savedCategoryBreakdown?.content?.score ?? null,
@@ -526,6 +568,7 @@ export function ResumeAnalysisResultsPage({
         savedCategoryBreakdown?.content?.tips ?? [],
         analysis.strengths,
         analysis.improvements,
+        [fallbackSummaryFinding],
       ),
     },
     structure: {
@@ -534,6 +577,7 @@ export function ResumeAnalysisResultsPage({
         savedCategoryBreakdown?.structure?.tips ?? [],
         analysis.recommendations,
         analysis.improvements,
+        [fallbackFitFinding],
       ),
     },
     skills: {
@@ -542,8 +586,42 @@ export function ResumeAnalysisResultsPage({
         savedCategoryBreakdown?.skills?.tips ?? [],
         analysis.missingSkills,
         analysis.matchingSkills,
+        analysis.strengths,
+        [fallbackSummaryFinding],
       ),
     },
+  };
+  const displayScores = {
+    ats: derivedScore(
+      categoryBreakdown.ats.score,
+      analysis.overallScore,
+      analysis.matchingSkills.length,
+      analysis.missingSkills.length,
+    ),
+    toneAndStyle: derivedScore(
+      categoryBreakdown.toneAndStyle.score,
+      analysis.overallScore,
+      analysis.strengths.length,
+      analysis.improvements.length,
+    ),
+    content: derivedScore(
+      categoryBreakdown.content.score,
+      analysis.overallScore,
+      analysis.strengths.length,
+      analysis.missingSkills.length,
+    ),
+    structure: derivedScore(
+      categoryBreakdown.structure.score,
+      analysis.overallScore,
+      analysis.recommendations.length,
+      analysis.improvements.length,
+    ),
+    skills: derivedScore(
+      categoryBreakdown.skills.score,
+      analysis.overallScore,
+      analysis.matchingSkills.length,
+      analysis.missingSkills.length,
+    ),
   };
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
@@ -597,16 +675,21 @@ export function ResumeAnalysisResultsPage({
           >
             <div className="resume-results__score-rings">
               <ScoreRing score={analysis.overallScore} label="Overall resume score" />
-              <ScoreRing score={categoryBreakdown.ats.score} label="ATS compatibility score" />
+              <ScoreRing
+                score={displayScores.ats.value}
+                isDerived={displayScores.ats.isDerived}
+                tone="ats"
+                label="ATS compatibility score"
+              />
             </div>
             <div className="resume-results__score-breakdown">
               <span className="resume-results__subheading">Score breakdown</span>
               <div className="resume-results__score-breakdown-grid">
                 {[
-                  ['Tone & Style', categoryBreakdown.toneAndStyle.score],
-                  ['Content', categoryBreakdown.content.score],
-                  ['Structure', categoryBreakdown.structure.score],
-                  ['Skills', categoryBreakdown.skills.score],
+                  ['Tone & Style', displayScores.toneAndStyle.value],
+                  ['Content', displayScores.content.value],
+                  ['Structure', displayScores.structure.value],
+                  ['Skills', displayScores.skills.value],
                 ].map(([label, score]) => {
                   const numericScore = typeof score === 'number' ? score : 0;
                   return (
@@ -637,9 +720,9 @@ export function ResumeAnalysisResultsPage({
               <div className="resume-results__detail-score-row">
                 <span>ATS compatibility score</span>
                 <strong>
-                  {categoryBreakdown.ats.score === null
+                  {displayScores.ats.value === null
                     ? 'Not scored'
-                    : `${categoryBreakdown.ats.score}/100`}
+                    : `${displayScores.ats.value}/100`}
                 </strong>
               </div>
               <EvidenceItems
@@ -672,7 +755,7 @@ export function ResumeAnalysisResultsPage({
             <div className="resume-results__category-grid">
               <CategoryDetailCard
                 label="Tone & Style"
-                score={categoryBreakdown.toneAndStyle.score}
+                score={displayScores.toneAndStyle.value}
                 tips={
                   categoryBreakdown.toneAndStyle.tips.length > 0
                     ? uniqueFindings(categoryBreakdown.toneAndStyle.tips, analysis.improvements)
@@ -681,7 +764,7 @@ export function ResumeAnalysisResultsPage({
               />
               <CategoryDetailCard
                 label="Content"
-                score={categoryBreakdown.content.score}
+                score={displayScores.content.value}
                 tips={
                   categoryBreakdown.content.tips.length > 0
                     ? uniqueFindings(categoryBreakdown.content.tips, analysis.strengths)
@@ -690,7 +773,7 @@ export function ResumeAnalysisResultsPage({
               />
               <CategoryDetailCard
                 label="Structure"
-                score={categoryBreakdown.structure.score}
+                score={displayScores.structure.value}
                 tips={
                   categoryBreakdown.structure.tips.length > 0
                     ? uniqueFindings(categoryBreakdown.structure.tips, analysis.recommendations)
@@ -699,7 +782,7 @@ export function ResumeAnalysisResultsPage({
               />
               <CategoryDetailCard
                 label="Skills"
-                score={categoryBreakdown.skills.score}
+                score={displayScores.skills.value}
                 tips={
                   categoryBreakdown.skills.tips.length > 0
                     ? uniqueFindings(
