@@ -5351,6 +5351,14 @@ em {
   cursor: wait;
   opacity: 0.5;
 }
+.resume-history__delete-error {
+  color: #9b4939;
+  font-size: 11px;
+  line-height: 1.35;
+  margin: 0;
+  max-width: 16rem;
+  text-align: right;
+}
 .resume-history__score {
   color: #556d1f;
   font-size: 22px;
