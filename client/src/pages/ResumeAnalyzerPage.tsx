@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type DragEvent,
-  type FormEvent,
-} from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -19,16 +12,9 @@ import {
   type ResumeOutputFocus,
 } from '../services/resume-analyzer';
 import { analyzeResumeWithPuter, signInToPuter } from '../services/puter-resume-analyzer';
-import { createResumeImagePreview } from '../services/resume-image-preview';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const RESULT_STORAGE_KEY = 'pathfinder.resume-analysis.result';
-let activeResumePreviewUrl: string | null = null;
-
-function setActiveResumePreviewUrl(imageUrl: string | null): void {
-  if (activeResumePreviewUrl) URL.revokeObjectURL(activeResumePreviewUrl);
-  activeResumePreviewUrl = imageUrl;
-}
 const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
   'role_fit',
   'ats_keywords',
@@ -97,17 +83,6 @@ function formatDate(value: string): string {
   });
 }
 
-function isUnavailableAnalysis(analysis: ResumeAnalysis): boolean {
-  if (analysis.provider === 'none') return true;
-  const summary = analysis.summary.toLowerCase();
-  return (
-    analysis.overallScore === 0 &&
-    /(provider unavailable|could not be generated|no role-specific analysis|no resume text was provided|cannot assess role fit without a resume)/.test(
-      summary,
-    )
-  );
-}
-
 function saveResult(result: ResumeAnalysisResponse): void {
   window.sessionStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(result));
 }
@@ -121,103 +96,14 @@ export function readResumeAnalysisResult(): ResumeAnalysisResponse | null {
   }
 }
 
-function ResultList({
-  items,
-  emptyLabel,
-  ordered = false,
-}: {
-  items: string[];
-  emptyLabel: string;
-  ordered?: boolean;
-}) {
+function ResultList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
   if (items.length === 0) return <p className="resume-result__empty">{emptyLabel}</p>;
-  const ListTag = ordered ? 'ol' : 'ul';
   return (
-    <ListTag className={`resume-result__list${ordered ? ' resume-result__list--ordered' : ''}`}>
+    <ul className="resume-result__list">
       {items.map((item, index) => (
         <li key={`${item}-${index}`}>{item}</li>
       ))}
-    </ListTag>
-  );
-}
-
-function ResultChips({
-  items,
-  emptyLabel,
-  tone = 'match',
-}: {
-  items: string[];
-  emptyLabel: string;
-  tone?: 'match' | 'gap';
-}) {
-  if (items.length === 0) return <p className="resume-result__empty">{emptyLabel}</p>;
-  return (
-    <div className={`resume-result__chips resume-result__chips--${tone}`}>
-      {items.map((item, index) => (
-        <span key={`${item}-${index}`}>
-          {tone === 'match' ? '✓' : '+'} {item}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function ScoreGauge({ score, label }: { score: number; label: string }) {
-  const boundedScore = Math.max(0, Math.min(100, score));
-  const arcLength = Math.PI * 40;
-  const status = boundedScore > 69 ? 'Strong' : boundedScore > 49 ? 'Fair' : 'Needs work';
-  const statusClass =
-    boundedScore > 69 ? 'is-strong' : boundedScore > 49 ? 'is-fair' : 'is-developing';
-
-  return (
-    <div className="resume-report__gauge">
-      <div className="resume-report__gauge-visual">
-        <svg viewBox="0 0 100 55" aria-hidden="true">
-          <defs>
-            <linearGradient id="resumeReportGauge" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#8b5cf6" />
-              <stop offset="55%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#22d3ee" />
-            </linearGradient>
-          </defs>
-          <path className="resume-report__gauge-track" d="M10,50 A40,40 0 0,1 90,50" />
-          <path
-            className="resume-report__gauge-value"
-            d="M10,50 A40,40 0 0,1 90,50"
-            strokeDasharray={arcLength}
-            strokeDashoffset={arcLength * (1 - boundedScore / 100)}
-          />
-        </svg>
-        <strong>
-          {Math.round(boundedScore)}
-          <span>/100</span>
-        </strong>
-      </div>
-      <span className="resume-report__gauge-label">{label}</span>
-      <span className={`resume-report__status ${statusClass}`}>{status}</span>
-    </div>
-  );
-}
-
-function ResumePreview({ fileName }: { fileName: string }) {
-  if (activeResumePreviewUrl) {
-    return (
-      <div className="resume-review__image-frame">
-        <img
-          className="resume-review__image"
-          alt={`First-page image preview of ${fileName}`}
-          src={activeResumePreviewUrl}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="resume-review__preview-empty">
-      <span aria-hidden="true">IMG</span>
-      <strong>Resume image unavailable for this saved report</strong>
-      <p>Re-upload the resume to generate a first-page image preview during the current session.</p>
-    </div>
+    </ul>
   );
 }
 
@@ -227,9 +113,7 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
       <div className="resume-history__card-main">
         <div className="resume-history__file-row">
           <strong>{item.fileName}</strong>
-          <Badge tone={item.overallScore === 0 ? 'warning' : 'success'}>
-            {item.overallScore === 0 ? 'Needs re-analysis' : 'Completed'}
-          </Badge>
+          <Badge tone="success">Completed</Badge>
         </div>
         <p className="resume-history__target">
           {item.companyName} <span aria-hidden="true">•</span> {item.jobRole}
@@ -237,20 +121,12 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
         <p className="resume-history__date">Analyzed {formatDate(item.analyzedAt)}</p>
       </div>
       <div className="resume-history__card-action">
-        <div
-          className="resume-history__gauge"
-          style={{
-            background: `conic-gradient(#829d31 ${Math.max(0, Math.min(100, item.overallScore)) * 3.6}deg, #e1e5dd 0deg)`,
-          }}
-          aria-label={`${item.overallScore} out of 100 match score`}
-        >
-          <div>
-            <strong>{item.overallScore}</strong>
-            <span>/100</span>
-          </div>
+        <div>
+          <span className="resume-history__score-label">Match score</span>
+          <strong className="resume-history__score">{item.overallScore}%</strong>
         </div>
         <Button variant="outline" type="button" onClick={onView}>
-          View report
+          View analysis
         </Button>
       </div>
     </article>
@@ -259,7 +135,6 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
 
 export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) => void }) {
   const [items, setItems] = useState<ResumeAnalysisHistoryItem[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -285,50 +160,13 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
     };
   }, []);
 
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const visibleItems = normalizedQuery
-    ? items.filter((item) =>
-        [item.fileName, item.companyName, item.jobRole].some((value) =>
-          value.toLowerCase().includes(normalizedQuery),
-        ),
-      )
-    : items;
-
   return (
     <section className="page-frame resume-history-page">
-      <div className="resume-history__hero">
-        <div className="resume-history__hero-copy">
-          <p className="eyebrow">Your workspace</p>
-          <h1>Make your resume work harder.</h1>
-          <p>
-            Understand your signal, compare it with the role you want, and turn every analysis into
-            a stronger application plan.
-          </p>
-        </div>
-        <div className="resume-history__hero-points" aria-label="Resume Analyzer benefits">
-          <div>
-            <span>01</span>
-            <strong>See your signal</strong>
-            <p>Surface strengths and gaps shaping your next opportunity.</p>
-          </div>
-          <div>
-            <span>02</span>
-            <strong>Find your direction</strong>
-            <p>Turn role-aware evidence into practical next steps.</p>
-          </div>
-          <div>
-            <span>03</span>
-            <strong>Move with confidence</strong>
-            <p>Keep your reports in Pathfinder’s user-owned history.</p>
-          </div>
-        </div>
-      </div>
-
       <div className="page-frame__header resume-history__header">
         <div>
           <p className="eyebrow">Application readiness</p>
-          <h2>Resume history</h2>
-          <p className="page-lead">Revisit previous role comparisons and continue improving.</p>
+          <h1>Resume Analyzer</h1>
+          <p className="page-lead">Track your resume analyses and compare your applications.</p>
         </div>
         <Button
           variant="primary"
@@ -338,22 +176,6 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
           + Upload Resume
         </Button>
       </div>
-
-      {!isLoading && !errorMessage && items.length > 0 && (
-        <div className="resume-history__tools">
-          <label htmlFor="resume-history-search">Search analyses</label>
-          <input
-            id="resume-history-search"
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search by company, role, or filename..."
-          />
-          <span>
-            {visibleItems.length} {visibleItems.length === 1 ? 'analysis' : 'analyses'} shown
-          </span>
-        </div>
-      )}
 
       {isLoading ? (
         <Card title="Loading resume history" description="Retrieving your saved analyses securely.">
@@ -389,19 +211,9 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
             + Upload Resume
           </Button>
         </Card>
-      ) : visibleItems.length === 0 ? (
-        <Card
-          className="resume-history__empty"
-          title="No matching analyses"
-          description="Try a different company, role, or filename search."
-        >
-          <Button variant="outline" type="button" onClick={() => setSearchQuery('')}>
-            Clear search
-          </Button>
-        </Card>
       ) : (
         <div className="resume-history__list" aria-label="Resume analysis history">
-          {visibleItems.map((item) => (
+          {items.map((item) => (
             <HistoryCard
               key={item.id}
               item={item}
@@ -476,19 +288,6 @@ export function ResumeAnalysisResultsPage({
     );
   }
 
-  if (isUnavailableAnalysis(result.analysis)) {
-    return (
-      <section className="page-frame">
-        <ErrorState
-          title="Fresh analysis required"
-          description="This saved report does not contain a completed AI analysis. Upload the resume again to generate the current Puter-powered report instead of viewing a zero-value fallback."
-          actionLabel="Analyze Resume Again"
-          onAction={() => onNavigate('/resume-analyzer/upload')}
-        />
-      </section>
-    );
-  }
-
   const { analysis } = result;
   const preferredOutputs = analysis.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
   const roleFit = analysis.roleFit ?? analysis.summary;
@@ -497,20 +296,6 @@ export function ResumeAnalysisResultsPage({
   const interviewTopics = analysis.interviewTopics ?? [];
   const learningPlan = analysis.learningPlan ?? analysis.recommendations;
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
-  const evidenceTotal = analysis.matchingSkills.length + analysis.missingSkills.length;
-  const evidenceMatchRate = evidenceTotal
-    ? Math.round((analysis.matchingSkills.length / evidenceTotal) * 100)
-    : 0;
-  const categoryDetails = [
-    { title: 'Role fit', items: roleFit ? [roleFit] : [], enabled: shows('role_fit') },
-    {
-      title: 'Writing improvements',
-      items: analysis.improvements,
-      enabled: shows('writing_improvements'),
-    },
-    { title: 'Interview preparation', items: interviewTopics, enabled: shows('interview_prep') },
-    { title: 'Learning plan', items: learningPlan, enabled: shows('learning_plan') },
-  ].filter((group) => group.enabled);
   return (
     <section className="page-frame resume-results-page">
       <div className="page-frame__header">
@@ -522,209 +307,135 @@ export function ResumeAnalysisResultsPage({
             you provided.
           </p>
         </div>
-        <div className="resume-results__header-actions">
-          <Badge tone="success">{analysis.overallScore}% alignment</Badge>
-          <Button variant="outline" type="button" onClick={() => window.print()}>
-            Print / Save report
-          </Button>
-        </div>
+        <Badge tone="success">{analysis.overallScore}% alignment</Badge>
       </div>
 
-      <div className="resume-review__workspace">
-        <aside className="resume-review__preview" aria-label="Resume document preview">
-          <div className="resume-review__preview-header">
-            <p className="eyebrow">Resume document</p>
-            <strong>{result.fileName}</strong>
-            <span>PDF · session preview only</span>
+      <Card
+        className="resume-result__summary"
+        title="Executive summary"
+        description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
+      >
+        <div className="resume-result__summary-grid">
+          <div className="resume-result__summary-metric resume-result__summary-metric--score">
+            <span>Overall alignment</span>
+            <strong>{analysis.overallScore}%</strong>
+            <small>Evidence-based score</small>
           </div>
-          <ResumePreview fileName={result.fileName} />
-        </aside>
-
-        <div className="resume-review__report">
-          <header className="resume-report__header">
-            <div className="resume-report__identity">
-              <span className="resume-report__mark" aria-hidden="true">
-                PF
-              </span>
-              <div>
-                <p className="section-eyebrow">Pathfinder AI Resume Intelligence</p>
-                <h2>Resume Analysis Report</h2>
-              </div>
-            </div>
-            <div className="resume-report__meta">
-              <Badge tone="success">Completed</Badge>
-              <span>Generated {formatDate(result.analyzedAt)}</span>
-            </div>
-          </header>
-
-          <section
-            className="resume-report__panel resume-report__panel--summary"
-            aria-labelledby="resume-report-summary"
-          >
-            <div className="resume-report__section-heading">
-              <div>
-                <p className="section-eyebrow">Executive overview</p>
-                <h2 id="resume-report-summary">Analysis Summary</h2>
-              </div>
-              <span className="resume-report__report-id">{result.analysisId}</span>
-            </div>
-            <div className="resume-report__summary-hero">
-              <ScoreGauge score={analysis.overallScore} label="Overall resume score" />
-              <div className="resume-report__summary-copy">
-                <p className="resume-report__summary-lead">{analysis.summary}</p>
-                <div className="resume-report__summary-facts">
-                  <div>
-                    <span>Strongest evidence</span>
-                    <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
-                  </div>
-                  <div>
-                    <span>Priority gap</span>
-                    <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
-                  </div>
-                  <div>
-                    <span>Recommended next step</span>
-                    <p>{priorityActions[0] || 'Review the action plan below.'}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {shows('role_fit') && (
-            <Card
-              title="Role fit"
-              description="Why the supplied resume evidence aligns with the target role."
-            >
-              <p className="resume-result__lead">{roleFit}</p>
-            </Card>
-          )}
-
-          <div className="resume-result__grid resume-result__grid--two">
-            <Card
-              title="Matching skills"
-              description="Skills and keywords supported by both the resume and target role."
-            >
-              <ResultChips
-                items={analysis.matchingSkills}
-                emptyLabel="No direct matches were identified in the supplied evidence."
-              />
-            </Card>
-            <Card
-              title="Skills to strengthen"
-              description="Relevant requirements that are not clearly evidenced in the resume."
-            >
-              <ResultChips
-                items={analysis.missingSkills}
-                tone="gap"
-                emptyLabel="No major missing skills were identified."
-              />
-            </Card>
+          <div className="resume-result__summary-metric">
+            <span>Strongest evidence</span>
+            <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
           </div>
-
-          {shows('ats_keywords') && (
-            <Card
-              title="ATS Compatibility Analysis"
-              description="A focused review of role keywords and requirements that may affect screening."
-            >
-              <div className="resume-result__ats-metrics">
-                <div>
-                  <strong>{atsKeywords.length}</strong>
-                  <span>keywords to review</span>
-                </div>
-                <div>
-                  <strong>{analysis.missingSkills.length}</strong>
-                  <span>requirements to verify</span>
-                </div>
-              </div>
-              <ResultList
-                items={atsKeywords}
-                emptyLabel="No additional role keywords were identified."
-              />
-            </Card>
-          )}
-
-          <div className="resume-result__grid resume-result__grid--two">
-            <Card title="Strengths" description="Evidence that supports your target application.">
-              <ResultList
-                items={analysis.strengths}
-                emptyLabel="No strengths were returned by the analysis."
-              />
-            </Card>
-            <Card
-              title="Improvement areas"
-              description="Specific changes that can make the resume clearer and more persuasive."
-            >
-              <ResultList
-                items={analysis.improvements}
-                emptyLabel="No improvement areas were returned by the analysis."
-              />
-            </Card>
+          <div className="resume-result__summary-metric">
+            <span>Priority gap</span>
+            <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
           </div>
-
-          {shows('writing_improvements') && (
-            <Card
-              title="Resume writing improvements"
-              description="Changes that can improve clarity without inventing experience."
-            >
-              <ResultList
-                items={analysis.improvements}
-                emptyLabel="No writing improvements were returned."
-              />
-            </Card>
-          )}
-
-          {shows('interview_prep') && (
-            <Card
-              title="Interview preparation"
-              description="Topics grounded in the evidence supplied for this application."
-            >
-              <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
-            </Card>
-          )}
-
-          {shows('learning_plan') && (
-            <Card
-              title="Learning plan"
-              description="A short sequence for closing relevant skill gaps."
-            >
-              <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
-            </Card>
-          )}
-
-          <Card
-            title="Recommended action plan"
-            description="Prioritized next steps for this application."
-          >
-            <ResultList
-              ordered
-              items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
-              emptyLabel="No recommendations were returned by the analysis."
-            />
-          </Card>
-
-          {categoryDetails.length > 0 && (
-            <Card
-              title="Category Detailed Breakdown"
-              description="Open each category to review the evidence and next steps returned by the analysis."
-            >
-              <div className="resume-result__details">
-                {categoryDetails.map((group) => (
-                  <details key={group.title} open>
-                    <summary>
-                      <span>{group.title}</span>
-                      <span>{group.items.length} findings</span>
-                    </summary>
-                    <ResultList
-                      items={group.items}
-                      emptyLabel={`No ${group.title.toLowerCase()} findings were returned.`}
-                    />
-                  </details>
-                ))}
-              </div>
-            </Card>
-          )}
+          <div className="resume-result__summary-metric">
+            <span>Recommended next step</span>
+            <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+          </div>
         </div>
+        <div className="resume-result__summary-copy">
+          <span>Executive assessment</span>
+          <p>{analysis.summary}</p>
+        </div>
+      </Card>
+
+      {shows('role_fit') && (
+        <Card
+          title="Role fit"
+          description="Why the supplied resume evidence aligns with the target role."
+        >
+          <p className="resume-result__lead">{roleFit}</p>
+        </Card>
+      )}
+
+      <div className="resume-result__grid resume-result__grid--two">
+        <Card
+          title="Matching skills"
+          description="Skills and keywords supported by both the resume and target role."
+        >
+          <ResultList
+            items={analysis.matchingSkills}
+            emptyLabel="No direct matches were identified in the supplied evidence."
+          />
+        </Card>
+        <Card
+          title="Skills to strengthen"
+          description="Relevant requirements that are not clearly evidenced in the resume."
+        >
+          <ResultList
+            items={analysis.missingSkills}
+            emptyLabel="No major missing skills were identified."
+          />
+        </Card>
       </div>
+
+      {shows('ats_keywords') && (
+        <Card
+          title="ATS keywords to review"
+          description="Use only terms that accurately describe your experience."
+        >
+          <ResultList
+            items={atsKeywords}
+            emptyLabel="No additional role keywords were identified."
+          />
+        </Card>
+      )}
+
+      <div className="resume-result__grid resume-result__grid--two">
+        <Card title="Strengths" description="Evidence that supports your target application.">
+          <ResultList
+            items={analysis.strengths}
+            emptyLabel="No strengths were returned by the analysis."
+          />
+        </Card>
+        <Card
+          title="Improvement areas"
+          description="Specific changes that can make the resume clearer and more persuasive."
+        >
+          <ResultList
+            items={analysis.improvements}
+            emptyLabel="No improvement areas were returned by the analysis."
+          />
+        </Card>
+      </div>
+
+      {shows('writing_improvements') && (
+        <Card
+          title="Resume writing improvements"
+          description="Changes that can improve clarity without inventing experience."
+        >
+          <ResultList
+            items={analysis.improvements}
+            emptyLabel="No writing improvements were returned."
+          />
+        </Card>
+      )}
+
+      {shows('interview_prep') && (
+        <Card
+          title="Interview preparation"
+          description="Topics grounded in the evidence supplied for this application."
+        >
+          <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
+        </Card>
+      )}
+
+      {shows('learning_plan') && (
+        <Card title="Learning plan" description="A short sequence for closing relevant skill gaps.">
+          <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
+        </Card>
+      )}
+
+      <Card
+        title="Recommended action plan"
+        description="Prioritized next steps for this application."
+      >
+        <ResultList
+          items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
+          emptyLabel="No recommendations were returned by the analysis."
+        />
+      </Card>
 
       <div className="resume-results__actions">
         <Button
@@ -813,7 +524,8 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     setErrorMessage('');
   }, [companyName, jobRole, jobDescription, preferredOutputs, file]);
 
-  function applySelectedFile(selected: File | null): void {
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = event.target.files?.[0] ?? null;
     if (!selected) {
       setFile(null);
       return;
@@ -821,31 +533,16 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     if (selected.type !== 'application/pdf' || !selected.name.toLowerCase().endsWith('.pdf')) {
       setFile(null);
       setErrorMessage('Please upload your resume as a PDF file.');
+      event.target.value = '';
       return;
     }
     if (selected.size > MAX_FILE_BYTES) {
       setFile(null);
       setErrorMessage('Your PDF must be 8 MB or smaller.');
+      event.target.value = '';
       return;
     }
     setFile(selected);
-  }
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    applySelectedFile(event.target.files?.[0] ?? null);
-    if (!event.target.files?.[0]) return;
-    if (
-      event.target.files[0].type !== 'application/pdf' ||
-      !event.target.files[0].name.toLowerCase().endsWith('.pdf') ||
-      event.target.files[0].size > MAX_FILE_BYTES
-    ) {
-      event.target.value = '';
-    }
-  }
-
-  function handleFileDrop(event: DragEvent<HTMLDivElement>) {
-    event.preventDefault();
-    applySelectedFile(event.dataTransfer.files?.[0] ?? null);
   }
 
   function removeFile() {
@@ -871,19 +568,14 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     }
     setIsAnalyzing(true);
     setErrorMessage('');
-    const previewPromise = createResumeImagePreview(file);
     try {
-      const [result, preview] = await Promise.all([
-        analyzeResumeWithPuter({
-          companyName,
-          jobRole,
-          jobDescription,
-          preferredOutputs,
-          file,
-        }),
-        previewPromise,
-      ]);
-      setActiveResumePreviewUrl(preview?.imageUrl ?? null);
+      const result = await analyzeResumeWithPuter({
+        companyName,
+        jobRole,
+        jobDescription,
+        preferredOutputs,
+        file,
+      });
       saveResult(result);
       onNavigate(`/resume-analyzer/results/${encodeURIComponent(result.analysisId)}`);
     } catch (error: unknown) {
@@ -901,11 +593,11 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     <section className="page-frame resume-analyzer-page">
       <div className="page-frame__header">
         <div>
-          <p className="eyebrow">New analysis</p>
-          <h1>Smart feedback for your dream role.</h1>
+          <p className="eyebrow">Application readiness</p>
+          <h1>Upload Resume</h1>
           <p className="page-lead">
-            Drop your resume for an ATS-aware score, role-specific skill match, and practical
-            improvement plan.
+            Compare your resume with a target role and turn the results into practical career
+            guidance.
           </p>
         </div>
         <Badge tone="neutral">PDF · up to 8 MB</Badge>
@@ -1021,30 +713,16 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 ))}
               </div>
             </fieldset>
-            <div className="form-field">
-              <span id="resume-file-label">Resume PDF</span>
-              <div
-                className="resume-file-dropzone"
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={handleFileDrop}
-              >
-                <input
-                  ref={fileInputRef}
-                  id="resume-file"
-                  className="resume-file-dropzone__input"
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  aria-labelledby="resume-file-label"
-                  onChange={handleFileChange}
-                  required={!file}
-                />
-                <span className="resume-file-dropzone__icon" aria-hidden="true">
-                  ↑
-                </span>
-                <strong>Click to upload or drag and drop</strong>
-                <small>PDF · up to 8 MB</small>
-              </div>
-            </div>
+            <label className="form-field">
+              <span>Resume PDF</span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={handleFileChange}
+                required={!file}
+              />
+            </label>
             {file && (
               <div className="resume-file__selected">
                 <div>
