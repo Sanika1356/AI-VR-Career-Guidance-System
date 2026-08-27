@@ -96,6 +96,15 @@ function formatDate(value: string): string {
   });
 }
 
+function isUnavailableAnalysis(analysis: ResumeAnalysis): boolean {
+  if (analysis.provider === 'none') return true;
+  const summary = analysis.summary.toLowerCase();
+  return (
+    analysis.overallScore === 0 &&
+    /(provider unavailable|could not be generated|no role-specific analysis)/.test(summary)
+  );
+}
+
 function saveResult(result: ResumeAnalysisResponse): void {
   window.sessionStorage.setItem(RESULT_STORAGE_KEY, JSON.stringify(result));
 }
@@ -213,7 +222,9 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
       <div className="resume-history__card-main">
         <div className="resume-history__file-row">
           <strong>{item.fileName}</strong>
-          <Badge tone="success">Completed</Badge>
+          <Badge tone={item.overallScore === 0 ? 'warning' : 'success'}>
+            {item.overallScore === 0 ? 'Needs re-analysis' : 'Completed'}
+          </Badge>
         </div>
         <p className="resume-history__target">
           {item.companyName} <span aria-hidden="true">•</span> {item.jobRole}
@@ -455,6 +466,19 @@ export function ResumeAnalysisResultsPage({
           }
           actionLabel="Back to Resume History"
           onAction={() => onNavigate('/resume-analyzer')}
+        />
+      </section>
+    );
+  }
+
+  if (isUnavailableAnalysis(result.analysis)) {
+    return (
+      <section className="page-frame">
+        <ErrorState
+          title="Fresh analysis required"
+          description="This saved report does not contain a completed AI analysis. Upload the resume again to generate the current Puter-powered report instead of viewing a zero-value fallback."
+          actionLabel="Analyze Resume Again"
+          onAction={() => onNavigate('/resume-analyzer/upload')}
         />
       </section>
     );
