@@ -4,6 +4,7 @@ import {
   type ResumeAnalysisResponse,
   type ResumeOutputFocus,
 } from './resume-analyzer';
+import { getPuterResponseText } from './puter-response';
 
 interface PuterFile {
   path?: unknown;
@@ -11,17 +12,7 @@ interface PuterFile {
 
 type PuterUploadResult = PuterFile | PuterFile[] | undefined;
 
-type PuterContentPart = {
-  text?: unknown;
-  type?: unknown;
-};
-
-type PuterChatResponse = {
-  message?: {
-    content?: unknown;
-  };
-  content?: unknown;
-};
+type PuterChatResponse = unknown;
 
 type PuterApi = {
   auth: {
@@ -112,26 +103,6 @@ function buildPrompt(
     AI_RESPONSE_FORMAT,
     'overallScore must be an integer from 0 to 100. Keep every list to no more than 5 concise items, with each item under 20 words. summary must be 2–3 concise sentences under 80 words. roleFit must be under 100 words. Keep all content evidence-based, relevant to the supplied role, and actionable. priorityActions must be ordered by impact, interviewTopics must be grounded in the resume, and learningPlan must be a short skill-building sequence. Do not include URLs.',
   ].join('\n\n');
-}
-
-function getResponseText(response: PuterChatResponse | string): string {
-  if (typeof response === 'string') return response;
-  const content = response.message?.content ?? response.content;
-  if (typeof content === 'string') return content;
-  if (Array.isArray(content)) {
-    const textParts = content
-      .map((part: unknown) => {
-        if (typeof part === 'string') return part;
-        if (part && typeof part === 'object' && 'text' in part) {
-          const text = (part as PuterContentPart).text;
-          return typeof text === 'string' ? text : '';
-        }
-        return '';
-      })
-      .filter(Boolean);
-    if (textParts.length > 0) return textParts.join('');
-  }
-  throw new Error('The AI returned an unexpected response format. Please try again.');
 }
 
 function extractJsonFromText(text: string): Record<string, unknown> {
@@ -303,7 +274,7 @@ export async function analyzeResumeWithPuter(input: {
     );
     if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
 
-    const analysis = normalizeAnalysis(extractJsonFromText(getResponseText(response)));
+    const analysis = normalizeAnalysis(extractJsonFromText(getPuterResponseText(response)));
     return persistPuterResumeAnalysis({
       companyName: input.companyName,
       jobRole: input.jobRole,
