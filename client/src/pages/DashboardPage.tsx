@@ -3,9 +3,8 @@ import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
 import { ProgressBar } from '../components/ProgressBar';
-import { getDashboard } from '../services/dashboard';
 import { getProfile } from '../services/profile';
-import type { DashboardResponse, ProfileResponse } from '../types/domain';
+import type { ProfileResponse } from '../types/domain';
 
 interface DashboardPageProps {
   onNavigate: (href: string) => void;
@@ -19,18 +18,8 @@ function countPreferenceValues(preferences: Record<string, unknown>) {
   }).length;
 }
 
-function formatDate(value: string | null) {
-  if (!value) return 'No target date';
-  return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,12 +28,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     setError(null);
 
     try {
-      const [profileResponse, dashboardResponse] = await Promise.all([
-        getProfile(),
-        getDashboard(),
-      ]);
+      const profileResponse = await getProfile();
       setProfile(profileResponse);
-      setDashboard(dashboardResponse);
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : 'Unable to load your dashboard.',
@@ -90,7 +75,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     );
   }
 
-  if (error || !profile || !profileSummary || !dashboard) {
+  if (error || !profile || !profileSummary) {
     return (
       <div className="page-frame page-frame--narrow">
         <ErrorState
@@ -103,9 +88,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   }
 
   const firstName = profile.user.name.split(' ')[0] || 'there';
-  const latest = dashboard.recommendationChanges.latest;
-  const previous = dashboard.recommendationChanges.previous;
-
   return (
     <div className="page-frame dashboard-page">
       <header className="page-frame__header dashboard-page__header">
@@ -158,77 +140,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <span className="dashboard-stat-card__label">skills listed</span>
         </Card>
       </section>
-
-      <section
-        className="dashboard-execution-grid dashboard-execution-grid--single"
-        aria-label="Roadmap execution details"
-      >
-        <Card title="Active milestones" description="Roadmap steps you have marked as in progress.">
-          {dashboard.roadmap.activeMilestones.length > 0 ? (
-            <div className="dashboard-list">
-              {dashboard.roadmap.activeMilestones.map((milestone) => (
-                <div className="dashboard-list__item" key={milestone.stepId}>
-                  <div>
-                    <strong>{milestone.title}</strong>
-                    <small>
-                      {milestone.skill} · target {formatDate(milestone.targetDate)}
-                    </small>
-                  </div>
-                  {milestone.notes && <p>{milestone.notes}</p>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="muted-text">
-              No active milestones yet. Choose a roadmap step when you are ready.
-            </p>
-          )}
-          <button
-            className="text-link"
-            type="button"
-            onClick={() => onNavigate('/recommendations')}
-          >
-            Review career roadmaps <span aria-hidden="true">↗</span>
-          </button>
-        </Card>
-      </section>
-
-      <Card
-        className="dashboard-recommendation-change"
-        title="Recommendation changes"
-        description="A comparison of your two most recent completed assessment results, when available."
-      >
-        {latest ? (
-          <div className="dashboard-recommendation-change__content">
-            <div>
-              <strong>{latest.topCareerIds.length} current career signals</strong>
-              <small>
-                Latest assessment completed {new Date(latest.completedAt).toLocaleDateString()}
-              </small>
-            </div>
-            {previous ? (
-              <div>
-                <strong>
-                  {dashboard.recommendationChanges.changedCareerIds.length} changed career signal
-                  {dashboard.recommendationChanges.changedCareerIds.length === 1 ? '' : 's'}
-                </strong>
-                <small>Compared with the previous completed assessment</small>
-              </div>
-            ) : (
-              <p className="muted-text">
-                Complete another assessment later to compare changes over time.
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="muted-text">
-            Complete the assessment to start tracking recommendation changes.
-          </p>
-        )}
-        <button className="text-link" type="button" onClick={() => onNavigate('/recommendations')}>
-          View Job Insights <span aria-hidden="true">↗</span>
-        </button>
-      </Card>
 
       <section className="dashboard-next" aria-labelledby="dashboard-next-title">
         <div className="section-heading">
