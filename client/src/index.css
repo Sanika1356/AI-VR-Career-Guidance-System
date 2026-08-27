@@ -2847,10 +2847,7 @@ em {
 }
 
 .dashboard-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.75fr);
-  gap: 1.15rem;
-  align-items: stretch;
+  display: block;
 }
 
 .dashboard-hero__copy,
@@ -2862,7 +2859,8 @@ em {
 }
 
 .dashboard-hero__copy {
-  padding: clamp(2rem, 5vw, 4rem);
+  min-height: 31rem;
+  padding: clamp(2.5rem, 7vw, 6rem);
   border: 1px solid #dfddd5;
   background: linear-gradient(135deg, #fbfaf7 0%, #f0eee6 100%);
 }
@@ -3303,12 +3301,9 @@ em {
 }
 
 @media (max-width: 980px) {
-  .dashboard-hero {
+  .dashboard-profile-layout,
+  .dashboard-assessment-grid {
     grid-template-columns: 1fr;
-  }
-
-  .dashboard-signal-card {
-    min-height: 18rem;
   }
 }
 
@@ -3328,7 +3323,8 @@ em {
   }
 
   .dashboard-hero__copy {
-    padding: 1.5rem;
+    min-height: 25rem;
+    padding: 2rem 1.5rem;
   }
 
   .dashboard-hero h1 {
