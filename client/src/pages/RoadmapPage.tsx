@@ -221,7 +221,8 @@ export function RoadmapPage({ careerId, onNavigate }: RoadmapPageProps) {
   }, [loadRoadmap]);
 
   const completedCount = useMemo(
-    () => roadmap?.steps.filter((step) => step.completed).length ?? 0,
+    () =>
+      roadmap?.steps.filter((step) => step.completed || step.status === 'completed').length ?? 0,
     [roadmap],
   );
   const totalSteps = roadmap?.steps.length ?? 0;

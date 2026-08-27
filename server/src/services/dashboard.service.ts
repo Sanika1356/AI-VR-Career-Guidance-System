@@ -135,8 +135,14 @@ export async function getDashboard(
       await Promise.all([
         client.query<RoadmapDashboardRow>(
           `SELECT rs.id, rs.title, rs.skill,
-                COALESCE(rp.completed, FALSE) AS completed,
-                COALESCE(rp.status, CASE WHEN rp.completed THEN 'completed' ELSE 'not_started' END) AS status,
+                CASE
+                  WHEN rp.status = 'completed' OR rp.completed IS TRUE THEN TRUE
+                  ELSE FALSE
+                END AS completed,
+                CASE
+                  WHEN rp.status = 'completed' OR rp.completed IS TRUE THEN 'completed'
+                  ELSE COALESCE(rp.status, 'not_started')
+                END AS status,
                 rp.target_date,
                 COALESCE(rp.notes, '') AS notes,
                 COALESCE(rp.position, rs.display_order) AS position,
@@ -148,8 +154,15 @@ export async function getDashboard(
         ),
         client.query<ActivityDateRow>(
           `SELECT DISTINCT activity_date
-         FROM roadmap_progress_events
-         WHERE user_id = $1
+         FROM (
+           SELECT activity_date
+           FROM roadmap_progress_events
+           WHERE user_id = $1
+           UNION ALL
+           SELECT (updated_at AT TIME ZONE 'UTC')::date AS activity_date
+           FROM roadmap_progress
+           WHERE user_id = $1
+         ) AS roadmap_activity
          ORDER BY activity_date DESC
          LIMIT 365`,
           [userId],
@@ -165,7 +178,9 @@ export async function getDashboard(
       ]);
 
     const roadmapRows = roadmapResult.rows;
-    const completedRows = roadmapRows.filter((row) => Boolean(row.completed));
+    const completedRows = roadmapRows.filter(
+      (row) => Boolean(row.completed) || row.status === "completed",
+    );
     const activeMilestones = roadmapRows
       .filter((row) => row.status === "in_progress")
       .map((row) => ({

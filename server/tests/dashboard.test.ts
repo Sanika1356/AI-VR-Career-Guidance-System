@@ -23,7 +23,8 @@ class DashboardClient implements DatabaseClient {
           id: "roadmap_ai_python",
           title: "Build Python foundations",
           skill: "Python",
-          completed: true,
+          // Legacy rows can have the right status but a stale completion flag.
+          completed: false,
           status: "completed",
           target_date: null,
           notes: "Review list and dict patterns.",
@@ -146,6 +147,45 @@ test("getDashboard returns user-owned progress and recommendation changes", asyn
     response.recommendationChanges.previous?.resultId,
     "result_previous",
   );
+});
+
+class LegacyActivityDashboardClient implements DatabaseClient {
+  async query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+  ): Promise<QueryResult<T>> {
+    if (sql.includes("FROM roadmap_steps rs")) {
+      return queryResult([
+        {
+          id: "roadmap_ai_python",
+          title: "Build Python foundations",
+          skill: "Python",
+          completed: false,
+          status: "in_progress",
+          target_date: null,
+          notes: "",
+          position: 1,
+          updated_at: "2026-08-27T08:00:00.000Z",
+        },
+      ]) as QueryResult<T>;
+    }
+    if (sql.includes("roadmap_progress_events")) {
+      return sql.includes("UNION ALL")
+        ? (queryResult([{ activity_date: "2026-08-27" }]) as QueryResult<T>)
+        : (queryResult([]) as QueryResult<T>);
+    }
+    return queryResult([]) as QueryResult<T>;
+  }
+
+  release(): void {}
+}
+
+test("dashboard uses legacy roadmap updates for the learning streak", async () => {
+  const response = await getDashboard(
+    "user_demo",
+    poolFor(new LegacyActivityDashboardClient()),
+  );
+
+  assert.deepEqual(response.streaks.activityDates, ["2026-08-27"]);
 });
 
 test("dashboard endpoint requires bearer authentication", async () => {
