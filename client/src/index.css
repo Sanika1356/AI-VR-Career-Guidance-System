@@ -2951,8 +2951,7 @@ em {
   content: '';
 }
 
-.dashboard-signal-card__topline,
-.dashboard-readiness-card__footer {
+.dashboard-signal-card__topline {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3041,14 +3040,12 @@ em {
 .dashboard-profile-layout,
 .dashboard-assessment-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.15rem;
 }
 
 .dashboard-profile-card,
-.dashboard-readiness-card,
 .dashboard-assessment-card,
-.dashboard-plan-card,
 .dashboard-action-card {
   min-height: 100%;
   border-color: #dfddd5;
@@ -3101,39 +3098,6 @@ em {
   margin-top: 1.1rem;
 }
 
-.dashboard-readiness-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-readiness-card__metric,
-.dashboard-plan-card__metric {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin: 0.5rem 0 1.1rem;
-}
-
-.dashboard-readiness-card__metric strong,
-.dashboard-plan-card__metric strong {
-  color: #526a21;
-  font-size: clamp(2.8rem, 6vw, 4.7rem);
-  letter-spacing: -0.09em;
-  line-height: 0.9;
-}
-
-.dashboard-readiness-card__metric span,
-.dashboard-plan-card__metric span {
-  color: #656a66;
-  font-size: 0.78rem;
-  line-height: 1.4;
-}
-
-.dashboard-readiness-card__footer {
-  margin-top: auto;
-  padding-top: 1.25rem;
-}
-
 .dashboard-assessment-layout,
 .dashboard-actions {
   display: grid;
@@ -3161,8 +3125,7 @@ em {
   margin-bottom: 0.2rem;
 }
 
-.dashboard-assessment-card,
-.dashboard-plan-card {
+.dashboard-assessment-card {
   display: flex;
   flex-direction: column;
 }
@@ -3252,21 +3215,11 @@ em {
   font-size: 1.05rem;
 }
 
-.dashboard-assessment-card__empty-copy p,
-.dashboard-plan-card__note {
+.dashboard-assessment-card__empty-copy p {
   margin: 0.45rem 0 0;
   color: #6f756c;
   font-size: 0.84rem;
   line-height: 1.55;
-}
-
-.dashboard-plan-card__note {
-  margin-top: 1.25rem;
-}
-
-.dashboard-plan-card .text-link {
-  margin-top: auto;
-  padding-top: 1.2rem;
 }
 
 .dashboard-action-grid {
@@ -3350,9 +3303,7 @@ em {
 }
 
 @media (max-width: 980px) {
-  .dashboard-hero,
-  .dashboard-profile-layout,
-  .dashboard-assessment-grid {
+  .dashboard-hero {
     grid-template-columns: 1fr;
   }
 

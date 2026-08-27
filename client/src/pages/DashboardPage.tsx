@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
-import { ProgressBar } from '../components/ProgressBar';
 import { getDashboard } from '../services/dashboard';
 import { getProfile } from '../services/profile';
 import { getRecommendations } from '../services/recommendations';
@@ -12,27 +11,11 @@ interface DashboardPageProps {
   onNavigate: (href: string) => void;
 }
 
-function countPreferenceValues(preferences: Record<string, unknown>) {
-  return Object.values(preferences).filter((value) => {
-    if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'string') return value.trim().length > 0;
-    return Boolean(value);
-  }).length;
-}
-
 function formatCareerName(value: string) {
   return value
     .replace(/^career_/, '')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function formatStage(value: string | null) {
-  if (!value) return 'Career stage not set';
-  return value
-    .split('-')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 }
 
 function formatTimeBudget(minutes: number | null) {
@@ -102,22 +85,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     if (!profile) return null;
 
     const { interests, currentSkills, experience, learningPreferences } = profile.profile;
-    const completedSections = [
-      interests.length > 0,
-      currentSkills.length > 0,
-      experience.trim().length > 0,
-      countPreferenceValues(learningPreferences) > 0,
-    ].filter(Boolean).length;
 
     return {
-      completedSections,
-      totalSections: 4,
-      completion: Math.round((completedSections / 4) * 100),
       focus: interests[0] || 'Choose a career interest',
       skill: currentSkills[0] || 'Add your strongest skill',
       goal: profile.profile.goals[0] || 'Explore career options',
       experience: experience || 'Experience level not set',
-      stage: formatStage(profile.profile.educationStage),
       workStyle: profile.profile.preferredWorkConditions[0] || 'Work style not set',
       location: profile.profile.locationPreference || 'Location preference not set',
       timeBudget: formatTimeBudget(profile.profile.weeklyTimeBudgetMinutes),
@@ -260,28 +233,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             Refine your profile <span aria-hidden="true">↗</span>
           </button>
         </Card>
-
-        <Card
-          className="dashboard-readiness-card"
-          title="Profile readiness"
-          description="Complete context helps every recommendation become more specific."
-        >
-          <div className="dashboard-readiness-card__metric">
-            <strong>{profileSummary.completion}%</strong>
-            <span>
-              {profileSummary.completedSections} of {profileSummary.totalSections} core signals
-              ready
-            </span>
-          </div>
-          <ProgressBar value={profileSummary.completion} label="Profile completion" />
-          <div className="dashboard-readiness-card__footer">
-            <span className="dashboard-status dashboard-status--neutral">
-              {profileSummary.completion === 100
-                ? 'Ready for tailored guidance'
-                : 'A few details can sharpen your results'}
-            </span>
-          </div>
-        </Card>
       </section>
 
       <section className="dashboard-assessment-layout" aria-labelledby="assessment-signal-title">
@@ -343,35 +294,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               onClick={() => onNavigate(assessmentRoute)}
             >
               {assessmentCta} <span aria-hidden="true">↗</span>
-            </button>
-          </Card>
-
-          <Card
-            className="dashboard-plan-card"
-            title="Your action plan"
-            description="Use a strong career signal as the bridge from insight to progress."
-          >
-            <div className="dashboard-plan-card__metric">
-              <strong>{dashboard.roadmap.completionPercent}%</strong>
-              <span>
-                {dashboard.roadmap.totalSteps > 0
-                  ? `${dashboard.roadmap.completedSteps} of ${dashboard.roadmap.totalSteps} roadmap steps complete`
-                  : 'No roadmap started yet'}
-              </span>
-            </div>
-            <ProgressBar value={dashboard.roadmap.completionPercent} label="Roadmap completion" />
-            <p className="dashboard-plan-card__note">
-              {dashboard.roadmap.totalSteps > 0
-                ? 'Keep your momentum visible and revisit the next skill whenever your priorities change.'
-                : 'Choose a career path to turn your assessment into a focused learning plan.'}
-            </p>
-            <button
-              className="text-link"
-              type="button"
-              onClick={() => onNavigate(hasAssessment ? '/recommendations' : '/careers')}
-            >
-              {dashboard.roadmap.totalSteps > 0 ? 'Continue your roadmap' : 'Explore career paths'}{' '}
-              <span aria-hidden="true">↗</span>
             </button>
           </Card>
         </div>
