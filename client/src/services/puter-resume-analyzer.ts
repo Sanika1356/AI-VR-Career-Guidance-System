@@ -31,6 +31,7 @@ type PuterApi = {
     delete?: (path: string) => Promise<void>;
   };
   ai: {
+    feedback?: (path: string, message: string) => Promise<PuterChatResponse | string | undefined>;
     chat: (
       prompt: unknown,
       imageURL?: string | Record<string, unknown>,
@@ -273,22 +274,24 @@ export async function analyzeResumeWithPuter(input: {
     const preferredOutputs = input.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
     const prompt = buildPrompt(input.jobRole, input.jobDescription, preferredOutputs);
     const response = await withTimeout(
-      puter.ai.chat(
-        [
-          {
-            role: 'user',
-            content: [
-              { type: 'file', puter_path: puterPath },
-              { type: 'text', text: prompt },
+      typeof puter.ai.feedback === 'function'
+        ? puter.ai.feedback(puterPath, prompt)
+        : puter.ai.chat(
+            [
+              {
+                role: 'user',
+                content: [
+                  { type: 'file', puter_path: puterPath },
+                  { type: 'text', text: prompt },
+                ],
+              },
             ],
-          },
-        ],
-        {
-          model: 'google/gemini-3.5-flash-lite',
-          max_tokens: 700,
-          temperature: 0.2,
-        },
-      ),
+            {
+              model: 'claude-sonnet-4-6',
+              max_tokens: 700,
+              temperature: 0.2,
+            },
+          ),
       AI_TIMEOUT_MS,
     );
     if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
