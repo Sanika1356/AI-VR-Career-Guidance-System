@@ -85,9 +85,9 @@ const routes: Record<
       'Explore a broad catalog of careers and discover which paths fit your next chapter.',
   },
   recommendations: {
-    title: 'Career recommendations',
+    title: 'Job Insights',
     description:
-      'Explore ranked career paths with transparent reasons, matched skills, and next steps.',
+      'Explore ranked career paths with transparent reasons, matched skills, job searches, and next steps.',
   },
   'skill-gap': {
     title: 'Understand your skill gap',

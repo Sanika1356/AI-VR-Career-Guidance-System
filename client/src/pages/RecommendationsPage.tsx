@@ -9,6 +9,7 @@ import { ProgressBar } from '../components/ProgressBar';
 import type { AssessmentExplanation, Recommendation } from '../types/domain';
 import { getAssessmentResult } from '../services/assessment';
 import { getRecommendations } from '../services/recommendations';
+import { JOB_MARKET_PLATFORMS } from '../lib/jobMarket';
 
 interface RecommendationsPageProps {
   onNavigate: (href: string) => void;
@@ -25,6 +26,33 @@ function SkillList({ skills, tone }: { skills: string[]; tone: 'matched' | 'miss
         <li key={skill}>{skill}</li>
       ))}
     </ul>
+  );
+}
+
+function JobMarketChooser({ role }: { role: string }) {
+  return (
+    <details className="job-opportunity__chooser">
+      <summary className="job-opportunity__apply-button">
+        Apply for jobs <span aria-hidden="true">↗</span>
+      </summary>
+      <div className="job-opportunity__links" aria-label={`${role} job platforms`}>
+        {JOB_MARKET_PLATFORMS.map((platform) => (
+          <a
+            className="job-opportunity__link"
+            href={platform.buildUrl(role)}
+            key={platform.label}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span>
+              <strong>{platform.label}</strong>
+              <small>{platform.description}</small>
+            </span>
+            <span aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -84,6 +112,30 @@ function RecommendationCard({
           <SkillList skills={recommendation.missingSkills} tone="missing" />
         </div>
       </div>
+      <section
+        className="recommendation-card__jobs"
+        aria-label={`${recommendation.career} job insights`}
+      >
+        <div className="recommendation-card__jobs-heading">
+          <div>
+            <p className="eyebrow">Job insights</p>
+            <h3>Explore roles in this path</h3>
+          </div>
+          <p>
+            Compare live searches for {recommendation.career} openings across leading job platforms.
+          </p>
+        </div>
+        <div className="job-opportunity job-opportunity--recommendation">
+          <div className="job-opportunity__role">
+            <strong>{recommendation.career}</strong>
+            <small>Current openings and requirements</small>
+          </div>
+          <JobMarketChooser role={recommendation.career} />
+        </div>
+        <p className="job-opportunity-note">
+          Availability and filters are controlled by each job platform and may change frequently.
+        </p>
+      </section>
       <Button
         variant="outline"
         type="button"
@@ -165,10 +217,10 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
       <header className="page-frame__header recommendations-page__header">
         <div>
           <p className="eyebrow">Your next possibilities</p>
-          <h1>Career recommendations</h1>
+          <h1>Job Insights</h1>
           <p>
-            These paths are ranked from your assessment signals and current skills. Use them as
-            thoughtful starting points, not as a guarantee of what you should become.
+            These career paths are ranked from your assessment signals and current skills. Use them
+            as thoughtful starting points, not as a guarantee of what you should become.
           </p>
         </div>
         <Button variant="outline" type="button" onClick={() => onNavigate('/assessment')}>

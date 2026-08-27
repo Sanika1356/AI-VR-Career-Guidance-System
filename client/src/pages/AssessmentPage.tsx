@@ -318,7 +318,7 @@ function AssessmentCompleted({
           Refine your profile
         </Button>
         <Button type="button" onClick={() => onNavigate?.('/recommendations')}>
-          Explore recommendations <span aria-hidden="true">↗</span>
+          Explore Job Insights <span aria-hidden="true">↗</span>
         </Button>
       </div>
       <p className="assessment-complete__timestamp">

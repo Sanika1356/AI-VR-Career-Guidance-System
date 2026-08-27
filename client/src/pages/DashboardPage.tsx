@@ -287,7 +287,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </p>
         )}
         <button className="text-link" type="button" onClick={() => onNavigate('/recommendations')}>
-          View recommendations <span aria-hidden="true">↗</span>
+          View Job Insights <span aria-hidden="true">↗</span>
         </button>
       </Card>
 
@@ -322,14 +322,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <Card
             className="dashboard-action-card dashboard-action-card--warm"
             title="Review your guidance"
-            description="See ranked recommendations and turn the strongest match into a skill-gap and roadmap plan."
+            description="See ranked Job Insights and turn the strongest match into a skill-gap and roadmap plan."
           >
             <button
               className="outline-button"
               type="button"
               onClick={() => onNavigate('/recommendations')}
             >
-              View recommendations <span aria-hidden="true">↗</span>
+              View Job Insights <span aria-hidden="true">↗</span>
             </button>
           </Card>
         </div>
