@@ -162,20 +162,33 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   }, []);
 
   return (
-    <section className="page-frame resume-history-page">
-      <div className="page-frame__header resume-history__header">
-        <div>
+    <section className="page-frame resume-history-page resume-theme-page">
+      <div className="resume-theme-hero resume-history__hero">
+        <div className="resume-theme-hero__copy">
           <p className="eyebrow">Application readiness</p>
           <h1>Resume Analyzer</h1>
-          <p className="page-lead">Track your resume analyses and compare your applications.</p>
+          <p className="page-lead">
+            Track your resume analysis and compare every application with more clarity.
+          </p>
+          <Button
+            variant="primary"
+            type="button"
+            onClick={() => onNavigate('/resume-analyzer/upload')}
+          >
+            Upload Resume <span aria-hidden="true">↗</span>
+          </Button>
         </div>
-        <Button
-          variant="primary"
-          type="button"
-          onClick={() => onNavigate('/resume-analyzer/upload')}
-        >
-          + Upload Resume
-        </Button>
+        <div className="resume-theme-hero__art" aria-hidden="true">
+          <img src="/assets/resume-analyzer-botanical-hero.png" alt="" />
+        </div>
+      </div>
+
+      <div className="resume-history__heading">
+        <div>
+          <p className="section-kicker">Your application workspace</p>
+          <h2>Keep your strongest version close.</h2>
+        </div>
+        <p>Review previous reports, then use the evidence to prepare your next application.</p>
       </div>
 
       {isLoading ? (
@@ -223,6 +236,11 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
           ))}
         </div>
       )}
+
+      <div className="resume-theme-footer" aria-hidden="true">
+        <span />
+        <span />
+      </div>
     </section>
   );
 }
@@ -334,7 +352,7 @@ export function ResumeAnalysisResultsPage({
   const learningPlan = analysis.learningPlan ?? analysis.recommendations;
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
-    <section className="page-frame resume-results-page">
+    <section className="page-frame resume-results-page resume-theme-page">
       <div className="resume-results__toolbar">
         <Button variant="outline" type="button" onClick={() => onNavigate('/')}>
           ← Back to Homepage
@@ -671,17 +689,23 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
   }
 
   return (
-    <section className="page-frame resume-analyzer-page">
-      <div className="page-frame__header">
-        <div>
-          <p className="eyebrow">Application readiness</p>
+    <section className="page-frame resume-analyzer-page resume-theme-page">
+      <div className="resume-theme-hero resume-upload__hero">
+        <div className="resume-theme-hero__copy">
+          <p className="eyebrow">Build a stronger application</p>
           <h1>Upload Resume</h1>
           <p className="page-lead">
-            Compare your resume with a target role and turn the results into practical career
+            Compare your resume with a target role and turn the evidence into practical career
             guidance.
           </p>
+          <div className="resume-upload__hero-meta">
+            <Badge tone="neutral">PDF · up to 8 MB</Badge>
+            <span>Private, evidence-based review</span>
+          </div>
         </div>
-        <Badge tone="neutral">PDF · up to 8 MB</Badge>
+        <div className="resume-theme-hero__art" aria-hidden="true">
+          <img src="/assets/resume-analyzer-botanical-hero.png" alt="" />
+        </div>
       </div>
       <button
         className="text-link resume-analyzer__back"
@@ -693,6 +717,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
 
       <div className="resume-analyzer__layout">
         <Card
+          className="resume-upload__form-card"
           title="Target role"
           description="Add the role context so the analysis can distinguish relevant evidence from generic keywords."
         >
@@ -838,7 +863,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         </Card>
 
         <Card
-          className="resume-analyzer__explainer"
+          className="resume-analyzer__explainer resume-upload__explainer-card"
           title="What you will receive"
           description="A structured review generated through Pathfinder’s separate Puter-assisted Resume Analyzer flow."
         >
