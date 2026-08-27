@@ -9,6 +9,8 @@ interface PuterFile {
   path?: unknown;
 }
 
+type PuterUploadResult = PuterFile | PuterFile[] | undefined;
+
 type PuterContentPart = {
   text?: unknown;
   type?: unknown;
@@ -27,7 +29,7 @@ type PuterApi = {
     signIn: () => Promise<void>;
   };
   fs: {
-    upload: (files: File[] | Blob[]) => Promise<PuterFile | undefined>;
+    upload: (files: File[] | Blob[]) => Promise<PuterUploadResult>;
     delete?: (path: string) => Promise<void>;
   };
   ai: {
@@ -81,6 +83,11 @@ function getPuter(): PuterApi {
     throw new Error('The resume analysis service is still loading. Please try again.');
   }
   return window.puter;
+}
+
+function getUploadedPath(uploadedFile: PuterUploadResult): string {
+  const file = Array.isArray(uploadedFile) ? uploadedFile[0] : uploadedFile;
+  return typeof file?.path === 'string' ? file.path : '';
 }
 
 export async function signInToPuter(): Promise<boolean> {
@@ -267,7 +274,7 @@ export async function analyzeResumeWithPuter(input: {
   }
 
   const uploadedFile = await withTimeout(puter.fs.upload([input.file]), AI_TIMEOUT_MS);
-  const puterPath = typeof uploadedFile?.path === 'string' ? uploadedFile.path : '';
+  const puterPath = getUploadedPath(uploadedFile);
   if (!puterPath) throw new Error('The resume could not be uploaded to the analysis service.');
 
   try {
