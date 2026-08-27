@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+  type FormEvent,
+} from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -96,14 +103,44 @@ export function readResumeAnalysisResult(): ResumeAnalysisResponse | null {
   }
 }
 
-function ResultList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
+function ResultList({
+  items,
+  emptyLabel,
+  ordered = false,
+}: {
+  items: string[];
+  emptyLabel: string;
+  ordered?: boolean;
+}) {
   if (items.length === 0) return <p className="resume-result__empty">{emptyLabel}</p>;
+  const ListTag = ordered ? 'ol' : 'ul';
   return (
-    <ul className="resume-result__list">
+    <ListTag className={`resume-result__list${ordered ? ' resume-result__list--ordered' : ''}`}>
       {items.map((item, index) => (
         <li key={`${item}-${index}`}>{item}</li>
       ))}
-    </ul>
+    </ListTag>
+  );
+}
+
+function ResultChips({
+  items,
+  emptyLabel,
+  tone = 'match',
+}: {
+  items: string[];
+  emptyLabel: string;
+  tone?: 'match' | 'gap';
+}) {
+  if (items.length === 0) return <p className="resume-result__empty">{emptyLabel}</p>;
+  return (
+    <div className={`resume-result__chips resume-result__chips--${tone}`}>
+      {items.map((item, index) => (
+        <span key={`${item}-${index}`}>
+          {tone === 'match' ? '✓' : '+'} {item}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -121,12 +158,20 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
         <p className="resume-history__date">Analyzed {formatDate(item.analyzedAt)}</p>
       </div>
       <div className="resume-history__card-action">
-        <div>
-          <span className="resume-history__score-label">Match score</span>
-          <strong className="resume-history__score">{item.overallScore}%</strong>
+        <div
+          className="resume-history__gauge"
+          style={{
+            background: `conic-gradient(#829d31 ${Math.max(0, Math.min(100, item.overallScore)) * 3.6}deg, #e1e5dd 0deg)`,
+          }}
+          aria-label={`${item.overallScore} out of 100 match score`}
+        >
+          <div>
+            <strong>{item.overallScore}</strong>
+            <span>/100</span>
+          </div>
         </div>
         <Button variant="outline" type="button" onClick={onView}>
-          View analysis
+          View report
         </Button>
       </div>
     </article>
@@ -135,6 +180,7 @@ function HistoryCard({ item, onView }: { item: ResumeAnalysisHistoryItem; onView
 
 export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) => void }) {
   const [items, setItems] = useState<ResumeAnalysisHistoryItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -160,13 +206,50 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
     };
   }, []);
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleItems = normalizedQuery
+    ? items.filter((item) =>
+        [item.fileName, item.companyName, item.jobRole].some((value) =>
+          value.toLowerCase().includes(normalizedQuery),
+        ),
+      )
+    : items;
+
   return (
     <section className="page-frame resume-history-page">
+      <div className="resume-history__hero">
+        <div className="resume-history__hero-copy">
+          <p className="eyebrow">Your workspace</p>
+          <h1>Make your resume work harder.</h1>
+          <p>
+            Understand your signal, compare it with the role you want, and turn every analysis into
+            a stronger application plan.
+          </p>
+        </div>
+        <div className="resume-history__hero-points" aria-label="Resume Analyzer benefits">
+          <div>
+            <span>01</span>
+            <strong>See your signal</strong>
+            <p>Surface strengths and gaps shaping your next opportunity.</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>Find your direction</strong>
+            <p>Turn role-aware evidence into practical next steps.</p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>Move with confidence</strong>
+            <p>Keep your reports in Pathfinder’s user-owned history.</p>
+          </div>
+        </div>
+      </div>
+
       <div className="page-frame__header resume-history__header">
         <div>
           <p className="eyebrow">Application readiness</p>
-          <h1>Resume Analyzer</h1>
-          <p className="page-lead">Track your resume analyses and compare your applications.</p>
+          <h2>Resume history</h2>
+          <p className="page-lead">Revisit previous role comparisons and continue improving.</p>
         </div>
         <Button
           variant="primary"
@@ -176,6 +259,22 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
           + Upload Resume
         </Button>
       </div>
+
+      {!isLoading && !errorMessage && items.length > 0 && (
+        <div className="resume-history__tools">
+          <label htmlFor="resume-history-search">Search analyses</label>
+          <input
+            id="resume-history-search"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search by company, role, or filename..."
+          />
+          <span>
+            {visibleItems.length} {visibleItems.length === 1 ? 'analysis' : 'analyses'} shown
+          </span>
+        </div>
+      )}
 
       {isLoading ? (
         <Card title="Loading resume history" description="Retrieving your saved analyses securely.">
@@ -211,9 +310,19 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
             + Upload Resume
           </Button>
         </Card>
+      ) : visibleItems.length === 0 ? (
+        <Card
+          className="resume-history__empty"
+          title="No matching analyses"
+          description="Try a different company, role, or filename search."
+        >
+          <Button variant="outline" type="button" onClick={() => setSearchQuery('')}>
+            Clear search
+          </Button>
+        </Card>
       ) : (
         <div className="resume-history__list" aria-label="Resume analysis history">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <HistoryCard
               key={item.id}
               item={item}
@@ -307,7 +416,12 @@ export function ResumeAnalysisResultsPage({
             you provided.
           </p>
         </div>
-        <Badge tone="success">{analysis.overallScore}% alignment</Badge>
+        <div className="resume-results__header-actions">
+          <Badge tone="success">{analysis.overallScore}% alignment</Badge>
+          <Button variant="outline" type="button" onClick={() => window.print()}>
+            Print / Save report
+          </Button>
+        </div>
       </div>
 
       <Card
@@ -354,7 +468,7 @@ export function ResumeAnalysisResultsPage({
           title="Matching skills"
           description="Skills and keywords supported by both the resume and target role."
         >
-          <ResultList
+          <ResultChips
             items={analysis.matchingSkills}
             emptyLabel="No direct matches were identified in the supplied evidence."
           />
@@ -363,8 +477,9 @@ export function ResumeAnalysisResultsPage({
           title="Skills to strengthen"
           description="Relevant requirements that are not clearly evidenced in the resume."
         >
-          <ResultList
+          <ResultChips
             items={analysis.missingSkills}
+            tone="gap"
             emptyLabel="No major missing skills were identified."
           />
         </Card>
@@ -432,6 +547,7 @@ export function ResumeAnalysisResultsPage({
         description="Prioritized next steps for this application."
       >
         <ResultList
+          ordered
           items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
           emptyLabel="No recommendations were returned by the analysis."
         />
@@ -524,8 +640,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     setErrorMessage('');
   }, [companyName, jobRole, jobDescription, preferredOutputs, file]);
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0] ?? null;
+  function applySelectedFile(selected: File | null): void {
     if (!selected) {
       setFile(null);
       return;
@@ -533,16 +648,31 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     if (selected.type !== 'application/pdf' || !selected.name.toLowerCase().endsWith('.pdf')) {
       setFile(null);
       setErrorMessage('Please upload your resume as a PDF file.');
-      event.target.value = '';
       return;
     }
     if (selected.size > MAX_FILE_BYTES) {
       setFile(null);
       setErrorMessage('Your PDF must be 8 MB or smaller.');
-      event.target.value = '';
       return;
     }
     setFile(selected);
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    applySelectedFile(event.target.files?.[0] ?? null);
+    if (!event.target.files?.[0]) return;
+    if (
+      event.target.files[0].type !== 'application/pdf' ||
+      !event.target.files[0].name.toLowerCase().endsWith('.pdf') ||
+      event.target.files[0].size > MAX_FILE_BYTES
+    ) {
+      event.target.value = '';
+    }
+  }
+
+  function handleFileDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    applySelectedFile(event.dataTransfer.files?.[0] ?? null);
   }
 
   function removeFile() {
@@ -593,11 +723,11 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     <section className="page-frame resume-analyzer-page">
       <div className="page-frame__header">
         <div>
-          <p className="eyebrow">Application readiness</p>
-          <h1>Upload Resume</h1>
+          <p className="eyebrow">New analysis</p>
+          <h1>Smart feedback for your dream role.</h1>
           <p className="page-lead">
-            Compare your resume with a target role and turn the results into practical career
-            guidance.
+            Drop your resume for an ATS-aware score, role-specific skill match, and practical
+            improvement plan.
           </p>
         </div>
         <Badge tone="neutral">PDF · up to 8 MB</Badge>
@@ -713,16 +843,30 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 ))}
               </div>
             </fieldset>
-            <label className="form-field">
-              <span>Resume PDF</span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={handleFileChange}
-                required={!file}
-              />
-            </label>
+            <div className="form-field">
+              <span id="resume-file-label">Resume PDF</span>
+              <div
+                className="resume-file-dropzone"
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={handleFileDrop}
+              >
+                <input
+                  ref={fileInputRef}
+                  id="resume-file"
+                  className="resume-file-dropzone__input"
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  aria-labelledby="resume-file-label"
+                  onChange={handleFileChange}
+                  required={!file}
+                />
+                <span className="resume-file-dropzone__icon" aria-hidden="true">
+                  ↑
+                </span>
+                <strong>Click to upload or drag and drop</strong>
+                <small>PDF · up to 8 MB</small>
+              </div>
+            </div>
             {file && (
               <div className="resume-file__selected">
                 <div>
