@@ -4012,6 +4012,24 @@ em {
   min-height: 560px;
   width: 100%;
 }
+.resume-review__image-frame {
+  align-items: flex-start;
+  background: #efebe4;
+  display: flex;
+  justify-content: center;
+  max-height: min(820px, calc(100vh - 200px));
+  min-height: 560px;
+  overflow: auto;
+  padding: 22px;
+}
+.resume-review__image {
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(35, 32, 28, 0.16);
+  display: block;
+  height: auto;
+  max-width: 100%;
+  width: 100%;
+}
 .resume-review__preview-empty {
   align-content: center;
   background: #f7f8f3;
@@ -5228,7 +5246,8 @@ em {
   }
 }
 @media (max-width: 560px) {
-  .resume-review__pdf {
+  .resume-review__pdf,
+  .resume-review__image-frame {
     height: 520px;
     min-height: 0;
   }

@@ -19,14 +19,15 @@ import {
   type ResumeOutputFocus,
 } from '../services/resume-analyzer';
 import { analyzeResumeWithPuter, signInToPuter } from '../services/puter-resume-analyzer';
+import { createResumeImagePreview } from '../services/resume-image-preview';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const RESULT_STORAGE_KEY = 'pathfinder.resume-analysis.result';
 let activeResumePreviewUrl: string | null = null;
 
-function setActiveResumePreview(file: File): void {
+function setActiveResumePreviewUrl(imageUrl: string | null): void {
   if (activeResumePreviewUrl) URL.revokeObjectURL(activeResumePreviewUrl);
-  activeResumePreviewUrl = URL.createObjectURL(file);
+  activeResumePreviewUrl = imageUrl;
 }
 const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
   'role_fit',
@@ -101,7 +102,9 @@ function isUnavailableAnalysis(analysis: ResumeAnalysis): boolean {
   const summary = analysis.summary.toLowerCase();
   return (
     analysis.overallScore === 0 &&
-    /(provider unavailable|could not be generated|no role-specific analysis)/.test(summary)
+    /(provider unavailable|could not be generated|no role-specific analysis|no resume text was provided|cannot assess role fit without a resume)/.test(
+      summary,
+    )
   );
 }
 
@@ -199,19 +202,21 @@ function ScoreGauge({ score, label }: { score: number; label: string }) {
 function ResumePreview({ fileName }: { fileName: string }) {
   if (activeResumePreviewUrl) {
     return (
-      <iframe
-        className="resume-review__pdf"
-        title={`Resume PDF preview for ${fileName}`}
-        src={activeResumePreviewUrl}
-      />
+      <div className="resume-review__image-frame">
+        <img
+          className="resume-review__image"
+          alt={`First-page image preview of ${fileName}`}
+          src={activeResumePreviewUrl}
+        />
+      </div>
     );
   }
 
   return (
     <div className="resume-review__preview-empty">
-      <span aria-hidden="true">PDF</span>
-      <strong>Preview unavailable for this saved report</strong>
-      <p>Re-upload the resume to view its document preview during the current session.</p>
+      <span aria-hidden="true">IMG</span>
+      <strong>Resume image unavailable for this saved report</strong>
+      <p>Re-upload the resume to generate a first-page image preview during the current session.</p>
     </div>
   );
 }
@@ -866,15 +871,19 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     }
     setIsAnalyzing(true);
     setErrorMessage('');
-    setActiveResumePreview(file);
+    const previewPromise = createResumeImagePreview(file);
     try {
-      const result = await analyzeResumeWithPuter({
-        companyName,
-        jobRole,
-        jobDescription,
-        preferredOutputs,
-        file,
-      });
+      const [result, preview] = await Promise.all([
+        analyzeResumeWithPuter({
+          companyName,
+          jobRole,
+          jobDescription,
+          preferredOutputs,
+          file,
+        }),
+        previewPromise,
+      ]);
+      setActiveResumePreviewUrl(preview?.imageUrl ?? null);
       saveResult(result);
       onNavigate(`/resume-analyzer/results/${encodeURIComponent(result.analysisId)}`);
     } catch (error: unknown) {
