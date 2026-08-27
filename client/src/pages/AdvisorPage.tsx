@@ -6,7 +6,6 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from 'react';
-import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
@@ -15,13 +14,6 @@ import { chatAdvisor, clearAdvisorHistory, getAdvisorCareerId } from '../service
 
 const MAX_MESSAGE_LENGTH = 2000;
 const MIN_MESSAGE_LENGTH = 3;
-const ADVISOR_PROMPTS = [
-  'Which career is the best fit for my interests?',
-  'What skills should I learn next?',
-  'How can I switch into AI or ML?',
-  'What projects should I build?',
-  'How can I improve my resume?',
-] as const;
 
 function getValidationMessage(value: string): string {
   const length = value.trim().length;
@@ -353,27 +345,6 @@ export function AdvisorPage() {
             <br />
             <em>Stronger you.</em>
           </h1>
-          <p className="advisor-hero__intro">
-            Get personalized guidance about careers, skills, opportunities, and next steps — all
-            grounded in your profile and progress.
-          </p>
-          <div className="advisor-hero__features" aria-label="Advisor features">
-            <span>
-              <b aria-hidden="true">✣</b> Personalized
-              <br />
-              guidance
-            </span>
-            <span>
-              <b aria-hidden="true">□</b> Private &amp;
-              <br />
-              secure
-            </span>
-            <span>
-              <b aria-hidden="true">✦</b> Actionable
-              <br />
-              insights
-            </span>
-          </div>
         </div>
         <div className="advisor-hero__visual" aria-hidden="true">
           <div className="advisor-hero__orbit advisor-hero__orbit--one" />
@@ -387,14 +358,6 @@ export function AdvisorPage() {
           <div className="advisor-hero__leaf advisor-hero__leaf--three" />
         </div>
       </header>
-
-      <div className="advisor-feature-note">
-        <Badge tone="success">Personalized</Badge>
-        <span>
-          Ask anything about your next career move. The advisor uses your saved context to make the
-          answer more relevant.
-        </span>
-      </div>
 
       <Card className="advisor-card advisor-conversation-card">
         <div className="advisor-card__actions">
@@ -519,30 +482,6 @@ export function AdvisorPage() {
           )}
         </form>
       </Card>
-
-      <section className="advisor-popular" aria-labelledby="advisor-popular-title">
-        <div className="advisor-popular__header">
-          <div>
-            <p className="eyebrow">Popular things to ask</p>
-            <h2 id="advisor-popular-title">Start with a question that matters.</h2>
-          </div>
-          <span>Choose a prompt to get started ↗</span>
-        </div>
-        <div className="advisor-popular__grid">
-          {ADVISOR_PROMPTS.map((prompt, index) => (
-            <button
-              className="advisor-popular__prompt"
-              key={prompt}
-              type="button"
-              onClick={() => setDraft(prompt)}
-              disabled={isSending}
-            >
-              <b aria-hidden="true">{['◌', '◈', '≡', '⌘', '▣'][index]}</b>
-              <span>{prompt}</span>
-            </button>
-          ))}
-        </div>
-      </section>
 
       <p className="advisor-page__disclaimer">
         This advisor offers educational guidance, not guaranteed outcomes or professional advice.
