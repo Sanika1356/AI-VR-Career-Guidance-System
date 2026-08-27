@@ -91,7 +91,7 @@ function RoadmapStepCard({
               disabled={isUpdating}
               onChange={(event) =>
                 onUpdate(step, {
-                  completed: step.completed,
+                  completed: event.target.value === 'completed',
                   status: event.target.value as RoadmapStepStatus,
                 })
               }

@@ -168,7 +168,12 @@ export async function updateRoadmapProgress(
   const update: RoadmapStepUpdate =
     typeof input === "boolean" ? { completed: input } : input;
   const requestedStatus = update.status ?? null;
-  const defaultStatus = update.completed ? "completed" : "not_started";
+  // Keep the two fields consistent even when an older client submits a stale
+  // completion flag alongside a changed status.
+  const completed = update.status
+    ? update.status === "completed"
+    : update.completed;
+  const defaultStatus = completed ? "completed" : "not_started";
   const client = await database.connect();
   try {
     await client.query("BEGIN");
@@ -212,7 +217,7 @@ export async function updateRoadmapProgress(
       [
         userId,
         stepId,
-        update.completed,
+        completed,
         update.targetDate ?? null,
         requestedStatus,
         update.notes ?? null,
@@ -235,7 +240,7 @@ export async function updateRoadmapProgress(
         createId("roadmap_progress_event"),
         userId,
         stepId,
-        update.completed,
+        completed,
         savedStatus,
       ],
     );
@@ -243,7 +248,7 @@ export async function updateRoadmapProgress(
     return {
       stepId,
       careerId: step.career_id,
-      completed: saved?.completed ?? update.completed,
+      completed: saved?.completed ?? completed,
       targetDate: saved?.target_date
         ? String(saved.target_date).slice(0, 10)
         : null,

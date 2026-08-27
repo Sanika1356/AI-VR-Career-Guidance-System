@@ -154,6 +154,64 @@ test("updateRoadmapProgress persists only the authenticated user progress", asyn
   );
 });
 
+class StatusSyncClient implements DatabaseClient {
+  readonly progressValues: unknown[][] = [];
+
+  async query<T extends QueryResultRow = QueryResultRow>(
+    sql: string,
+    values: readonly unknown[] = [],
+  ): Promise<QueryResult<T>> {
+    if (sql.includes("SELECT id, career_id FROM roadmap_steps")) {
+      return queryResult([
+        { id: "roadmap_ai_python", career_id: "career_ai_engineer" },
+      ]) as QueryResult<T>;
+    }
+    if (sql.includes("INSERT INTO roadmap_progress\n")) {
+      this.progressValues.push([...values]);
+      const completed = Boolean(values[2]);
+      const status = String(
+        values[4] ?? (completed ? "completed" : "not_started"),
+      );
+      return queryResult([
+        {
+          completed,
+          target_date: null,
+          status,
+          notes: "",
+          evidence_links: [],
+          position: null,
+        },
+      ]) as QueryResult<T>;
+    }
+    return queryResult([]) as QueryResult<T>;
+  }
+
+  release(): void {}
+}
+
+test("roadmap status keeps completion and dashboard activity in sync", async () => {
+  const client = new StatusSyncClient();
+  const completedResponse = await updateRoadmapProgress(
+    "user_demo",
+    "roadmap_ai_python",
+    { completed: false, status: "completed" },
+    poolFor(client),
+  );
+  assert.equal(completedResponse.completed, true);
+  assert.equal(completedResponse.status, "completed");
+  assert.equal(client.progressValues[0]?.[2], true);
+
+  const inProgressResponse = await updateRoadmapProgress(
+    "user_demo",
+    "roadmap_ai_python",
+    { completed: true, status: "in_progress" },
+    poolFor(client),
+  );
+  assert.equal(inProgressResponse.completed, false);
+  assert.equal(inProgressResponse.status, "in_progress");
+  assert.equal(client.progressValues[1]?.[2], false);
+});
+
 test("roadmap progress validator rejects unknown fields and non-boolean values", () => {
   assert.deepEqual(validateUpdateRoadmapProgressPayload({ completed: false }), {
     completed: false,
