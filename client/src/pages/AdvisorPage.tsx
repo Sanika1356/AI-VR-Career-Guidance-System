@@ -1,4 +1,11 @@
-import { useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -211,8 +218,7 @@ export function AdvisorPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'advisor',
-      content:
-        'I can help you compare career paths, understand skill gaps, and choose a practical next step. Ask me a question to begin.',
+      content: 'How can I help you?',
       createdAt: new Date().toISOString(),
       sources: [],
     },
@@ -307,8 +313,7 @@ export function AdvisorPage() {
     }
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submitDraft() {
     setShowValidation(true);
     const message = draft.trim();
     if (getValidationMessage(draft) || isSending) return;
@@ -316,6 +321,17 @@ export function AdvisorPage() {
     setDraft('');
     setShowValidation(false);
     await sendMessage(message, true);
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await submitDraft();
+  }
+
+  function handleQuestionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    void submitDraft();
   }
 
   return (
@@ -333,15 +349,6 @@ export function AdvisorPage() {
       </header>
 
       <Card className="advisor-card">
-        <aside className="advisor-notice" aria-label="AI advisory notice">
-          <span className="advisor-notice__mark" aria-hidden="true">
-            i
-          </span>
-          <p>
-            This advisor offers educational guidance, not guaranteed outcomes or professional
-            advice. Compare its suggestions with your own goals and trusted human perspectives.
-          </p>
-        </aside>
         <div className="advisor-card__actions">
           <Button
             variant="outline"
@@ -440,7 +447,8 @@ export function AdvisorPage() {
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onBlur={() => setShowValidation(true)}
-              placeholder="What should I learn first for this career path?"
+              onKeyDown={handleQuestionKeyDown}
+              placeholder="Ask a question…"
               maxLength={MAX_MESSAGE_LENGTH}
               rows={4}
               disabled={isSending}
@@ -463,6 +471,11 @@ export function AdvisorPage() {
           )}
         </form>
       </Card>
+
+      <p className="advisor-page__disclaimer">
+        This advisor offers educational guidance, not guaranteed outcomes or professional advice.
+        Compare its suggestions with your own goals and trusted human perspectives.
+      </p>
     </div>
   );
 }
