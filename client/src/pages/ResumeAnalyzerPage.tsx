@@ -12,6 +12,7 @@ import {
   type ResumeOutputFocus,
 } from '../services/resume-analyzer';
 import { analyzeResumeWithPuter, signInToPuter } from '../services/puter-resume-analyzer';
+import { getResumePreviewUrl, setResumePreview } from '../services/resume-preview';
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 const RESULT_STORAGE_KEY = 'pathfinder.resume-analysis.result';
@@ -226,6 +227,40 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   );
 }
 
+function ResumePreview({ fileName }: { fileName: string }) {
+  const previewUrl = getResumePreviewUrl();
+
+  return (
+    <aside className="resume-results__preview" aria-label="Uploaded resume preview">
+      <div className="resume-results__preview-heading">
+        <span>Resume preview</span>
+        <small>{fileName}</small>
+      </div>
+      {previewUrl ? (
+        <iframe
+          className="resume-results__preview-frame"
+          title={`${fileName} preview`}
+          src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+        />
+      ) : (
+        <div className="resume-results__preview-fallback">
+          <div className="resume-results__preview-paper" aria-hidden="true">
+            <strong>RESUME</strong>
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <strong>{fileName}</strong>
+          <p>Preview is available when you open a report immediately after uploading its PDF.</p>
+        </div>
+      )}
+    </aside>
+  );
+}
+
 export function ResumeAnalysisResultsPage({
   onNavigate,
   analysisId,
@@ -298,159 +333,173 @@ export function ResumeAnalysisResultsPage({
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
   return (
     <section className="page-frame resume-results-page">
-      <div className="page-frame__header">
-        <div>
-          <p className="eyebrow">Resume intelligence</p>
-          <h1>Your resume analysis</h1>
-          <p className="page-lead">
-            A role-specific review of <strong>{result.fileName}</strong> against the job information
-            you provided.
-          </p>
-        </div>
-        <Badge tone="success">{analysis.overallScore}% alignment</Badge>
+      <div className="resume-results__toolbar">
+        <Button variant="outline" type="button" onClick={() => onNavigate('/')}>
+          ← Back to Homepage
+        </Button>
+        <Button variant="outline" type="button" onClick={() => window.print()}>
+          Download PDF Report
+        </Button>
       </div>
 
-      <Card
-        className="resume-result__summary"
-        title="Executive summary"
-        description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
-      >
-        <div className="resume-result__summary-grid">
-          <div className="resume-result__summary-metric resume-result__summary-metric--score">
-            <span>Overall alignment</span>
-            <strong>{analysis.overallScore}%</strong>
-            <small>Evidence-based score</small>
+      <div className="resume-results__workspace">
+        <ResumePreview fileName={result.fileName} />
+        <div className="resume-results__report">
+          <header className="resume-results__report-header">
+            <div>
+              <p className="eyebrow">Resume Review</p>
+              <h1>Resume Review</h1>
+              <p className="page-lead">
+                {result.fileName} · Target role: <strong>{result.jobRole}</strong> · Target company:{' '}
+                <strong>{result.companyName}</strong>
+              </p>
+            </div>
+            <Badge tone="success">{analysis.overallScore}% alignment</Badge>
+          </header>
+
+          <Card
+            className="resume-result__summary"
+            title="Executive summary"
+            description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
+          >
+            <div className="resume-result__summary-grid">
+              <div className="resume-result__summary-metric resume-result__summary-metric--score">
+                <span>Overall alignment</span>
+                <strong>{analysis.overallScore}%</strong>
+                <small>Evidence-based score</small>
+              </div>
+              <div className="resume-result__summary-metric">
+                <span>Strongest evidence</span>
+                <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
+              </div>
+              <div className="resume-result__summary-metric">
+                <span>Priority gap</span>
+                <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
+              </div>
+              <div className="resume-result__summary-metric">
+                <span>Recommended next step</span>
+                <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+              </div>
+            </div>
+            <div className="resume-result__summary-copy">
+              <span>Executive assessment</span>
+              <p>{analysis.summary}</p>
+            </div>
+          </Card>
+
+          {shows('role_fit') && (
+            <Card
+              title="Role fit"
+              description="Why the supplied resume evidence aligns with the target role."
+            >
+              <p className="resume-result__lead">{roleFit}</p>
+            </Card>
+          )}
+
+          <div className="resume-result__grid resume-result__grid--two">
+            <Card
+              title="Matching skills"
+              description="Skills and keywords supported by both the resume and target role."
+            >
+              <ResultList
+                items={analysis.matchingSkills}
+                emptyLabel="No direct matches were identified in the supplied evidence."
+              />
+            </Card>
+            <Card
+              title="Skills to strengthen"
+              description="Relevant requirements that are not clearly evidenced in the resume."
+            >
+              <ResultList
+                items={analysis.missingSkills}
+                emptyLabel="No major missing skills were identified."
+              />
+            </Card>
           </div>
-          <div className="resume-result__summary-metric">
-            <span>Strongest evidence</span>
-            <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
+
+          {shows('ats_keywords') && (
+            <Card
+              title="ATS keywords to review"
+              description="Use only terms that accurately describe your experience."
+            >
+              <ResultList
+                items={atsKeywords}
+                emptyLabel="No additional role keywords were identified."
+              />
+            </Card>
+          )}
+
+          <div className="resume-result__grid resume-result__grid--two">
+            <Card title="Strengths" description="Evidence that supports your target application.">
+              <ResultList
+                items={analysis.strengths}
+                emptyLabel="No strengths were returned by the analysis."
+              />
+            </Card>
+            <Card
+              title="Improvement areas"
+              description="Specific changes that can make the resume clearer and more persuasive."
+            >
+              <ResultList
+                items={analysis.improvements}
+                emptyLabel="No improvement areas were returned by the analysis."
+              />
+            </Card>
           </div>
-          <div className="resume-result__summary-metric">
-            <span>Priority gap</span>
-            <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
-          </div>
-          <div className="resume-result__summary-metric">
-            <span>Recommended next step</span>
-            <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+
+          {shows('writing_improvements') && (
+            <Card
+              title="Resume writing improvements"
+              description="Changes that can improve clarity without inventing experience."
+            >
+              <ResultList
+                items={analysis.improvements}
+                emptyLabel="No writing improvements were returned."
+              />
+            </Card>
+          )}
+
+          {shows('interview_prep') && (
+            <Card
+              title="Interview preparation"
+              description="Topics grounded in the evidence supplied for this application."
+            >
+              <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
+            </Card>
+          )}
+
+          {shows('learning_plan') && (
+            <Card
+              title="Learning plan"
+              description="A short sequence for closing relevant skill gaps."
+            >
+              <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
+            </Card>
+          )}
+
+          <Card
+            title="Recommended action plan"
+            description="Prioritized next steps for this application."
+          >
+            <ResultList
+              items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
+              emptyLabel="No recommendations were returned by the analysis."
+            />
+          </Card>
+
+          <div className="resume-results__actions">
+            <Button
+              variant="primary"
+              type="button"
+              onClick={() => onNavigate('/resume-analyzer/upload')}
+            >
+              Analyze another resume
+            </Button>
+            <Button variant="ghost" type="button" onClick={() => onNavigate('/advisor')}>
+              Discuss this with the AI advisor
+            </Button>
           </div>
         </div>
-        <div className="resume-result__summary-copy">
-          <span>Executive assessment</span>
-          <p>{analysis.summary}</p>
-        </div>
-      </Card>
-
-      {shows('role_fit') && (
-        <Card
-          title="Role fit"
-          description="Why the supplied resume evidence aligns with the target role."
-        >
-          <p className="resume-result__lead">{roleFit}</p>
-        </Card>
-      )}
-
-      <div className="resume-result__grid resume-result__grid--two">
-        <Card
-          title="Matching skills"
-          description="Skills and keywords supported by both the resume and target role."
-        >
-          <ResultList
-            items={analysis.matchingSkills}
-            emptyLabel="No direct matches were identified in the supplied evidence."
-          />
-        </Card>
-        <Card
-          title="Skills to strengthen"
-          description="Relevant requirements that are not clearly evidenced in the resume."
-        >
-          <ResultList
-            items={analysis.missingSkills}
-            emptyLabel="No major missing skills were identified."
-          />
-        </Card>
-      </div>
-
-      {shows('ats_keywords') && (
-        <Card
-          title="ATS keywords to review"
-          description="Use only terms that accurately describe your experience."
-        >
-          <ResultList
-            items={atsKeywords}
-            emptyLabel="No additional role keywords were identified."
-          />
-        </Card>
-      )}
-
-      <div className="resume-result__grid resume-result__grid--two">
-        <Card title="Strengths" description="Evidence that supports your target application.">
-          <ResultList
-            items={analysis.strengths}
-            emptyLabel="No strengths were returned by the analysis."
-          />
-        </Card>
-        <Card
-          title="Improvement areas"
-          description="Specific changes that can make the resume clearer and more persuasive."
-        >
-          <ResultList
-            items={analysis.improvements}
-            emptyLabel="No improvement areas were returned by the analysis."
-          />
-        </Card>
-      </div>
-
-      {shows('writing_improvements') && (
-        <Card
-          title="Resume writing improvements"
-          description="Changes that can improve clarity without inventing experience."
-        >
-          <ResultList
-            items={analysis.improvements}
-            emptyLabel="No writing improvements were returned."
-          />
-        </Card>
-      )}
-
-      {shows('interview_prep') && (
-        <Card
-          title="Interview preparation"
-          description="Topics grounded in the evidence supplied for this application."
-        >
-          <ResultList items={interviewTopics} emptyLabel="No interview topics were returned." />
-        </Card>
-      )}
-
-      {shows('learning_plan') && (
-        <Card title="Learning plan" description="A short sequence for closing relevant skill gaps.">
-          <ResultList items={learningPlan} emptyLabel="No learning plan was returned." />
-        </Card>
-      )}
-
-      <Card
-        title="Recommended action plan"
-        description="Prioritized next steps for this application."
-      >
-        <ResultList
-          items={priorityActions.length > 0 ? priorityActions : analysis.recommendations}
-          emptyLabel="No recommendations were returned by the analysis."
-        />
-      </Card>
-
-      <div className="resume-results__actions">
-        <Button
-          variant="primary"
-          type="button"
-          onClick={() => onNavigate('/resume-analyzer/upload')}
-        >
-          Analyze another resume
-        </Button>
-        <Button variant="outline" type="button" onClick={() => onNavigate('/resume-analyzer')}>
-          Back to Resume History
-        </Button>
-        <Button variant="ghost" type="button" onClick={() => onNavigate('/advisor')}>
-          Discuss this with the AI advisor
-        </Button>
       </div>
     </section>
   );
@@ -577,6 +626,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         file,
       });
       saveResult(result);
+      setResumePreview(file);
       onNavigate(`/resume-analyzer/results/${encodeURIComponent(result.analysisId)}`);
     } catch (error: unknown) {
       setErrorMessage(

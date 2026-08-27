@@ -160,6 +160,8 @@ test("resume analysis detail is ownership-scoped and returns the stored structur
       {
         id: "resume_analysis_1",
         file_name: "resume.pdf",
+        company_name: "Microsoft",
+        job_role: "Data Analyst Intern",
         analysis: {
           overallScore: 82,
           matchingSkills: ["SQL"],
@@ -175,6 +177,8 @@ test("resume analysis detail is ownership-scoped and returns the stored structur
     ]),
   );
   assert.equal(result.analysisId, "resume_analysis_1");
+  assert.equal(result.companyName, "Microsoft");
+  assert.equal(result.jobRole, "Data Analyst Intern");
   assert.equal(result.analysis.provider, "groq");
 });
 

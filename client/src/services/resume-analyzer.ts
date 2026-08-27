@@ -28,6 +28,8 @@ export interface ResumeAnalysis {
 export interface ResumeAnalysisResponse {
   analysisId: string;
   fileName: string;
+  companyName: string;
+  jobRole: string;
   analysis: ResumeAnalysis;
   analyzedAt: string;
 }

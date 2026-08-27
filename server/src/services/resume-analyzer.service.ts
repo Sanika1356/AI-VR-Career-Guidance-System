@@ -76,6 +76,8 @@ export interface ResumeAnalysisHistoryItem {
 export interface ResumeAnalysisResponse {
   analysisId: string;
   fileName: string;
+  companyName: string;
+  jobRole: string;
   analysis: ResumeAnalysis;
   analyzedAt: string;
 }
@@ -400,6 +402,8 @@ export async function analyzeResume(
   return {
     analysisId,
     fileName: input.file.originalname,
+    companyName,
+    jobRole,
     analysis,
     analyzedAt,
   };
@@ -475,6 +479,8 @@ export async function persistPuterResumeAnalysis(
   return {
     analysisId,
     fileName,
+    companyName,
+    jobRole,
     analysis,
     analyzedAt,
   };
@@ -527,10 +533,12 @@ export async function getResumeAnalysis(
     const result = await client.query<{
       id: string;
       file_name: string;
+      company_name: string;
+      job_role: string;
       analysis: unknown;
       created_at: string | Date;
     }>(
-      `SELECT id, file_name, analysis, created_at
+      `SELECT id, file_name, company_name, job_role, analysis, created_at
        FROM resume_analyses
        WHERE id = $1 AND user_id = $2`,
       [analysisId, userId],
@@ -557,6 +565,8 @@ export async function getResumeAnalysis(
     return {
       analysisId: row.id,
       fileName: row.file_name,
+      companyName: row.company_name,
+      jobRole: row.job_role,
       analysis: normalizeAnalysis(
         parsed as Record<string, unknown>,
         normalizeProvider((parsed as Record<string, unknown>).provider),
