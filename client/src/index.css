@@ -3035,6 +3035,12 @@ em {
   text-underline-offset: 0.25rem;
 }
 
+.dashboard-primary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3.4rem 1.15rem;
+}
+
 .dashboard-profile-layout,
 .dashboard-assessment-grid {
   display: grid;
@@ -3308,6 +3314,10 @@ em {
 }
 
 @media (max-width: 760px) {
+  .dashboard-primary-grid {
+    grid-template-columns: 1fr;
+  }
+
   .dashboard-action-grid {
     grid-template-columns: 1fr;
   }

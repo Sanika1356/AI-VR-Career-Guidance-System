@@ -169,103 +169,105 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </header>
 
-      <section className="dashboard-profile-layout" aria-labelledby="profile-snapshot-title">
-        <Card
-          className="dashboard-profile-card"
-          title="Profile snapshot"
-          description="The context Pathfinder uses to keep your career guidance relevant."
-        >
-          <div className="dashboard-snapshot-grid">
-            <div className="dashboard-snapshot-item dashboard-snapshot-item--accent">
-              <span>Primary direction</span>
-              <strong>{profileSummary.goal}</strong>
-              <small>{profileSummary.focus}</small>
-            </div>
-            <div className="dashboard-snapshot-item">
-              <span>Current foundation</span>
-              <strong>{profileSummary.skill}</strong>
-              <small>{profileSummary.experience}</small>
-            </div>
-            <div className="dashboard-snapshot-item">
-              <span>Preferred environment</span>
-              <strong>{profileSummary.workStyle}</strong>
-              <small>{profileSummary.location}</small>
-            </div>
-            <div className="dashboard-snapshot-item">
-              <span>Learning setup</span>
-              <strong>{profileSummary.timeBudget}</strong>
-              <small>{profileSummary.learningStyle}</small>
-            </div>
-          </div>
-          <button className="text-link" type="button" onClick={() => onNavigate('/profile')}>
-            Refine your profile <span aria-hidden="true">↗</span>
-          </button>
-        </Card>
-      </section>
-
-      <section className="dashboard-assessment-layout" aria-labelledby="assessment-signal-title">
-        <div className="dashboard-section-heading">
-          <div>
-            <p className="section-kicker">Assessment signal</p>
-            <h2 id="assessment-signal-title">
-              {hasAssessment
-                ? 'Your results, translated into direction.'
-                : 'Find the pattern behind your interests.'}
-            </h2>
-          </div>
-          <button className="text-link" type="button" onClick={() => onNavigate(assessmentRoute)}>
-            {hasAssessment ? 'Open full insights' : 'Start assessment'}{' '}
-            <span aria-hidden="true">↗</span>
-          </button>
-        </div>
-
-        <div className="dashboard-assessment-grid">
+      <div className="dashboard-primary-grid">
+        <section className="dashboard-profile-layout" aria-labelledby="profile-snapshot-title">
           <Card
-            className={`dashboard-assessment-card ${hasAssessment ? 'dashboard-assessment-card--complete' : 'dashboard-assessment-card--empty'}`}
-            title={hasAssessment ? 'Top career matches' : 'Assessment pathway'}
-            description={
-              hasAssessment
-                ? `Based on your latest assessment${latestAssessment ? ` · completed ${formatDate(latestAssessment.completedAt)}` : ''}.`
-                : 'Answer a few focused questions to compare your strengths, interests, and work style.'
-            }
+            className="dashboard-profile-card"
+            title="Profile snapshot"
+            description="The context Pathfinder uses to keep your career guidance relevant."
           >
-            {hasAssessment ? (
-              <div className="dashboard-career-list">
-                {topCareerSignals.map((recommendation, index) => (
-                  <div className="dashboard-career-list__item" key={recommendation.careerId}>
-                    <span className="dashboard-career-list__rank">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <strong>{recommendation.career}</strong>
-                      <small>{recommendation.reason}</small>
-                    </div>
-                    {recommendation.score > 0 && <b>{recommendation.score}%</b>}
-                  </div>
-                ))}
+            <div className="dashboard-snapshot-grid">
+              <div className="dashboard-snapshot-item dashboard-snapshot-item--accent">
+                <span>Primary direction</span>
+                <strong>{profileSummary.goal}</strong>
+                <small>{profileSummary.focus}</small>
               </div>
-            ) : (
-              <div className="dashboard-assessment-card__empty-copy">
-                <span className="dashboard-assessment-card__number">01</span>
-                <div>
-                  <strong>Start with your story</strong>
-                  <p>
-                    There are no right answers. Your responses become a useful starting point, not a
-                    fixed label.
-                  </p>
-                </div>
+              <div className="dashboard-snapshot-item">
+                <span>Current foundation</span>
+                <strong>{profileSummary.skill}</strong>
+                <small>{profileSummary.experience}</small>
               </div>
-            )}
-            <button
-              className="outline-button"
-              type="button"
-              onClick={() => onNavigate(assessmentRoute)}
-            >
-              {assessmentCta} <span aria-hidden="true">↗</span>
+              <div className="dashboard-snapshot-item">
+                <span>Preferred environment</span>
+                <strong>{profileSummary.workStyle}</strong>
+                <small>{profileSummary.location}</small>
+              </div>
+              <div className="dashboard-snapshot-item">
+                <span>Learning setup</span>
+                <strong>{profileSummary.timeBudget}</strong>
+                <small>{profileSummary.learningStyle}</small>
+              </div>
+            </div>
+            <button className="text-link" type="button" onClick={() => onNavigate('/profile')}>
+              Refine your profile <span aria-hidden="true">↗</span>
             </button>
           </Card>
-        </div>
-      </section>
+        </section>
+
+        <section className="dashboard-assessment-layout" aria-labelledby="assessment-signal-title">
+          <div className="dashboard-section-heading">
+            <div>
+              <p className="section-kicker">Assessment signal</p>
+              <h2 id="assessment-signal-title">
+                {hasAssessment
+                  ? 'Your results, translated into direction.'
+                  : 'Find the pattern behind your interests.'}
+              </h2>
+            </div>
+            <button className="text-link" type="button" onClick={() => onNavigate(assessmentRoute)}>
+              {hasAssessment ? 'Open full insights' : 'Start assessment'}{' '}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+
+          <div className="dashboard-assessment-grid">
+            <Card
+              className={`dashboard-assessment-card ${hasAssessment ? 'dashboard-assessment-card--complete' : 'dashboard-assessment-card--empty'}`}
+              title={hasAssessment ? 'Top career matches' : 'Assessment pathway'}
+              description={
+                hasAssessment
+                  ? `Based on your latest assessment${latestAssessment ? ` · completed ${formatDate(latestAssessment.completedAt)}` : ''}.`
+                  : 'Answer a few focused questions to compare your strengths, interests, and work style.'
+              }
+            >
+              {hasAssessment ? (
+                <div className="dashboard-career-list">
+                  {topCareerSignals.map((recommendation, index) => (
+                    <div className="dashboard-career-list__item" key={recommendation.careerId}>
+                      <span className="dashboard-career-list__rank">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <strong>{recommendation.career}</strong>
+                        <small>{recommendation.reason}</small>
+                      </div>
+                      {recommendation.score > 0 && <b>{recommendation.score}%</b>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="dashboard-assessment-card__empty-copy">
+                  <span className="dashboard-assessment-card__number">01</span>
+                  <div>
+                    <strong>Start with your story</strong>
+                    <p>
+                      There are no right answers. Your responses become a useful starting point, not
+                      a fixed label.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <button
+                className="outline-button"
+                type="button"
+                onClick={() => onNavigate(assessmentRoute)}
+              >
+                {assessmentCta} <span aria-hidden="true">↗</span>
+              </button>
+            </Card>
+          </div>
+        </section>
+      </div>
 
       <section className="dashboard-actions" aria-labelledby="dashboard-actions-title">
         <div className="dashboard-section-heading">
