@@ -121,6 +121,9 @@ function drawPortal(
   context.save();
   context.translate(x, y);
   context.scale(scale, scale);
+  context.shadowColor = accent;
+  context.shadowBlur = isData ? 14 : 24;
+  context.shadowOffsetY = 4;
 
   context.fillStyle = 'rgba(16, 22, 22, 0.2)';
   context.beginPath();
@@ -130,6 +133,8 @@ function drawPortal(
   context.fillStyle = shell;
   drawRoundedRect(context, 0, 0, width, height, 22);
   context.fill();
+  context.shadowBlur = 0;
+  context.shadowOffsetY = 0;
   context.strokeStyle = accent;
   context.lineWidth = 3;
   context.stroke();
@@ -182,8 +187,10 @@ function drawPortal(
   }
 
   context.fillStyle = accent;
-  context.font = '700 11px DM Mono, monospace';
+  context.font = '700 9px DM Mono, monospace';
   context.letterSpacing = '1px';
+  context.fillText('WORLD PORTAL', 22, 25);
+  context.font = '700 11px DM Mono, monospace';
   context.fillText(environment.title.toUpperCase(), 22, height - 14);
   context.restore();
 }
@@ -201,12 +208,12 @@ function getHotspotAnchor(
 ): HotspotAnchor {
   const centerX = width / 2;
   const anchors: Record<HotspotKind, { x: number; y: number; radius: number }> = {
-    monitor: { x: -62, y: 30, radius: 30 },
-    whiteboard: { x: -118, y: -42, radius: 28 },
-    server: { x: 118, y: -36, radius: 28 },
-    notes: { x: 55, y: 32, radius: 25 },
-    bookshelf: { x: 142, y: 26, radius: 28 },
-    mug: { x: -24, y: 44, radius: 20 },
+    monitor: { x: -74, y: 28, radius: 24 },
+    whiteboard: { x: -34, y: 46, radius: 23 },
+    server: { x: 76, y: 28, radius: 24 },
+    notes: { x: 36, y: 58, radius: 22 },
+    bookshelf: { x: 88, y: 58, radius: 24 },
+    mug: { x: -76, y: 58, radius: 20 },
     core: { x: 0, y: -36, radius: 27 },
   };
   const anchor = anchors[hotspot.kind];
@@ -224,13 +231,14 @@ function drawHotspotObject(
   const { x, y } = anchor;
   context.save();
   context.translate(x, y);
+  context.scale(hotspot.kind === 'core' ? 1 : 0.68, hotspot.kind === 'core' ? 1 : 0.68);
   if (selected) {
     context.shadowColor = accent;
     context.shadowBlur = 16 + Math.sin(time / 280) * 4;
   }
-  context.strokeStyle = accent;
-  context.fillStyle = selected ? 'rgba(200, 239, 101, 0.22)' : 'rgba(25, 33, 32, 0.9)';
-  context.lineWidth = selected ? 3 : 2;
+  context.strokeStyle = selected ? accent : 'rgba(200, 239, 101, 0.68)';
+  context.fillStyle = selected ? 'rgba(200, 239, 101, 0.22)' : 'rgba(25, 33, 32, 0.72)';
+  context.lineWidth = selected ? 3 : 1;
 
   if (hotspot.kind === 'monitor') {
     context.fillRect(-20, -13, 40, 25);
@@ -313,10 +321,11 @@ function drawHotspotObject(
   }
 
   context.shadowBlur = 0;
-  context.fillStyle = '#202a29';
-  context.font = '700 8px DM Mono, monospace';
-  context.textAlign = 'center';
-  context.fillText(hotspot.title.toUpperCase(), 0, anchor.radius + 13);
+  context.strokeStyle = selected ? accent : 'rgba(200, 239, 101, 0.72)';
+  context.lineWidth = selected ? 2 : 1;
+  context.beginPath();
+  context.arc(0, 0, hotspot.kind === 'core' ? 30 : 22, 0, Math.PI * 2);
+  context.stroke();
   context.restore();
 }
 
@@ -412,14 +421,17 @@ function drawScene(
   context.beginPath();
   context.ellipse(0, 14, 80, 16, 0, 0, Math.PI * 2);
   context.stroke();
+  context.shadowColor = accent;
+  context.shadowBlur = 20 + Math.sin(time / 420) * 5;
   context.fillStyle = accent;
   context.beginPath();
   context.moveTo(0, -66 - Math.sin(time / 500) * 5);
-  context.lineTo(16, -38);
-  context.lineTo(0, -12);
-  context.lineTo(-16, -38);
+  context.lineTo(18, -38);
+  context.lineTo(0, -8);
+  context.lineTo(-18, -38);
   context.closePath();
   context.fill();
+  context.shadowBlur = 0;
   context.restore();
 
   if (environment.key === 'ai-engineer-lab') {
@@ -450,15 +462,17 @@ function drawScene(
 export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isCanvasSupported, setIsCanvasSupported] = useState(true);
-  const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(
-    environment.key === 'ai-engineer-lab' ? 'ai-core' : null,
-  );
+  const [selectedHotspotId, setSelectedHotspotId] = useState<string | null>(null);
+  const [controlsHintExpanded, setControlsHintExpanded] = useState(true);
   const playerRef = useRef<PlayerState>({ x: 0, y: 0, yaw: 0 });
   const pointerRef = useRef({ active: false, x: 0 });
   const pointerDownRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    setSelectedHotspotId(environment.key === 'ai-engineer-lab' ? 'ai-core' : null);
+    setSelectedHotspotId(null);
+    setControlsHintExpanded(true);
+    const collapseTimer = window.setTimeout(() => setControlsHintExpanded(false), 6500);
+    return () => window.clearTimeout(collapseTimer);
   }, [environment.key]);
 
   useEffect(() => {
@@ -577,29 +591,53 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
 
   return (
     <div className="vr-world" aria-label={`${environment.title} desktop 3D career environment`}>
-      {isCanvasSupported ? (
-        <>
-          <canvas
-            ref={canvasRef}
-            className="vr-world__canvas"
-            role="img"
-            aria-label={`${environment.title} interactive desktop scene`}
-            tabIndex={0}
-          />
-          <p className="vr-world__hint">
-            <strong>Desktop controls:</strong> click a hotspot to inspect it; use WASD or arrow keys
-            to move; drag horizontally to look around.
-          </p>
-        </>
-      ) : (
-        <div className="vr-world__fallback" role="status">
-          <strong>Interactive scene unavailable</strong>
-          <span>
-            Your browser does not support the desktop scene preview. Use the environment details and
-            career actions below instead.
-          </span>
-        </div>
-      )}
+      <div className="vr-world__stage">
+        {isCanvasSupported ? (
+          <>
+            <canvas
+              ref={canvasRef}
+              className="vr-world__canvas"
+              role="img"
+              aria-label={`${environment.title} interactive desktop scene`}
+              tabIndex={0}
+            />
+            <div className="vr-world__controls" aria-live="polite">
+              {controlsHintExpanded ? (
+                <button
+                  className="vr-world__hint"
+                  type="button"
+                  onClick={() => setControlsHintExpanded(false)}
+                  aria-label="Dismiss desktop controls"
+                >
+                  <span>
+                    <strong>Desktop controls</strong> Click a hotspot to inspect it; use WASD or
+                    arrow keys to move; drag horizontally to look around.
+                  </span>
+                  <span aria-hidden="true">×</span>
+                </button>
+              ) : (
+                <button
+                  className="vr-world__hint vr-world__hint--collapsed"
+                  type="button"
+                  onClick={() => setControlsHintExpanded(true)}
+                  aria-label="Show desktop controls"
+                >
+                  <span aria-hidden="true">?</span>
+                  <span>Controls</span>
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="vr-world__fallback" role="status">
+            <strong>Interactive scene unavailable</strong>
+            <span>
+              Your browser does not support the desktop scene preview. Use the environment details
+              and career actions below instead.
+            </span>
+          </div>
+        )}
+      </div>
       {environment.key === 'ai-engineer-lab' && (
         <section className="vr-hotspots" aria-label="AI Engineering Lab knowledge hotspots">
           <div className="vr-hotspots__list" role="list">
@@ -611,8 +649,10 @@ export function CareerWorldCanvas({ environment }: CareerWorldCanvasProps) {
                 onClick={() => setSelectedHotspotId(hotspot.id)}
                 aria-pressed={selectedHotspotId === hotspot.id}
               >
-                <strong>{hotspot.title}</strong>
-                <span>{hotspot.represents}</span>
+                <span className="vr-hotspot-chip__marker" aria-hidden="true">
+                  {hotspot.kind === 'core' ? '◆' : '•'}
+                </span>
+                <strong title={hotspot.represents}>{hotspot.title}</strong>
               </button>
             ))}
           </div>
