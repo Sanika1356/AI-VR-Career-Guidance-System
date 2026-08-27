@@ -158,6 +158,42 @@ test("learning-resource migration stores provenance metadata and idempotent auth
   assert.match(sql, /'catalog'/);
 });
 
+const careerLearningResourcesExpansionPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "../src/db/migrations/022_career_learning_resources.sql",
+);
+
+test("every seeded career role has authored learning resources", async () => {
+  const careerSql = await readFile(
+    join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../src/db/migrations/002_career_catalog.sql",
+    ),
+    "utf8",
+  );
+  const initialResourceSql = await readFile(
+    learningResourcesMigrationPath,
+    "utf8",
+  );
+  const expansionSql = await readFile(
+    careerLearningResourcesExpansionPath,
+    "utf8",
+  );
+  const resourceSql = `${initialResourceSql}\n${expansionSql}`;
+  for (const careerId of [
+    "career_ai_engineer",
+    "career_data_analyst",
+    "career_ux_researcher",
+    "career_product_designer",
+    "career_cybersecurity_analyst",
+  ]) {
+    assert.match(careerSql, new RegExp(`'${careerId}'`));
+    assert.match(resourceSql, new RegExp(`'${careerId}'`));
+  }
+  assert.match(expansionSql, /ON CONFLICT \(id\) DO UPDATE SET/);
+  assert.match(expansionSql, /resource_cyber_nist_csf/);
+});
+
 const roadmapActivityMigrationPath = join(
   dirname(fileURLToPath(import.meta.url)),
   "../src/db/migrations/017_roadmap_activity_events.sql",
