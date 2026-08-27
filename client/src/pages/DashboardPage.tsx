@@ -30,14 +30,6 @@ function getLearningStyle(preferences: Record<string, unknown>) {
   return typeof style === 'string' && style.trim() ? style : 'Learning style not set';
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null);
@@ -100,24 +92,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   const topRecommendation = recommendations?.recommendations[0] ?? null;
   const latestAssessment = dashboard?.recommendationChanges.latest;
-  const topCareerSignals = topRecommendation
-    ? (recommendations?.recommendations.slice(0, 3) ?? [])
-    : (latestAssessment?.topCareerIds ?? []).slice(0, 3).map((careerId) => ({
-        career: formatCareerName(careerId),
-        careerId,
-        score: 0,
-        reason: 'Explore this career signal in Job Insights.',
-        matchedSkills: [],
-        missingSkills: [],
-        evidence: {
-          assessmentScore: 0,
-          matchedSkillCount: 0,
-          missingSkillCount: 0,
-          confidence: 'low' as const,
-          tradeOffs: [],
-        },
-      }));
-
   if (isLoading) {
     return (
       <div className="page-frame page-frame--narrow">
@@ -202,71 +176,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           </button>
         </aside>
       </header>
-
-      <section
-        className="dashboard-assessment-layout dashboard-assessment-layout--boxed"
-        aria-labelledby="assessment-signal-title"
-      >
-        <div className="dashboard-section-heading">
-          <div>
-            <p className="section-kicker">Assessment signal</p>
-            <h2 className="dashboard-assessment-heading" id="assessment-signal-title">
-              {hasAssessment ? 'Your career signal' : 'Find your direction.'}
-            </h2>
-          </div>
-          <button className="text-link" type="button" onClick={() => onNavigate(assessmentRoute)}>
-            {hasAssessment ? 'Open full insights' : 'Start assessment'}{' '}
-            <span aria-hidden="true">↗</span>
-          </button>
-        </div>
-
-        <div className="dashboard-assessment-grid">
-          <Card
-            className={`dashboard-assessment-card ${hasAssessment ? 'dashboard-assessment-card--complete' : 'dashboard-assessment-card--empty'}`}
-            title={hasAssessment ? 'Top career matches' : 'Assessment pathway'}
-            description={
-              hasAssessment
-                ? `Based on your latest assessment${latestAssessment ? ` · completed ${formatDate(latestAssessment.completedAt)}` : ''}.`
-                : 'Answer a few focused questions to compare your strengths, interests, and work style.'
-            }
-          >
-            {hasAssessment ? (
-              <div className="dashboard-career-list">
-                {topCareerSignals.map((recommendation, index) => (
-                  <div className="dashboard-career-list__item" key={recommendation.careerId}>
-                    <span className="dashboard-career-list__rank">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                    <div>
-                      <strong>{recommendation.career}</strong>
-                      <small>{recommendation.reason}</small>
-                    </div>
-                    {recommendation.score > 0 && <b>{recommendation.score}%</b>}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="dashboard-assessment-card__empty-copy">
-                <span className="dashboard-assessment-card__number">01</span>
-                <div>
-                  <strong>Start with your story</strong>
-                  <p>
-                    There are no right answers. Your responses become a useful starting point, not a
-                    fixed label.
-                  </p>
-                </div>
-              </div>
-            )}
-            <button
-              className="outline-button"
-              type="button"
-              onClick={() => onNavigate(assessmentRoute)}
-            >
-              {assessmentCta} <span aria-hidden="true">↗</span>
-            </button>
-          </Card>
-        </div>
-      </section>
 
       <section className="dashboard-actions" aria-labelledby="dashboard-actions-title">
         <div className="dashboard-section-heading">
