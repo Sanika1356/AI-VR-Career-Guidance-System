@@ -966,26 +966,6 @@ export function ProfilePage() {
 
             <form className="profile-form" onSubmit={handleSubmit} noValidate>
               <div className="profile-form__fields">
-                <Input
-                  id="profile-name"
-                  label="Full name"
-                  name="name"
-                  value={form.name}
-                  onChange={(event) => updateField('name', event.target.value)}
-                  error={errors.name}
-                  required
-                  autoComplete="name"
-                />
-                <Input
-                  id="profile-email"
-                  label="Email address"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  readOnly
-                  hint="This is the email connected to your Pathfinder account."
-                  autoComplete="email"
-                />
                 <ProfileSelect
                   id="profile-interests"
                   label="Primary interest"
