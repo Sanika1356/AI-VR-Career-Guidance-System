@@ -3498,8 +3498,19 @@ em {
 }
 .vr-layout {
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  gap: 22px;
+  grid-template-columns: minmax(240px, 0.62fr) minmax(0, 1.38fr);
+  align-items: start;
+}
+
+.vr-page {
+  background:
+    radial-gradient(circle at 92% 16%, rgba(200, 239, 101, 0.12), transparent 24rem),
+    linear-gradient(180deg, #faf9f5 0%, #f3f2ec 100%);
+}
+
+.vr-page .page-frame__header > div {
+  max-width: 46rem;
 }
 .vr-environment-list {
   display: grid;
@@ -3507,22 +3518,46 @@ em {
   align-content: start;
 }
 .vr-environment-card {
+  position: relative;
   align-items: flex-start;
-  background: #fff;
-  border: 1px solid #e0ded6;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d9dfc9;
+  border-radius: 0.85rem;
+  box-shadow: 0 12px 28px rgba(38, 42, 31, 0.055);
   cursor: pointer;
   display: grid;
-  gap: 9px;
-  padding: 20px;
+  gap: 10px;
+  min-height: 11.2rem;
+  overflow: hidden;
+  padding: 22px 20px 20px;
   text-align: left;
   transition:
-    border-color 0.2s,
-    transform 0.2s;
+    border-color 180ms ease-out,
+    box-shadow 180ms ease-out,
+    transform 180ms ease-out;
 }
+
+.vr-environment-card::after {
+  content: '↗';
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  color: #829d31;
+  font-size: 1.05rem;
+  opacity: 0.7;
+  transition: transform 180ms ease-out;
+}
+
 .vr-environment-card:hover,
 .vr-environment-card--active {
   border-color: #829d31;
-  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(38, 42, 31, 0.1);
+  transform: translateY(-3px);
+}
+
+.vr-environment-card:hover::after,
+.vr-environment-card--active::after {
+  transform: translate(2px, -2px);
 }
 .vr-environment-card strong {
   font-size: 18px;
@@ -3542,17 +3577,29 @@ em {
 }
 .vr-stage-card {
   min-height: 520px;
-}
-.vr-world {
-  background: #202626;
   overflow: hidden;
+  border-color: #d9dfc9;
+  border-radius: 1rem;
+  box-shadow: 0 18px 48px rgba(38, 42, 31, 0.1);
+}
+
+.vr-stage-card .ui-card__body {
+  padding: 1.25rem;
+}
+
+.vr-world {
+  overflow: hidden;
+  border: 1px solid rgba(200, 239, 101, 0.18);
+  border-radius: 0.75rem;
+  background: #202626;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 .vr-world__stage {
   position: relative;
 }
 .vr-world__canvas {
   display: block;
-  height: 420px;
+  height: clamp(360px, 42vw, 470px);
   outline: none;
   touch-action: none;
   width: 100%;
@@ -3642,11 +3689,11 @@ em {
   max-width: 440px;
 }
 .vr-hotspots {
-  background: #f1f3e9;
-  border-top: 1px solid #dce5c4;
+  background: linear-gradient(180deg, #f3f6ea 0%, #eaf0dd 100%);
+  border-top: 1px solid #d5dfbd;
   display: grid;
-  gap: 14px;
-  padding: 14px 18px 18px;
+  gap: 16px;
+  padding: 16px 18px 18px;
 }
 .vr-hotspots__list {
   display: flex;
@@ -3655,23 +3702,27 @@ em {
 }
 .vr-hotspot-chip {
   align-items: center;
-  background: #fff;
-  border: 1px solid #dfe3da;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d5dcc8;
+  border-radius: 0.35rem;
+  box-shadow: 0 3px 10px rgba(38, 42, 31, 0.04);
   color: #202222;
   cursor: pointer;
   display: inline-flex;
   gap: 7px;
-  min-height: 34px;
-  padding: 7px 10px;
+  min-height: 38px;
+  padding: 8px 11px;
   text-align: left;
   transition:
-    border-color 0.2s,
-    background 0.2s;
+    border-color 180ms ease-out,
+    background 180ms ease-out,
+    box-shadow 180ms ease-out;
 }
 .vr-hotspot-chip:hover,
 .vr-hotspot-chip--active {
   background: #fbfff1;
   border-color: #829d31;
+  box-shadow: 0 6px 14px rgba(130, 157, 49, 0.12);
 }
 .vr-hotspot-chip:focus-visible {
   box-shadow: 0 0 0 3px rgba(130, 157, 49, 0.2);
@@ -3691,9 +3742,11 @@ em {
 .vr-hotspot-detail {
   animation: vr-hotspot-rise 0.22s ease-out;
   background: #202626;
-  border-left: 3px solid #c8ef65;
+  border-left: 4px solid #c8ef65;
+  border-radius: 0.45rem;
+  box-shadow: 0 10px 24px rgba(32, 38, 38, 0.16);
   color: #f5f4ef;
-  padding: 14px 17px;
+  padding: 16px 19px;
 }
 .vr-hotspot-detail .eyebrow {
   color: #c8ef65;
@@ -3764,7 +3817,7 @@ em {
     margin-top: 20px;
   }
   .vr-world__canvas {
-    height: 340px;
+    height: 360px;
   }
   .vr-world__hint {
     font-size: 11px;

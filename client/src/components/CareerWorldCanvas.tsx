@@ -208,12 +208,12 @@ function getHotspotAnchor(
 ): HotspotAnchor {
   const centerX = width / 2;
   const anchors: Record<HotspotKind, { x: number; y: number; radius: number }> = {
-    monitor: { x: -102, y: 54, radius: 22 },
-    whiteboard: { x: -42, y: 82, radius: 22 },
-    server: { x: 102, y: 54, radius: 22 },
-    notes: { x: 42, y: 92, radius: 21 },
-    bookshelf: { x: 148, y: 78, radius: 22 },
-    mug: { x: -144, y: 88, radius: 20 },
+    monitor: { x: -62, y: 30, radius: 30 },
+    whiteboard: { x: -118, y: -42, radius: 28 },
+    server: { x: 118, y: -36, radius: 28 },
+    notes: { x: 55, y: 32, radius: 25 },
+    bookshelf: { x: 142, y: 26, radius: 28 },
+    mug: { x: -24, y: 44, radius: 20 },
     core: { x: 0, y: -36, radius: 27 },
   };
   const anchor = anchors[hotspot.kind];
@@ -229,35 +229,101 @@ function drawHotspotObject(
   time: number,
 ) {
   const { x, y } = anchor;
-  const markerRadius = hotspot.kind === 'core' ? 9 : 5;
   context.save();
   context.translate(x, y);
-  context.globalAlpha = selected ? 1 : 0.62;
-  context.shadowColor = accent;
-  context.shadowBlur = selected ? 14 + Math.sin(time / 280) * 3 : 5;
+  if (selected) {
+    context.shadowColor = accent;
+    context.shadowBlur = 16 + Math.sin(time / 280) * 4;
+  }
+  context.strokeStyle = accent;
+  context.fillStyle = selected ? 'rgba(200, 239, 101, 0.22)' : 'rgba(25, 33, 32, 0.9)';
+  context.lineWidth = selected ? 3 : 2;
 
-  if (hotspot.kind === 'core') {
+  if (hotspot.kind === 'monitor') {
+    context.fillRect(-20, -13, 40, 25);
+    context.strokeRect(-20, -13, 40, 25);
     context.fillStyle = accent;
+    context.fillRect(-14, -7, 28, 12);
+    context.fillStyle = '#222a29';
+    context.fillRect(-3, 12, 6, 12);
+    context.fillRect(-14, 24, 28, 3);
+  } else if (hotspot.kind === 'whiteboard') {
+    context.fillStyle = '#f1f1e8';
+    context.fillRect(-24, -18, 48, 30);
+    context.strokeRect(-24, -18, 48, 30);
+    context.strokeStyle = '#6b7e46';
     context.beginPath();
-    context.moveTo(0, -markerRadius - 4);
-    context.lineTo(markerRadius + 4, 0);
-    context.lineTo(0, markerRadius + 4);
-    context.lineTo(-markerRadius - 4, 0);
-    context.closePath();
-    context.fill();
+    context.moveTo(-17, -8);
+    context.lineTo(-4, 0);
+    context.lineTo(6, -10);
+    context.lineTo(17, 2);
+    context.stroke();
+    context.fillStyle = '#222a29';
+    context.fillRect(-19, 12, 4, 18);
+    context.fillRect(15, 12, 4, 18);
+  } else if (hotspot.kind === 'server') {
+    context.fillStyle = '#1b292a';
+    context.fillRect(-18, -25, 36, 50);
+    context.strokeRect(-18, -25, 36, 50);
+    for (let index = 0; index < 3; index += 1) {
+      context.fillStyle = accent;
+      context.fillRect(-11, -16 + index * 13, 22, 3);
+      context.fillStyle = '#8c9584';
+      context.beginPath();
+      context.arc(11, -14 + index * 13, 2, 0, Math.PI * 2);
+      context.fill();
+    }
+  } else if (hotspot.kind === 'notes') {
+    const notes = [
+      { x: -18, y: -5, color: '#e4b75d' },
+      { x: 0, y: -15, color: '#c8ef65' },
+      { x: 16, y: -2, color: '#e98d78' },
+    ];
+    notes.forEach((note) => {
+      context.fillStyle = note.color;
+      context.fillRect(note.x, note.y, 18, 16);
+    });
+    context.strokeStyle = '#273331';
+    context.beginPath();
+    context.moveTo(-25, 15);
+    context.lineTo(25, 15);
+    context.stroke();
+  } else if (hotspot.kind === 'bookshelf') {
+    context.fillStyle = '#5b493a';
+    context.fillRect(-22, -28, 44, 56);
+    context.strokeRect(-22, -28, 44, 56);
+    context.fillStyle = '#e4b75d';
+    context.fillRect(-16, -21, 6, 17);
+    context.fillStyle = '#91b7c1';
+    context.fillRect(-7, -21, 7, 17);
+    context.fillStyle = '#d88473';
+    context.fillRect(3, -21, 7, 17);
+    context.fillStyle = '#dce5c4';
+    context.fillRect(-16, 3, 26, 10);
+  } else if (hotspot.kind === 'mug') {
+    context.fillStyle = '#e7e1d2';
+    context.fillRect(-11, -11, 22, 20);
+    context.strokeRect(-11, -11, 22, 20);
+    context.beginPath();
+    context.arc(12, -1, 7, -Math.PI / 2, Math.PI / 2);
+    context.stroke();
   } else {
     context.fillStyle = accent;
     context.beginPath();
-    context.arc(0, 0, markerRadius, 0, Math.PI * 2);
+    context.moveTo(0, -25 - Math.sin(time / 500) * 3);
+    context.lineTo(14, -2);
+    context.lineTo(0, 22);
+    context.lineTo(-14, -2);
+    context.closePath();
     context.fill();
+    context.stroke();
   }
 
   context.shadowBlur = 0;
-  context.strokeStyle = selected ? accent : 'rgba(200, 239, 101, 0.78)';
-  context.lineWidth = selected ? 2 : 1;
-  context.beginPath();
-  context.arc(0, 0, selected ? markerRadius + 8 : markerRadius + 4, 0, Math.PI * 2);
-  context.stroke();
+  context.fillStyle = '#202a29';
+  context.font = '700 8px DM Mono, monospace';
+  context.textAlign = 'center';
+  context.fillText(hotspot.title.toUpperCase(), 0, anchor.radius + 13);
   context.restore();
 }
 
