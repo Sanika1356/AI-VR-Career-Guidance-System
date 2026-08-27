@@ -4708,6 +4708,7 @@ em {
   text-align: center;
 }
 .resume-results__score-ring {
+  --ring-color: #7351e6;
   display: flex;
   align-items: baseline;
   justify-content: center;
@@ -4715,12 +4716,15 @@ em {
   height: 108px;
   padding-top: 40px;
   border: 8px solid #e5e3dc;
-  border-right-color: #45aed0;
-  border-top-color: #7351e6;
+  border-right-color: var(--ring-color);
+  border-top-color: var(--ring-color);
   border-radius: 50%;
-  background: conic-gradient(#7351e6 var(--score), #e5e3dc var(--score));
+  background: conic-gradient(var(--ring-color) var(--score), #e5e3dc var(--score));
   background-clip: padding-box;
   color: #39413a;
+}
+.resume-results__score-ring--ats {
+  --ring-color: #35afd1;
 }
 .resume-results__score-ring span {
   font-size: 24px;
@@ -4975,12 +4979,45 @@ em {
   flex-wrap: wrap;
   gap: 12px;
 }
+.resume-analysis-fullscreen {
+  display: grid;
+  min-height: calc(100vh - 5rem);
+  place-items: center;
+  padding: 36px 24px 72px;
+  background: linear-gradient(180deg, #f7f8ef 0%, #eef2e3 100%);
+}
+.resume-analysis-fullscreen__inner {
+  width: min(100%, 760px);
+}
+.resume-analysis-fullscreen__inner > .eyebrow {
+  margin-bottom: 14px;
+  color: #6e8b35;
+  text-align: center;
+}
+.resume-analysis-fullscreen__inner h1 {
+  margin: 0;
+  color: #202222;
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  letter-spacing: -0.08em;
+  line-height: 0.95;
+  text-align: center;
+}
+.resume-analysis-fullscreen__lead {
+  max-width: 38rem;
+  margin: 18px auto 28px;
+  color: #656a66;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+}
 .resume-analysis-progress {
   background: #f1f3e9;
   border: 1px solid #dce5c4;
+  border-radius: 0.95rem;
   display: grid;
   gap: 16px;
   padding: 16px;
+  box-shadow: 0 20px 45px rgba(68, 82, 45, 0.12);
 }
 .resume-analysis-progress__visual {
   position: relative;
@@ -5244,6 +5281,13 @@ em {
   }
 }
 @media (max-width: 560px) {
+  .resume-analysis-fullscreen {
+    min-height: calc(100vh - 3rem);
+    padding: 24px 14px 48px;
+  }
+  .resume-analysis-fullscreen__lead {
+    font-size: 0.86rem;
+  }
   .resume-results__toolbar {
     align-items: stretch;
     flex-direction: column;

@@ -208,18 +208,30 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   );
 }
 
-function ScoreRing({ score, label }: { score: number | null; label: string }) {
+function ScoreRing({
+  score,
+  label,
+  tone = 'overall',
+}: {
+  score: number | null;
+  label: string;
+  tone?: 'overall' | 'ats';
+}) {
   const normalizedScore = score === null ? 0 : Math.min(100, Math.max(0, score));
   const style = { '--score': `${normalizedScore}%` } as CSSProperties;
+  const status = score === null ? 'Not scored' : score < 50 ? 'Developing' : 'Strong signal';
 
   return (
     <div className="resume-results__score-ring-card">
-      <div className="resume-results__score-ring" style={style}>
+      <div
+        className={`resume-results__score-ring resume-results__score-ring--${tone}`}
+        style={style}
+      >
         <span>{score === null ? '—' : score}</span>
         <small>/100</small>
       </div>
       <strong>{label}</strong>
-      <small>{score === null ? 'Detailed score unavailable' : 'Evidence-based score'}</small>
+      <small>{status}</small>
     </div>
   );
 }
@@ -236,6 +248,44 @@ function EvidenceItems({ items, emptyLabel }: { items: string[]; emptyLabel: str
           <p>{item}</p>
         </article>
       ))}
+    </div>
+  );
+}
+
+function AnalysisProgress({ analysisStage }: { analysisStage: number }) {
+  return (
+    <div className="resume-analysis-progress" role="status" aria-live="polite">
+      <div className="resume-analysis-progress__visual" aria-hidden="true">
+        <div className="resume-analysis-progress__document">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="resume-analysis-progress__magnifier">
+          <span />
+        </div>
+        <div className="resume-analysis-progress__scan-line" />
+      </div>
+      <div className="resume-analysis-progress__header">
+        <div>
+          <strong>Analyzing your resume</strong>
+          <p>{ANALYSIS_STAGES[analysisStage].label}</p>
+          <small>{ANALYSIS_STAGES[analysisStage].detail}</small>
+        </div>
+      </div>
+      <ol className="resume-analysis-progress__stages">
+        {ANALYSIS_STAGES.map((stage, index) => (
+          <li className={index === analysisStage ? 'is-current' : ''} key={stage.label}>
+            <span aria-hidden="true">{index + 1}</span>
+            {stage.label}
+          </li>
+        ))}
+      </ol>
+      <p className="resume-analysis-progress__note">
+        This indicator reflects the analysis workflow; the AI service may take longer at any stage.
+        Keep this page open while the report is prepared.
+      </p>
     </div>
   );
 }
@@ -707,6 +757,22 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
     }
   }
 
+  if (isAnalyzing) {
+    return (
+      <main className="resume-analysis-fullscreen">
+        <div className="resume-analysis-fullscreen__inner">
+          <p className="eyebrow">Pathfinder resume intelligence</p>
+          <h1>We’re reviewing your resume</h1>
+          <p className="resume-analysis-fullscreen__lead">
+            We’re comparing your experience with the target role and turning the evidence into a
+            practical report.
+          </p>
+          <AnalysisProgress analysisStage={analysisStage} />
+        </div>
+      </main>
+    );
+  }
+
   return (
     <section className="page-frame resume-analyzer-page resume-theme-page">
       <div className="resume-theme-hero resume-upload__hero">
@@ -758,41 +824,6 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 </>
               )}
             </div>
-            {isAnalyzing && (
-              <div className="resume-analysis-progress" role="status" aria-live="polite">
-                <div className="resume-analysis-progress__visual" aria-hidden="true">
-                  <div className="resume-analysis-progress__document">
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                  <div className="resume-analysis-progress__magnifier">
-                    <span />
-                  </div>
-                  <div className="resume-analysis-progress__scan-line" />
-                </div>
-                <div className="resume-analysis-progress__header">
-                  <div>
-                    <strong>Analyzing your resume</strong>
-                    <p>{ANALYSIS_STAGES[analysisStage].label}</p>
-                    <small>{ANALYSIS_STAGES[analysisStage].detail}</small>
-                  </div>
-                </div>
-                <ol className="resume-analysis-progress__stages">
-                  {ANALYSIS_STAGES.map((stage, index) => (
-                    <li className={index === analysisStage ? 'is-current' : ''} key={stage.label}>
-                      <span aria-hidden="true">{index + 1}</span>
-                      {stage.label}
-                    </li>
-                  ))}
-                </ol>
-                <p className="resume-analysis-progress__note">
-                  This indicator reflects the analysis workflow; the AI service may take longer at
-                  any stage. Keep this page open while the report is prepared.
-                </p>
-              </div>
-            )}
             <label className="form-field">
               <span>Company name</span>
               <input
