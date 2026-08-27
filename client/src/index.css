@@ -3507,6 +3507,9 @@ em {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: 16px;
 }
+.dashboard-execution-grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
 .dashboard-progress-metric,
 .dashboard-streak {
   align-items: baseline;

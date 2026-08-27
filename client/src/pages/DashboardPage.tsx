@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge } from '../components/Badge';
 import { Card } from '../components/Card';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
@@ -160,47 +159,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </Card>
       </section>
 
-      <section className="dashboard-progress-grid" aria-label="Learning progress summary">
-        <Card
-          title="Roadmap progress"
-          description="Your completed roadmap steps and the skills they represent."
-        >
-          <div className="dashboard-progress-metric">
-            <strong>{dashboard.roadmap.completionPercent}%</strong>
-            <span>
-              {dashboard.roadmap.completedSteps} of {dashboard.roadmap.totalSteps} steps complete
-            </span>
-          </div>
-          <ProgressBar value={dashboard.roadmap.completionPercent} label="Roadmap completion" />
-          {dashboard.roadmap.completedSkills.length > 0 ? (
-            <div className="dashboard-tags" aria-label="Completed skills">
-              {dashboard.roadmap.completedSkills.map((skill) => (
-                <Badge key={skill} tone="success">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="muted-text">Complete a roadmap step to build your first skill signal.</p>
-          )}
-        </Card>
-
-        <Card
-          title="Learning streak"
-          description="A simple activity signal from your roadmap updates."
-        >
-          <div className="dashboard-streak">
-            <strong>{dashboard.streaks.currentDays}</strong>
-            <span>current day streak</span>
-          </div>
-          <p className="muted-text">
-            Longest recorded streak: {dashboard.streaks.longestDays} day
-            {dashboard.streaks.longestDays === 1 ? '' : 's'}.
-          </p>
-        </Card>
-      </section>
-
-      <section className="dashboard-execution-grid" aria-label="Roadmap execution details">
+      <section
+        className="dashboard-execution-grid dashboard-execution-grid--single"
+        aria-label="Roadmap execution details"
+      >
         <Card title="Active milestones" description="Roadmap steps you have marked as in progress.">
           {dashboard.roadmap.activeMilestones.length > 0 ? (
             <div className="dashboard-list">
@@ -228,29 +190,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           >
             Review career roadmaps <span aria-hidden="true">↗</span>
           </button>
-        </Card>
-
-        <Card
-          title="Reflection notes"
-          description="Your latest private notes attached to roadmap steps."
-        >
-          {dashboard.roadmap.reflectionNotes.length > 0 ? (
-            <div className="dashboard-list">
-              {dashboard.roadmap.reflectionNotes.map((note) => (
-                <div className="dashboard-list__item" key={note.stepId}>
-                  <strong>{note.title}</strong>
-                  <small>
-                    {note.skill} · updated {formatDate(note.updatedAt)}
-                  </small>
-                  <p>{note.notes}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="muted-text">
-              Add a short note to a roadmap step to see reflections here.
-            </p>
-          )}
         </Card>
       </section>
 
