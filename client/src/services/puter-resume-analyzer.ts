@@ -46,7 +46,7 @@ declare global {
   }
 }
 
-const AI_TIMEOUT_MS = 75_000;
+const AI_TIMEOUT_MS = 45_000;
 const PUTER_AUTH_TIMEOUT_MS = 45_000;
 
 const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
@@ -284,7 +284,7 @@ export async function analyzeResumeWithPuter(input: {
           },
         ],
         {
-          model: 'claude-sonnet-4-6',
+          model: 'google/gemini-3.5-flash-lite',
           max_tokens: 700,
           temperature: 0.2,
         },

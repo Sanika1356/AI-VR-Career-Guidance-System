@@ -109,7 +109,14 @@ export function AuthPage({ mode, onNavigate, onSuccess }: AuthPageProps) {
           />
         )}
         {isSubmitting ? (
-          <LoadingState label={isRegister ? 'Creating your account' : 'Signing you in'} />
+          <LoadingState
+            label={isRegister ? 'Creating your account' : 'Signing you in'}
+            description={
+              isRegister
+                ? 'Creating your secure Pathfinder session.'
+                : 'Connecting securely to Pathfinder. This should only take a few seconds.'
+            }
+          />
         ) : (
           <form className="auth-form" noValidate onSubmit={handleSubmit}>
             {isRegister && (

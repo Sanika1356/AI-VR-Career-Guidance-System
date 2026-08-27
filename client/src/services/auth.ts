@@ -34,6 +34,31 @@ export class AuthApiError extends Error {
   }
 }
 
+const AUTH_REQUEST_TIMEOUT_MS = 20_000;
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs = AUTH_REQUEST_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new AuthApiError(
+        'request_timeout',
+        'The sign-in service took too long to respond. Please try again.',
+        0,
+      );
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
 async function request<T>(
   path: string,
   init: RequestInit,
@@ -42,14 +67,15 @@ async function request<T>(
   let response: Response;
 
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    response = await fetchWithTimeout(`${API_BASE_URL}${path}`, {
       ...init,
       headers: {
         'Content-Type': 'application/json',
         ...init.headers,
       },
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof AuthApiError) throw error;
     throw new AuthApiError(
       'network_error',
       'The server could not be reached. Check your connection and try again.',
@@ -163,11 +189,12 @@ export async function authenticatedResponse(
   }
 
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    response = await fetchWithTimeout(`${API_BASE_URL}${path}`, {
       ...init,
       headers,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof AuthApiError) throw error;
     throw new AuthApiError(
       'network_error',
       'The server could not be reached. Check your connection and try again.',
