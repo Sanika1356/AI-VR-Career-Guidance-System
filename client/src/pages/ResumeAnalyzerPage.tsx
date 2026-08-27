@@ -150,6 +150,43 @@ function ResultChips({
   );
 }
 
+function ScoreGauge({ score, label }: { score: number; label: string }) {
+  const boundedScore = Math.max(0, Math.min(100, score));
+  const arcLength = Math.PI * 40;
+  const status = boundedScore > 69 ? 'Strong' : boundedScore > 49 ? 'Fair' : 'Needs work';
+  const statusClass =
+    boundedScore > 69 ? 'is-strong' : boundedScore > 49 ? 'is-fair' : 'is-developing';
+
+  return (
+    <div className="resume-report__gauge">
+      <div className="resume-report__gauge-visual">
+        <svg viewBox="0 0 100 55" aria-hidden="true">
+          <defs>
+            <linearGradient id="resumeReportGauge" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="55%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#22d3ee" />
+            </linearGradient>
+          </defs>
+          <path className="resume-report__gauge-track" d="M10,50 A40,40 0 0,1 90,50" />
+          <path
+            className="resume-report__gauge-value"
+            d="M10,50 A40,40 0 0,1 90,50"
+            strokeDasharray={arcLength}
+            strokeDashoffset={arcLength * (1 - boundedScore / 100)}
+          />
+        </svg>
+        <strong>
+          {Math.round(boundedScore)}
+          <span>/100</span>
+        </strong>
+      </div>
+      <span className="resume-report__gauge-label">{label}</span>
+      <span className={`resume-report__status ${statusClass}`}>{status}</span>
+    </div>
+  );
+}
+
 function ResumePreview({ fileName }: { fileName: string }) {
   if (activeResumePreviewUrl) {
     return (
@@ -431,6 +468,10 @@ export function ResumeAnalysisResultsPage({
   const interviewTopics = analysis.interviewTopics ?? [];
   const learningPlan = analysis.learningPlan ?? analysis.recommendations;
   const shows = (focus: ResumeOutputFocus) => preferredOutputs.includes(focus);
+  const evidenceTotal = analysis.matchingSkills.length + analysis.missingSkills.length;
+  const evidenceMatchRate = evidenceTotal
+    ? Math.round((analysis.matchingSkills.length / evidenceTotal) * 100)
+    : 0;
   const categoryDetails = [
     { title: 'Role fit', items: roleFit ? [roleFit] : [], enabled: shows('role_fit') },
     {
@@ -471,35 +512,54 @@ export function ResumeAnalysisResultsPage({
         </aside>
 
         <div className="resume-review__report">
-          <Card
-            className="resume-result__summary"
-            title="Analysis Summary"
-            description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
+          <header className="resume-report__header">
+            <div className="resume-report__identity">
+              <span className="resume-report__mark" aria-hidden="true">
+                PF
+              </span>
+              <div>
+                <p className="section-eyebrow">Pathfinder AI Resume Intelligence</p>
+                <h2>Resume Analysis Report</h2>
+              </div>
+            </div>
+            <div className="resume-report__meta">
+              <Badge tone="success">Completed</Badge>
+              <span>Generated {formatDate(result.analyzedAt)}</span>
+            </div>
+          </header>
+
+          <section
+            className="resume-report__panel resume-report__panel--summary"
+            aria-labelledby="resume-report-summary"
           >
-            <div className="resume-result__summary-grid">
-              <div className="resume-result__summary-metric resume-result__summary-metric--score">
-                <span>Overall alignment</span>
-                <strong>{analysis.overallScore}%</strong>
-                <small>Evidence-based score</small>
+            <div className="resume-report__section-heading">
+              <div>
+                <p className="section-eyebrow">Executive overview</p>
+                <h2 id="resume-report-summary">Analysis Summary</h2>
               </div>
-              <div className="resume-result__summary-metric">
-                <span>Strongest evidence</span>
-                <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
-              </div>
-              <div className="resume-result__summary-metric">
-                <span>Priority gap</span>
-                <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
-              </div>
-              <div className="resume-result__summary-metric">
-                <span>Recommended next step</span>
-                <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+              <span className="resume-report__report-id">{result.analysisId}</span>
+            </div>
+            <div className="resume-report__summary-hero">
+              <ScoreGauge score={analysis.overallScore} label="Overall resume score" />
+              <div className="resume-report__summary-copy">
+                <p className="resume-report__summary-lead">{analysis.summary}</p>
+                <div className="resume-report__summary-facts">
+                  <div>
+                    <span>Strongest evidence</span>
+                    <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
+                  </div>
+                  <div>
+                    <span>Priority gap</span>
+                    <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
+                  </div>
+                  <div>
+                    <span>Recommended next step</span>
+                    <p>{priorityActions[0] || 'Review the action plan below.'}</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="resume-result__summary-copy">
-              <span>Executive assessment</span>
-              <p>{analysis.summary}</p>
-            </div>
-          </Card>
+          </section>
 
           {shows('role_fit') && (
             <Card
