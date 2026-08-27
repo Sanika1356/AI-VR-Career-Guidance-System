@@ -122,13 +122,11 @@ function AssessmentIntro({ onStart }: { onStart: () => void }) {
           </span>
         </div>
       </div>
-      <div className="assessment-page__intro-marker" aria-hidden="true">
-        <span>02</span>
-        <strong>
-          CURIOUS
-          <br />
-          BY DESIGN
-        </strong>
+      <div className="assessment-page__intro-art">
+        <img
+          src="/assets/assessment-discovery-reference.png"
+          alt="A winding path through a soft green mountain landscape with signposts for strengths, interests, work style, and growth."
+        />
       </div>
     </section>
   );
