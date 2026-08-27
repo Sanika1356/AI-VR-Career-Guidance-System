@@ -412,6 +412,14 @@ Compares the authenticated learner’s current result with one earlier owned res
 
 The comparison endpoint never exposes option scoring JSON, accepts only two different result IDs, and returns `404` if either result is not owned by the authenticated user.
 
+## Learning resources
+
+### `GET /api/careers/:careerId/resources`
+
+Returns the authored learning resources for a career detail page. The catalog currently provides resources for every seeded career role: AI Engineer, Data Analyst, UX Researcher, Product Designer, and Cybersecurity Analyst. Results include source, skill mapping, level, format, cost model, accessibility metadata, freshness date, license, verification state, and a deterministic ranking reason. Resource URLs are catalog records; the API does not import external page content at request time.
+
+The optional `skill`, `languageCode`, and `limit` query parameters are bounded. Ranking favors an exact skill match, authored verification, resources marked free, and the requested language. No learner profile or private account data is sent to resource providers by this endpoint.
+
 ## Recommendations
 
 ### `GET /api/recommendations`
