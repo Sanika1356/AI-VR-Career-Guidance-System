@@ -40,7 +40,7 @@ declare global {
   }
 }
 
-const AI_TIMEOUT_MS = 75_000;
+const AI_TIMEOUT_MS = 45_000;
 const PUTER_AUTH_TIMEOUT_MS = 45_000;
 
 const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
@@ -363,24 +363,22 @@ export async function analyzeResumeWithPuter(input: {
     const preferredOutputs = input.preferredOutputs ?? DEFAULT_PREFERRED_OUTPUTS;
     const prompt = buildPrompt(input.jobRole, input.jobDescription, preferredOutputs);
     const response = await withTimeout(
-      typeof puter.ai.feedback === 'function'
-        ? puter.ai.feedback(puterPath, prompt)
-        : puter.ai.chat(
-            [
-              {
-                role: 'user',
-                content: [
-                  { type: 'file', puter_path: puterPath },
-                  { type: 'text', text: prompt },
-                ],
-              },
+      puter.ai.chat(
+        [
+          {
+            role: 'user',
+            content: [
+              { type: 'file', puter_path: puterPath },
+              { type: 'text', text: prompt },
             ],
-            {
-              model: 'claude-sonnet-4-6',
-              max_tokens: 700,
-              temperature: 0.2,
-            },
-          ),
+          },
+        ],
+        {
+          model: 'anthropic/claude-haiku-4-5',
+          max_tokens: 700,
+          temperature: 0.2,
+        },
+      ),
       AI_TIMEOUT_MS,
     );
     if (!response) throw new Error('The AI returned no resume analysis. Please try again.');
@@ -395,11 +393,8 @@ export async function analyzeResumeWithPuter(input: {
     });
   } finally {
     if (typeof puter.fs.delete === 'function') {
-      try {
-        await withTimeout(Promise.resolve(puter.fs.delete(puterPath)), 15_000);
-      } catch {
-        // Cleanup is best effort and must not hide the analysis or persistence error.
-      }
+      // Do not block navigation to the report on best-effort temporary-file cleanup.
+      void Promise.resolve(puter.fs.delete(puterPath)).catch(() => undefined);
     }
   }
 }

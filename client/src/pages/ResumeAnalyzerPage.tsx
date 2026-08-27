@@ -635,8 +635,19 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
             </div>
             {isAnalyzing && (
               <div className="resume-analysis-progress" role="status" aria-live="polite">
+                <div className="resume-analysis-progress__visual" aria-hidden="true">
+                  <div className="resume-analysis-progress__document">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="resume-analysis-progress__magnifier">
+                    <span />
+                  </div>
+                  <div className="resume-analysis-progress__scan-line" />
+                </div>
                 <div className="resume-analysis-progress__header">
-                  <span className="resume-analysis-progress__spinner" aria-hidden="true" />
                   <div>
                     <strong>Analyzing your resume</strong>
                     <p>{ANALYSIS_STAGES[analysisStage].label}</p>
