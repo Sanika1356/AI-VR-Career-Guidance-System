@@ -46,39 +46,6 @@ const ANALYSIS_STAGES = [
   },
 ] as const;
 
-const OUTPUT_OPTIONS: Array<{ value: ResumeOutputFocus; label: string; description: string }> = [
-  {
-    value: 'role_fit',
-    label: 'Role fit',
-    description: 'Evidence-based fit explanation and alignment score.',
-  },
-  {
-    value: 'ats_keywords',
-    label: 'ATS keywords',
-    description: 'Relevant terms to clarify or add where truthful.',
-  },
-  {
-    value: 'skill_gaps',
-    label: 'Skill gaps',
-    description: 'Missing requirements and a learning sequence.',
-  },
-  {
-    value: 'writing_improvements',
-    label: 'Writing improvements',
-    description: 'Specific resume clarity and impact suggestions.',
-  },
-  {
-    value: 'interview_prep',
-    label: 'Interview prep',
-    description: 'Evidence-backed topics to prepare and discuss.',
-  },
-  {
-    value: 'learning_plan',
-    label: 'Learning plan',
-    description: 'Prioritized next steps for the target role.',
-  },
-];
-
 function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
@@ -666,8 +633,6 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
   const [companyName, setCompanyName] = useState('');
   const [jobRole, setJobRole] = useState('');
   const [jobDescription, setJobDescription] = useState('');
-  const [preferredOutputs, setPreferredOutputs] =
-    useState<ResumeOutputFocus[]>(DEFAULT_PREFERRED_OUTPUTS);
   const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -728,7 +693,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
 
   useEffect(() => {
     setErrorMessage('');
-  }, [companyName, jobRole, jobDescription, preferredOutputs, file]);
+  }, [companyName, jobRole, jobDescription, file]);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -764,10 +729,6 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
       );
       return;
     }
-    if (preferredOutputs.length === 0) {
-      setErrorMessage('Select at least one preferred output before analyzing.');
-      return;
-    }
     if (puterSignedIn !== true) {
       setErrorMessage('Click “Sign in to Puter” before analyzing your resume.');
       return;
@@ -779,7 +740,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         companyName,
         jobRole,
         jobDescription,
-        preferredOutputs,
+        preferredOutputs: DEFAULT_PREFERRED_OUTPUTS,
         file,
       });
       saveResult(result);
@@ -911,34 +872,6 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 required
               />
             </label>
-            <fieldset className="resume-output-preferences">
-              <legend>Preferred outputs</legend>
-              <p className="resume-output-preferences__hint">
-                Choose the sections you want the AI to prioritize. At least one is required. Resume
-                content is treated as untrusted evidence, not as instructions.
-              </p>
-              <div className="resume-output-preferences__grid">
-                {OUTPUT_OPTIONS.map((option) => (
-                  <label className="resume-output-preferences__option" key={option.value}>
-                    <input
-                      type="checkbox"
-                      checked={preferredOutputs.includes(option.value)}
-                      onChange={() =>
-                        setPreferredOutputs((current) =>
-                          current.includes(option.value)
-                            ? current.filter((value) => value !== option.value)
-                            : [...current, option.value],
-                        )
-                      }
-                    />
-                    <span>
-                      <strong>{option.label}</strong>
-                      <small>{option.description}</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
             <label className="form-field">
               <span>Resume PDF</span>
               <input
