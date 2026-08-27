@@ -63,12 +63,10 @@ export function CareerCatalogPage({ onNavigate }: CareerCatalogPageProps) {
           </p>
         </div>
         <div className="career-hero__art">
-          <div className="career-hero__art-frame">
-            <img
-              src="/assets/assessment-discovery-reference.png"
-              alt="A soft green landscape with signposts for strengths, interests, work style, and growth."
-            />
-          </div>
+          <img
+            src="/assets/career-catalog-landscape.png"
+            alt="A soft green landscape with a winding path and leafy foliage, representing career directions."
+          />
         </div>
         <div className="career-hero__stat" aria-label={`${careers.length} career paths available`}>
           <strong>{careers.length}</strong>
