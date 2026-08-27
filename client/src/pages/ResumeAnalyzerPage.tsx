@@ -237,10 +237,10 @@ function ResumePreview({ fileName }: { fileName: string }) {
         <small>{fileName}</small>
       </div>
       {previewUrl ? (
-        <iframe
-          className="resume-results__preview-frame"
-          title={`${fileName} preview`}
-          src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+        <img
+          className="resume-results__preview-image"
+          src={previewUrl}
+          alt={`${fileName} first-page preview`}
         />
       ) : (
         <div className="resume-results__preview-fallback">
@@ -254,7 +254,9 @@ function ResumePreview({ fileName }: { fileName: string }) {
             <span />
           </div>
           <strong>{fileName}</strong>
-          <p>Preview is available when you open a report immediately after uploading its PDF.</p>
+          <p>
+            Resume image preview is available when you open a report immediately after uploading it.
+          </p>
         </div>
       )}
     </aside>
@@ -626,7 +628,8 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
         file,
       });
       saveResult(result);
-      setResumePreview(file);
+      setAnalysisStage(2);
+      await setResumePreview(file);
       onNavigate(`/resume-analyzer/results/${encodeURIComponent(result.analysisId)}`);
     } catch (error: unknown) {
       setErrorMessage(
