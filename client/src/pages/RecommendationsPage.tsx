@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Card } from '../components/Card';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorState } from '../components/ErrorState';
 import { LoadingState } from '../components/LoadingState';
@@ -10,7 +9,7 @@ interface RecommendationsPageProps {
   onNavigate: (href: string) => void;
 }
 
-function CareerPathRow({
+function CareerMapNode({
   recommendation,
   position,
   onSelect,
@@ -19,23 +18,28 @@ function CareerPathRow({
   position: number;
   onSelect: () => void;
 }) {
+  const positionClass = position <= 5 ? `career-map__node--${position}` : 'career-map__node--extra';
+
   return (
-    <Card className="recommendation-card recommendation-card--path">
+    <li className={`career-map__node ${positionClass}`}>
       <button
-        className="recommendation-card__path-button"
+        className="career-map__node-button"
         type="button"
         onClick={onSelect}
         aria-label={`Open Job Insights for ${recommendation.career}`}
       >
-        <span className="recommendation-card__path-index" aria-hidden="true">
+        <span className="career-map__node-index" aria-hidden="true">
           {String(position).padStart(2, '0')}
         </span>
-        <span className="recommendation-card__path-name">{recommendation.career}</span>
-        <span className="recommendation-card__path-arrow" aria-hidden="true">
+        <span className="career-map__node-copy">
+          <strong>{recommendation.career}</strong>
+          <span>Explore this path</span>
+        </span>
+        <span className="career-map__node-arrow" aria-hidden="true">
           ↗
         </span>
       </button>
-    </Card>
+    </li>
   );
 }
 
@@ -107,18 +111,36 @@ export function RecommendationsPage({ onNavigate }: RecommendationsPageProps) {
         />
       )}
       {status === 'success' && (
-        <section
-          className="recommendations-list recommendations-list--paths"
-          aria-label="Career paths"
-        >
-          {recommendations.map((recommendation, index) => (
-            <CareerPathRow
-              key={recommendation.careerId}
-              recommendation={recommendation}
-              position={index + 1}
-              onSelect={() => onNavigate(buildJobInsightsDetailPath(recommendation.careerId))}
-            />
-          ))}
+        <section className="career-map" aria-labelledby="career-map-title">
+          <div className="career-map__canvas">
+            <svg
+              className="career-map__connections"
+              viewBox="0 0 1000 560"
+              role="img"
+              aria-labelledby="career-map-title career-map-description"
+            >
+              <title id="career-map-title">Recommended career paths</title>
+              <desc id="career-map-description">
+                Connected career paths. Select a career to open its Job Insights detail page.
+              </desc>
+              <path d="M238 190 C360 140 445 145 542 206" />
+              <path d="M542 206 C650 140 748 139 835 188" />
+              <path d="M238 190 C268 290 292 338 350 382" />
+              <path d="M350 382 C430 382 482 335 542 206" />
+              <path d="M542 206 C600 310 684 370 760 442" />
+              <path d="M350 382 C510 430 650 458 760 442" />
+            </svg>
+            <ul className="career-map__nodes" aria-label="Career paths">
+              {recommendations.map((recommendation, index) => (
+                <CareerMapNode
+                  key={recommendation.careerId}
+                  recommendation={recommendation}
+                  position={index + 1}
+                  onSelect={() => onNavigate(buildJobInsightsDetailPath(recommendation.careerId))}
+                />
+              ))}
+            </ul>
+          </div>
         </section>
       )}
     </div>
