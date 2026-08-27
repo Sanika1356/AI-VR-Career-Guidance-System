@@ -284,6 +284,37 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
             <p className="muted-text">Skill details will be added as the catalog grows.</p>
           )}
         </Card>
+
+        <Card
+          title="Immersive environment"
+          description="VR is an optional layer, not a requirement for a career path."
+        >
+          {career.environment?.available ? (
+            <div className="environment-card">
+              <Badge tone="success">Available now</Badge>
+              <h2>{career.environment.title}</h2>
+              <p>{career.environment.description}</p>
+              <button
+                className="text-link"
+                type="button"
+                onClick={() =>
+                  onNavigate(`/vr?environment=${encodeURIComponent(career.environment?.key ?? '')}`)
+                }
+              >
+                Explore this environment <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+          ) : (
+            <div className="environment-card environment-card--unavailable">
+              <Badge tone="neutral">Catalog only</Badge>
+              <h2>No VR environment yet</h2>
+              <p>
+                This career remains fully supported in the guidance system. An immersive environment
+                can be added later without changing this career path or its roadmap.
+              </p>
+            </div>
+          )}
+        </Card>
       </section>
 
       <section className="career-detail-grid career-detail-grid--lower">
