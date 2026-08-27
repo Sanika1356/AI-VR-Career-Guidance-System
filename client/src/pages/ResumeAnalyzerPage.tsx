@@ -78,11 +78,13 @@ function HistoryCard({
   onView,
   onDelete,
   isDeleting,
+  deleteError,
 }: {
   item: ResumeAnalysisHistoryItem;
   onView: () => void;
   onDelete: () => void;
   isDeleting: boolean;
+  deleteError?: string;
 }) {
   return (
     <article className="resume-history__card">
@@ -117,6 +119,11 @@ function HistoryCard({
           <Button variant="outline" type="button" onClick={onView} disabled={isDeleting}>
             View analysis
           </Button>
+          {deleteError && (
+            <p className="resume-history__delete-error" role="alert">
+              {deleteError}
+            </p>
+          )}
         </div>
       </div>
     </article>
@@ -128,6 +135,7 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [deletingId, setDeletingId] = useState<string>();
+  const [deleteError, setDeleteError] = useState<{ id: string; message: string }>();
 
   useEffect(() => {
     let active = true;
@@ -158,15 +166,19 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
     );
     if (!confirmed) return;
 
-    setErrorMessage('');
+    setDeleteError(undefined);
     setDeletingId(item.id);
     try {
       await deleteResumeAnalysis(item.id);
       setItems((current) => current.filter((analysis) => analysis.id !== item.id));
     } catch (error: unknown) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'The resume analysis could not be deleted.',
-      );
+      const message = error instanceof Error ? error.message : '';
+      setDeleteError({
+        id: item.id,
+        message: message.includes('Route DELETE')
+          ? 'Delete is unavailable until the latest backend deployment is live.'
+          : message || 'This resume analysis could not be deleted. Please try again.',
+      });
     } finally {
       setDeletingId(undefined);
     }
@@ -245,6 +257,7 @@ export function ResumeHistoryPage({ onNavigate }: { onNavigate: (href: string) =
               onView={() => onNavigate(`/resume-analyzer/results/${encodeURIComponent(item.id)}`)}
               onDelete={() => void handleDelete(item)}
               isDeleting={deletingId === item.id}
+              deleteError={deleteError?.id === item.id ? deleteError.message : undefined}
             />
           ))}
         </div>
