@@ -23,6 +23,21 @@ const DEFAULT_PREFERRED_OUTPUTS: ResumeOutputFocus[] = [
   'interview_prep',
   'learning_plan',
 ];
+const ANALYSIS_STAGES = [
+  {
+    label: 'Preparing a temporary resume copy',
+    detail: 'Your PDF is sent to Puter for this analysis and cleaned up afterward.',
+  },
+  {
+    label: 'Reviewing evidence against the target role',
+    detail: 'The AI is comparing the resume with the company, role, and job description.',
+  },
+  {
+    label: 'Structuring your professional report',
+    detail: 'The returned findings are being organized into the Pathfinder report sections.',
+  },
+] as const;
+
 const OUTPUT_OPTIONS: Array<{ value: ResumeOutputFocus; label: string; description: string }> = [
   {
     value: 'role_fit',
@@ -298,15 +313,30 @@ export function ResumeAnalysisResultsPage({
       <Card
         className="resume-result__summary"
         title="Executive summary"
-        description="This score reflects evidence-based alignment, not a hiring guarantee."
+        description="A concise, evidence-based readout of the strongest signal, main gap, and next move."
       >
-        <p>{analysis.summary}</p>
-        <div
-          className="resume-result__score"
-          aria-label={`Overall alignment score ${analysis.overallScore} out of 100`}
-        >
-          <span>{analysis.overallScore}</span>
-          <small>/100</small>
+        <div className="resume-result__summary-grid">
+          <div className="resume-result__summary-metric resume-result__summary-metric--score">
+            <span>Overall alignment</span>
+            <strong>{analysis.overallScore}%</strong>
+            <small>Evidence-based score</small>
+          </div>
+          <div className="resume-result__summary-metric">
+            <span>Strongest evidence</span>
+            <p>{analysis.strengths[0] || 'No specific strength was returned.'}</p>
+          </div>
+          <div className="resume-result__summary-metric">
+            <span>Priority gap</span>
+            <p>{analysis.missingSkills[0] || 'No major gap was identified.'}</p>
+          </div>
+          <div className="resume-result__summary-metric">
+            <span>Recommended next step</span>
+            <p>{priorityActions[0] || 'Review the detailed recommendations below.'}</p>
+          </div>
+        </div>
+        <div className="resume-result__summary-copy">
+          <span>Executive assessment</span>
+          <p>{analysis.summary}</p>
         </div>
       </Card>
 
@@ -435,6 +465,7 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
   const [file, setFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStage, setAnalysisStage] = useState(0);
   const [puterSignedIn, setPuterSignedIn] = useState<boolean | null>(null);
   const [isPuterSigningIn, setIsPuterSigningIn] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -476,6 +507,18 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
       setIsPuterSigningIn(false);
     }
   }
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setAnalysisStage(0);
+      return;
+    }
+    setAnalysisStage(0);
+    const stageTimer = window.setInterval(() => {
+      setAnalysisStage((current) => Math.min(current + 1, ANALYSIS_STAGES.length - 1));
+    }, 8_000);
+    return () => window.clearInterval(stageTimer);
+  }, [isAnalyzing]);
 
   useEffect(() => {
     setErrorMessage('');
@@ -590,6 +633,30 @@ export function ResumeAnalyzerUploadPage({ onNavigate }: { onNavigate: (href: st
                 </>
               )}
             </div>
+            {isAnalyzing && (
+              <div className="resume-analysis-progress" role="status" aria-live="polite">
+                <div className="resume-analysis-progress__header">
+                  <span className="resume-analysis-progress__spinner" aria-hidden="true" />
+                  <div>
+                    <strong>Analyzing your resume</strong>
+                    <p>{ANALYSIS_STAGES[analysisStage].label}</p>
+                    <small>{ANALYSIS_STAGES[analysisStage].detail}</small>
+                  </div>
+                </div>
+                <ol className="resume-analysis-progress__stages">
+                  {ANALYSIS_STAGES.map((stage, index) => (
+                    <li className={index === analysisStage ? 'is-current' : ''} key={stage.label}>
+                      <span aria-hidden="true">{index + 1}</span>
+                      {stage.label}
+                    </li>
+                  ))}
+                </ol>
+                <p className="resume-analysis-progress__note">
+                  This indicator reflects the analysis workflow; the AI service may take longer at
+                  any stage. Keep this page open while the report is prepared.
+                </p>
+              </div>
+            )}
             <label className="form-field">
               <span>Company name</span>
               <input
