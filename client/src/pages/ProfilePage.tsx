@@ -691,16 +691,38 @@ export function ProfilePage() {
 
   return (
     <main className="profile-page page-container">
-      <div className="profile-page__intro">
-        <p className="eyebrow">Your Pathfinder profile</p>
-        <h1>
-          Make the journey <em>yours.</em>
-        </h1>
-        <p>
-          Keep your interests, current skills, experience, and learning preferences up to date so
-          your recommendations stay relevant. Optional learner context can help future guidance
-          respect your goals, constraints, and available time.
-        </p>
+      <div className="profile-page__hero-row">
+        <div className="profile-page__intro">
+          <p className="eyebrow">Your Pathfinder profile</p>
+          <h1>
+            Make the journey <em>yours.</em>
+          </h1>
+          <p>
+            Keep your interests, current skills, experience, and learning preferences up to date so
+            your recommendations stay relevant. Optional learner context can help future guidance
+            respect your goals, constraints, and available time.
+          </p>
+        </div>
+        {!isLoading && !loadError && form && (
+          <Card
+            className="profile-page__account-card"
+            title="Account details"
+            description="Your sign-in identity is managed separately from your career profile."
+          >
+            <div className="profile-page__account-summary">
+              <span className="profile-page__avatar" aria-hidden="true">
+                {form.name.slice(0, 1).toUpperCase() || '?'}
+              </span>
+              <div>
+                <strong>{form.name}</strong>
+                <span>{form.email}</span>
+              </div>
+            </div>
+            <p className="profile-page__account-note">
+              Your email address cannot be edited from this page.
+            </p>
+          </Card>
+        )}
       </div>
 
       {isLoading && (
@@ -721,25 +743,6 @@ export function ProfilePage() {
 
       {!isLoading && !loadError && form && (
         <div className="profile-page__grid">
-          <Card
-            className="profile-page__account-card"
-            title="Account details"
-            description="Your sign-in identity is managed separately from your career profile."
-          >
-            <div className="profile-page__account-summary">
-              <span className="profile-page__avatar" aria-hidden="true">
-                {form.name.slice(0, 1).toUpperCase() || '?'}
-              </span>
-              <div>
-                <strong>{form.name}</strong>
-                <span>{form.email}</span>
-              </div>
-            </div>
-            <p className="profile-page__account-note">
-              Your email address cannot be edited from this page.
-            </p>
-          </Card>
-
           <Card
             className="profile-page__form-card"
             title="Career profile"

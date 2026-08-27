@@ -1017,6 +1017,16 @@ em {
   margin: 0;
   max-width: 590px;
 }
+.profile-page__hero-row {
+  align-items: end;
+  display: grid;
+  gap: clamp(28px, 5vw, 72px);
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  margin-bottom: 42px;
+}
+.profile-page__hero-row .profile-page__intro {
+  margin: 0;
+}
 .profile-page__grid {
   align-items: start;
   display: grid;
@@ -1066,8 +1076,9 @@ em {
   padding-top: 16px;
 }
 .profile-page__account-card {
-  grid-column: 1;
+  align-self: end;
   min-width: 0;
+  width: 100%;
 }
 .profile-page__privacy-card {
   grid-column: 2;
@@ -1140,6 +1151,11 @@ em {
 @media (max-width: 760px) {
   .profile-page {
     padding: 65px 22px;
+  }
+  .profile-page__hero-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    margin-bottom: 28px;
   }
   .profile-page__grid {
     display: block;
