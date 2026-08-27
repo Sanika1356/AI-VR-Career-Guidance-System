@@ -1710,10 +1710,10 @@ em {
 .career-card__details-button {
   align-items: center;
   align-self: flex-start;
-  background: #1f2929;
-  border: 1px solid #1f2929;
+  background: #e6f4bd;
+  border: 1px solid #a7c45b;
   border-radius: 6px;
-  color: #ffffff;
+  color: #263229;
   cursor: pointer;
   display: flex;
   font-family: 'DM Mono', monospace;
@@ -1722,6 +1722,8 @@ em {
   justify-content: space-between;
   letter-spacing: 0.04em;
   margin-top: auto;
+  position: relative;
+  top: 8px;
   min-height: 42px;
   min-width: 180px;
   padding: 10px 14px;
@@ -1735,8 +1737,8 @@ em {
   width: auto;
 }
 .career-card__details-button:hover {
-  background: #596c23;
-  border-color: #596c23;
+  background: #d3ec8f;
+  border-color: #829d31;
   box-shadow: 0 6px 14px rgba(31, 41, 41, 0.16);
   transform: translateY(-1px);
 }
