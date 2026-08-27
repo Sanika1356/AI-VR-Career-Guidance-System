@@ -2044,6 +2044,14 @@ em {
   .job-opportunity__links {
     grid-template-columns: 1fr;
   }
+  .recommendation-card__minimal-content {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .recommendation-card__minimal-content .job-opportunity__chooser {
+    width: 100%;
+  }
 }
 @media (max-width: 640px) {
   .page-frame {
@@ -2068,6 +2076,35 @@ em {
 .recommendations-page {
   display: grid;
   gap: 1.5rem;
+}
+
+.recommendations-page--minimal {
+  gap: 2rem;
+}
+
+.recommendations-page--minimal .recommendations-page__header {
+  align-items: start;
+}
+
+.recommendation-card--minimal {
+  gap: 0;
+}
+
+.recommendation-card__minimal-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.recommendation-card__minimal-content h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.recommendation-card__minimal-content .job-opportunity__chooser {
+  min-width: 220px;
 }
 
 .recommendations-page__header {
