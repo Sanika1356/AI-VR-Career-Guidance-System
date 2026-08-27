@@ -12,6 +12,55 @@ interface CareerDetailPageProps {
   onNavigate: (href: string) => void;
 }
 
+const toSearchSlug = (role: string) =>
+  role
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+const JOB_MARKET_PLATFORMS: Array<{
+  label: string;
+  description: string;
+  buildUrl: (role: string) => string;
+}> = [
+  {
+    label: 'Naukri',
+    description: 'India jobs',
+    buildUrl: (role) => `https://www.naukri.com/${toSearchSlug(role)}-jobs`,
+  },
+  {
+    label: 'Indeed',
+    description: 'Global job search',
+    buildUrl: (role) => `https://www.indeed.com/jobs?q=${encodeURIComponent(role)}`,
+  },
+  {
+    label: 'Apna',
+    description: 'Jobs across India',
+    buildUrl: (role) => `https://apna.co/jobs/${toSearchSlug(role)}-jobs`,
+  },
+  {
+    label: 'Foundit',
+    description: 'Jobs and vacancies',
+    buildUrl: (role) => `https://www.foundit.in/search/${toSearchSlug(role)}-jobs`,
+  },
+  {
+    label: 'LinkedIn Jobs',
+    description: 'Jobs and networking',
+    buildUrl: (role) =>
+      `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(role)}`,
+  },
+  {
+    label: 'Instahyre',
+    description: 'Tech and startup jobs',
+    buildUrl: (role) => `https://www.instahyre.com/${toSearchSlug(role)}-jobs/`,
+  },
+  {
+    label: 'Wellfound',
+    description: 'Startup jobs',
+    buildUrl: (role) => `https://wellfound.com/jobs?query=${encodeURIComponent(role)}`,
+  },
+];
+
 const CAREER_DETAIL_ENRICHMENTS: Record<
   string,
   {
@@ -494,22 +543,31 @@ export function CareerDetailPage({ careerId, onNavigate }: CareerDetailPageProps
                     <strong>{jobSearch.role}</strong>
                     <small>Current openings and requirements</small>
                   </div>
-                  <div
-                    className="job-opportunity__links"
-                    aria-label={`${jobSearch.role} job searches`}
-                  >
-                    {jobSearch.links.map((link) => (
-                      <a
-                        className="job-opportunity__link"
-                        href={link.url}
-                        key={link.label}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {link.label} <span aria-hidden="true">↗</span>
-                      </a>
-                    ))}
-                  </div>
+                  <details className="job-opportunity__chooser">
+                    <summary className="job-opportunity__apply-button">
+                      Apply for jobs <span aria-hidden="true">↗</span>
+                    </summary>
+                    <div
+                      className="job-opportunity__links"
+                      aria-label={`${jobSearch.role} job platforms`}
+                    >
+                      {JOB_MARKET_PLATFORMS.map((platform) => (
+                        <a
+                          className="job-opportunity__link"
+                          href={platform.buildUrl(jobSearch.role)}
+                          key={platform.label}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span>
+                            <strong>{platform.label}</strong>
+                            <small>{platform.description}</small>
+                          </span>
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  </details>
                 </article>
               ))}
             </div>
